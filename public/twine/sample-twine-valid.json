@@ -1,0 +1,35 @@
+{
+  "name": "Coffee Shop Dilemma",
+  "ifid": "12F8E3B6-9C4A-4F4C-8A72-VALID12345",
+  "startnode": 1,
+  "tags": ["training", "ethics"],
+  "passages": [
+    {
+      "pid": 1,
+      "name": "Opening Scene",
+      "tags": ["intro"],
+      "text": "You arrive for your first shift at the community coffee shop. [[Greet the team->Meet The Team]] [[Head straight to the counter->Jump In]]"
+    },
+    {
+      "pid": 2,
+      "name": "Meet The Team",
+      "tags": ["decision"],
+      "text": "The manager introduces you to a mentor barista. [[Shadow the mentor->Shadow Mentor]] [[Ask to lead your own order->Jump In]]"
+    },
+    {
+      "pid": 3,
+      "name": "Jump In",
+      "text": "You step behind the counter and the first rush begins. [[Handle the rush->Handle Rush]]"
+    },
+    {
+      "pid": 4,
+      "name": "Shadow Mentor",
+      "text": "You observe the mentor guiding customers kindly. [[Handle the rush->Handle Rush]]"
+    },
+    {
+      "pid": 5,
+      "name": "Handle Rush",
+      "text": "Orders fly in, but you work together and keep the line moving."
+    }
+  ]
+}

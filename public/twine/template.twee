@@ -1,0 +1,45 @@
+:: StoryTitle [tags: loop-ready]
+Loop Ready Template
+
+:: start [emotion=hopeful, intensity=0.4, audio=ambient-sunrise.mp3]
+You wake up to a soft sunrise filtering through the blinds. Today you will guide a community health initiative.
+
+[[Check in with the care team->care-team-brief]]
+[[Review neighborhood survey->survey-review]]
+
+:: care-team-brief [emotion=focused, intensity=0.6]
+The care team is waiting in the clinic office. They look to you for direction.
+
+[[Emphasize empathy training->empathy-planning]]
+[[Ask for a resource update->resource-update]]
+
+:: survey-review [emotion=curious, intensity=0.5]
+The latest neighborhood survey highlights transportation gaps and language barriers.
+
+[[Launch a mobility pilot->mobility-pilot]]
+[[Create translated materials->translation-drive]]
+
+:: empathy-planning [emotion=confident, intensity=0.7]
+You lead an interactive role-play. Staff practice de-escalation and reflective listening.
+
+[[Continue the journey->wrap-up]]
+
+:: resource-update [emotion=alert, intensity=0.6]
+Inventory is lower than expected. Medication deliveries have been delayed.
+
+[[Coordinate with suppliers->wrap-up]]
+
+:: mobility-pilot [emotion=determined, intensity=0.8]
+You sketch a shuttle loop with local volunteers. Riders will access appointments on time.
+
+[[Continue the journey->wrap-up]]
+
+:: translation-drive [emotion=collaborative, intensity=0.6]
+You recruit bilingual teens to co-create flyers and social posts for elders.
+
+[[Continue the journey->wrap-up]]
+
+:: wrap-up [emotion=reflective, intensity=0.3]
+By sunset, the clinic feels more prepared and connected. Log progress in Loop to share the wins.
+
+<<print "Thanks for using the Loop template! Export via Twison when you are ready.">>
