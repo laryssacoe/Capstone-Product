@@ -3,6 +3,8 @@
 import type React from "react";
 import styled from "styled-components";
 import Link from "next/link";
+import Image from "next/image";
+import { useAuth } from "@/hooks/use-auth";
 import { useEffect, useRef, useState, Suspense } from "react";
 import * as THREE from "three";
 
@@ -150,8 +152,15 @@ const HeaderInner = styled.div`
 `;
 
 const Brand = styled.div`
-  display: flex; align-items: center; gap: .75rem;
-  img { width: 120px; height: 40px; display: block; }
+  display: flex;
+  align-items: center;
+  gap: .75rem;
+`;
+
+const LogoImage = styled.div`
+  position: relative;
+  width: 120px;
+  height: 40px;
 `;
 
 const Nav = styled.nav`
@@ -184,25 +193,74 @@ const Overlay = styled.div`
   position: fixed; inset: 0; z-index: 50;
   display: grid; place-items: center;
   padding: 1rem;
-  background: rgba(0,0,0,.5);
-  backdrop-filter: blur(4px);
+  background: rgba(0,0,0,.6);
+  backdrop-filter: blur(8px);
+  animation: fadeIn 0.2s ease-out;
+  
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
 `;
 
 const ContactCard = styled.div`
-  width: 100%; max-width: 28rem;
-  background: #0f172a;
-  border: 1px solid #334155;
-  border-radius: 1rem;
-  padding: 2rem;
+  width: 100%; max-width: 30rem;
+  background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+  border: 1px solid rgba(99, 102, 241, 0.3);
+  border-radius: 1.25rem;
+  padding: 2.5rem;
+  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(99, 102, 241, 0.1);
+  animation: slideUp 0.3s ease-out;
+  
+  @keyframes slideUp {
+    from { 
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to { 
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
 `;
 
 const ModalTitle = styled.h3`
-  margin: 0 0 .5rem;
-  font-size: 1.5rem; font-weight: 800; color: #f8fafc;
+  margin: 0 0 .75rem;
+  font-size: 1.75rem; 
+  font-weight: 900; 
+  background: linear-gradient(135deg, #60a5fa 0%, #a78bfa 100%);
+  -webkit-background-clip: text;
+  color: transparent;
   text-align: center;
+  letter-spacing: -0.02em;
 `;
 const ModalLead = styled.p`
-  margin: 0 0 1.25rem; color: #cbd5e1; text-align: center;
+  margin: 0 0 1.5rem; 
+  color: #cbd5e1; 
+  text-align: center;
+  font-size: 1.05rem;
+  line-height: 1.6;
+`;
+
+const WarningNote = styled.div`
+  margin-bottom: 1.5rem;
+  padding: 1rem 1.25rem;
+  border-radius: .75rem;
+  background: linear-gradient(135deg, rgba(251, 191, 36, 0.12), rgba(245, 158, 11, 0.12));
+  border: 1px solid rgba(251, 191, 36, 0.3);
+  color: #fbbf24;
+  font-size: .95rem;
+  text-align: center;
+  line-height: 1.5;
+  
+  strong {
+    font-weight: 700;
+    color: #fcd34d;
+  }
+  
+  u {
+    text-decoration-color: rgba(251, 191, 36, 0.5);
+  }
 `;
 
 const ErrorBox = styled.div`
@@ -218,20 +276,30 @@ const InputsCol = styled.div`
   display: grid; gap: 1rem;
 `;
 
-const EmailInput = styled(UIInput)`
-  background: #334155; border-color: #475569; color: #cbd5e1;
-  &::placeholder { color: #94a3b8; }
-`;
-
 const MessageInput = styled.textarea`
-  width: 100%; height: 6rem; resize: none;
-  padding: .75rem;
-  border-radius: .5rem;
-  background: #334155; border: 1px solid #475569;
-  color: #cbd5e1;
+  width: 100%; 
+  height: 7rem; 
+  resize: none;
+  padding: 1rem;
+  border-radius: .75rem;
+  background: rgba(51, 65, 85, 0.6);
+  border: 1.5px solid #475569;
+  color: #e2e8f0;
   outline: none;
-  &:focus { box-shadow: 0 0 0 2px #3b82f6 inset; }
-  &::placeholder { color: #94a3b8; }
+  font-family: inherit;
+  font-size: .95rem;
+  line-height: 1.6;
+  transition: all 0.2s ease;
+  
+  &:focus { 
+    border-color: #6366f1;
+    background: rgba(51, 65, 85, 0.8);
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
+  }
+  
+  &::placeholder { 
+    color: #94a3b8; 
+  }
 `;
 
 const ModalActions = styled.div`
@@ -239,14 +307,36 @@ const ModalActions = styled.div`
 `;
 const SendBtn = styled(UIButton)`
   flex: 1;
-  background: linear-gradient(90deg,#2563eb,#7c3aed);
-  color: #fff; border: none;
-  &:hover { filter: brightness(1.05); }
+  background: linear-gradient(135deg, #2563eb 0%, #7c3aed 100%);
+  color: #fff; 
+  border: none;
+  font-weight: 600;
+  padding: .75rem 1.5rem;
+  transition: all 0.2s ease;
+  
+  &:hover { 
+    transform: translateY(-1px);
+    box-shadow: 0 6px 16px rgba(99, 102, 241, 0.4);
+    filter: brightness(1.1);
+  }
+  
+  &:active {
+    transform: translateY(0);
+  }
 `;
 const CancelBtn = styled(UIButton)`
-  border: 1px solid #334155;
-  background: #0f172a; color: #cbd5e1;
-  &:hover { background: #1f2937; color: #e5e7eb; }
+  border: 1.5px solid #475569;
+  background: rgba(15, 23, 42, 0.8);
+  color: #cbd5e1;
+  font-weight: 600;
+  padding: .75rem 1.5rem;
+  transition: all 0.2s ease;
+  
+  &:hover { 
+    background: #1e293b;
+    border-color: #64748b;
+    color: #e5e7eb;
+  }
 `;
 
 const Toast = styled.div<{ $bg: string; $bd: string; $fg: string }>`
@@ -323,12 +413,20 @@ const SectionLead = styled.p`
   color: #cbd5e1; font-size: 1.1rem; margin: 0 auto; max-width: 40rem;
 `;
 const FeatureGrid = styled.div`
-  display: grid; gap: 2rem; max-width: 64rem; margin: 0 auto;
-  grid-template-columns: repeat(1,minmax(0,1fr));
-  @media (min-width: 768px){ grid-template-columns: repeat(3,minmax(0,1fr)); }
+  display: grid;
+  gap: 2rem;
+  max-width: 48rem;
+  margin: 0 auto;
+  grid-template-columns: repeat(1, minmax(0, 1fr));
+  @media (min-width: 768px) {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
 `;
 const FeatureCard = styled.div`
-  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: justify;
 `;
 const IconWrap = styled.div`
   width: 5rem; height: 5rem; margin: 0 auto 1rem;
@@ -341,7 +439,11 @@ const IconWrap = styled.div`
 const FeatureTitle = styled.h4`
   margin: .5rem 0  .5rem; color: #f8fafc; font-weight: 800; font-size: 1.125rem;
 `;
-const FeatureText = styled.p` color: #cbd5e1; `;
+const FeatureText = styled.p`
+  color: #cbd5e1;
+  text-align: center;
+  padding: 0 0.5rem;
+`;
 
 const Footer = styled.footer`
   border-top: 1px solid rgba(255,255,255,.1);
@@ -350,7 +452,7 @@ const Footer = styled.footer`
   background: rgba(15,23,42,.8);
 `;
 const FooterInner = styled.div` max-width: 64rem; margin: 0 auto; text-align: center; `;
-const FooterBrand = styled.div` display: inline-grid; place-items: center; gap: .75rem; margin-bottom: 1.25rem; img{ width:120px; height:40px; } `;
+const FooterBrand = styled.div` display: inline-grid; place-items: center; gap: .75rem; margin-bottom: 1.25rem; `;
 const FooterText = styled.p` color: #cbd5e1; margin: 0; `;
 
 const Tooltip = styled.div`
@@ -359,13 +461,18 @@ const Tooltip = styled.div`
 `;
 
 export default function HomePage() {
+  const { user } = useAuth();
+  // Import ProfileBubbleChip
+  // @ts-ignore
+  const ProfileBubbleChip = require("@/components/profile-bubble-chip").ProfileBubbleChip;
   const [showScrollIndicator, setShowScrollIndicator] = useState(true);
-  const [email, setEmail] = useState("");
+  // Remove email state, use user.email
   const [message, setMessage] = useState("");
   const [showContactForm, setShowContactForm] = useState(false);
   const [showSuccessMessage, setShowSuccessMessage] = useState(false);
   const [showErrorMessage, setShowErrorMessage] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
+  const [sending, setSending] = useState(false);
 
   useEffect(() => {
     const onScroll = () => setShowScrollIndicator(!(window.scrollY > window.innerHeight * 0.8));
@@ -377,15 +484,32 @@ export default function HomePage() {
     document.querySelector("#features-section")?.scrollIntoView({ behavior: "smooth" });
   };
 
-  const handleContactSubmit = (e: React.FormEvent) => {
+  const handleContactSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setSending(true);
     try {
-      if (email && message) {
+      if (!message) {
+        setErrorMessage("Please enter your message.");
+        setShowErrorMessage(true);
+        setTimeout(() => setShowErrorMessage(false), 4000);
+        setSending(false);
+        return;
+      }
+      const senderName = user?.profile?.displayName || user?.email || "Anonymous visitor";
+      const senderEmail = user?.email ?? null;
+      // Send to API
+      const res = await fetch("/api/contact", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: senderName, email: senderEmail, message, anonymous: !user }),
+      });
+      const data = await res.json();
+      if (data.success) {
         setShowSuccessMessage(true);
-        setEmail(""); setMessage(""); setShowContactForm(false);
+        setMessage(""); setShowContactForm(false);
         setTimeout(() => setShowSuccessMessage(false), 4000);
       } else {
-        setErrorMessage("Please fill in both email and message fields.");
+        setErrorMessage(data.error || "Something went wrong. Please try again.");
         setShowErrorMessage(true);
         setTimeout(() => setShowErrorMessage(false), 4000);
       }
@@ -394,6 +518,7 @@ export default function HomePage() {
       setShowErrorMessage(true);
       setTimeout(() => setShowErrorMessage(false), 4000);
     }
+    setSending(false);
   };
 
   return (
@@ -402,45 +527,65 @@ export default function HomePage() {
       <Header>
         <HeaderInner>
           <Brand>
-            <img src="/logo.png" alt="Loop Logo" />
+            <LogoImage>
+              <Image src="/logo.png" alt="Loop Logo" fill sizes="120px" priority style={{ objectFit: "contain" }} />
+            </LogoImage>
           </Brand>
           <Nav>
             <NavLink href="/scenarios">Explore</NavLink>
             <NavLink href="/progress">Journey</NavLink>
             <NavLink href="/about">About</NavLink>
+            {user ? (
+              <NavLink href="/creator">{user.role === "CREATOR" || user.role === "ADMIN" ? "Creator" : "Become a Creator"}</NavLink>
+            ) : (
+              <NavLink href="/login">Sign in</NavLink>
+            )}
             <ContactBtn size="sm" onClick={() => setShowContactForm((s) => !s)}>
               <Mail size={16} /> Contact Us
             </ContactBtn>
+            {/* Profile bubble chip for all users */}
+            {user && (
+              <ProfileBubbleChip avatarUrl={user.profile?.avatarUrl} displayName={user.profile?.displayName || user.email} onClick={() => window.location.href = "/profile"} />
+            )}
           </Nav>
         </HeaderInner>
       </Header>
-
       {/* Contact Modal */}
       {showContactForm && (
-        <Overlay>
-          <ContactCard>
+        <Overlay onClick={() => setShowContactForm(false)}>
+          <ContactCard onClick={(e) => e.stopPropagation()}>
             <ModalTitle>Contact Us</ModalTitle>
             <ModalLead>Get in touch to learn more about this research project.</ModalLead>
+            <WarningNote>
+              <strong>Note:</strong> {user
+                ? <>Messages are sent from your account and are <u>not anonymous</u>.</>
+                : <>Messages sent without an account are anonymous and we can’t reply directly.</>}
+            </WarningNote>
 
             {showErrorMessage && <ErrorBox>{errorMessage}</ErrorBox>}
 
             <form onSubmit={handleContactSubmit}>
               <InputsCol>
-                <EmailInput
-                  type="email"
-                  placeholder="Enter your email address"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required
-                />
                 <MessageInput
-                  placeholder="Enter your message"
+                  placeholder="Enter your message..."
                   value={message}
                   onChange={(e) => setMessage(e.target.value)}
                   required
                 />
                 <ModalActions>
-                  <SendBtn type="submit">Send Message</SendBtn>
+                  <SendBtn type="submit" disabled={sending}>
+                    {sending ? (
+                      <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem' }}>
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ animation: 'spin 1s linear infinite' }}>
+                          <circle cx="12" cy="12" r="10" stroke="#fff" strokeWidth="4" opacity="0.2" />
+                          <path d="M12 2a10 10 0 1 1-9.95 9" stroke="#fff" strokeWidth="4" strokeLinecap="round" />
+                        </svg>
+                        Sending...
+                      </span>
+                    ) : (
+                      'Send Message'
+                    )}
+                  </SendBtn>
                   <CancelBtn type="button" variant="outline" onClick={() => setShowContactForm(false)}>
                     Cancel
                   </CancelBtn>
@@ -457,7 +602,11 @@ export default function HomePage() {
           <Dot style={{ background: "#10b981" }} />
           <div>
             <strong>Message sent successfully!</strong>
-            <div style={{ fontSize: ".9rem", color: "#047857" }}>We’ll get back to you soon.</div>
+            <div style={{ fontSize: ".9rem", color: "#047857" }}>
+              {user?.email
+                ? "We’ll get back to you soon."
+                : "Thanks for reaching out. Anonymous messages don’t include contact info, so we won’t be able to reply directly."}
+            </div>
           </div>
         </Toast>
       )}
@@ -529,19 +678,19 @@ export default function HomePage() {
             <FeatureCard>
               <IconWrap><Globe size={32} color="#60a5fa" /></IconWrap>
               <FeatureTitle>Global Perspectives</FeatureTitle>
-              <FeatureText>PLACEHOLDER PLACEHOLDER PLACEHOLDER PLACEHOLDER PLACEHOLDER PLACEHOLDER.</FeatureText>
+              <FeatureText>Understand issues from multiple cultural and geographic viewpoints.</FeatureText>
             </FeatureCard>
 
             <FeatureCard>
               <IconWrap><Brain size={32} color="#c4b5fd" /></IconWrap>
               <FeatureTitle>Meaningful Choices</FeatureTitle>
-              <FeatureText>PLACEHOLDER PLACEHOLDER PLACEHOLDER PLACEHOLDER PLACEHOLDER PLACEHOLDER.</FeatureText>
+              <FeatureText>Make decisions that influence how things unfold and reflect on the outcomes.</FeatureText>
             </FeatureCard>
 
             <FeatureCard>
               <IconWrap><Heart size={32} color="#f472b6" /></IconWrap>
               <FeatureTitle>Empathy Building</FeatureTitle>
-              <FeatureText>PLACEHOLDER PLACEHOLDER PLACEHOLDER PLACEHOLDER PLACEHOLDER PLACEHOLDER.</FeatureText>
+              <FeatureText>Gain insight into others’ experiences and build genuine understanding.</FeatureText>
             </FeatureCard>
           </FeatureGrid>
         </FeaturesInner>
@@ -551,7 +700,9 @@ export default function HomePage() {
       <Footer>
         <FooterInner>
           <FooterBrand>
-            <img src="/logo.png" alt="Loop Logo" />
+            <LogoImage>
+              <Image src="/logo.png" alt="Loop Logo" fill sizes="120px" style={{ objectFit: "contain" }} />
+            </LogoImage>
           </FooterBrand>
           <FooterText>Building empathy through immersive experiences</FooterText>
         </FooterInner>

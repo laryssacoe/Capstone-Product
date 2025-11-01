@@ -318,7 +318,7 @@ export function ResourceEvents({ currentResources, onEventOccur, turnNumber }: R
                   <Alert className="border-yellow-500">
                     <AlertTriangle className="h-4 w-4" />
                     <AlertDescription>
-                      You don't have enough resources to prevent this event. It will occur automatically.
+                      You don’t have enough resources to prevent this event. It will occur automatically.
                     </AlertDescription>
                   </Alert>
                 )}

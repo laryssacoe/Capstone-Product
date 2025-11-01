@@ -1,9 +1,12 @@
 'use client';
 
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { useState } from 'react';
 import styled from 'styled-components';
 import { ProgressTracker } from '@/components/progress-tracker';
 import { ArrowLeft } from 'lucide-react';
+import { useAuth } from '@/hooks/use-auth';
 
 const Page = styled.div`
   min-height: 100vh;
@@ -20,12 +23,12 @@ const Header = styled.header`
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 `;
 
-const Container = styled.div<{ py?: number }>`
+const Container = styled.div<{ $py?: number }>`
   width: 100%;
   max-width: 80rem; /* ~1280px */
   margin: 0 auto;
   padding: 0 1rem;
-  ${(p) => p.py && `padding-top:${p.py}rem; padding-bottom:${p.py}rem;`}
+  ${(p) => p.$py && `padding-top:${p.$py}rem; padding-bottom:${p.$py}rem;`}
 `;
 
 const Row = styled.div`
@@ -49,6 +52,24 @@ const Brand = styled.h1`
   font-weight: 700;
   font-size: 1.5rem;
   color: #60a5fa;
+`;
+
+const LogoutButton = styled.button`
+  border: 1px solid rgba(96, 165, 250, 0.5);
+  border-radius: 999px;
+  padding: 0.4rem 1rem;
+  color: #bfdbfe;
+  background: transparent;
+  cursor: pointer;
+  transition: background 0.2s ease;
+  font-size: 0.9rem;
+  &:hover {
+    background: rgba(96, 165, 250, 0.1);
+  }
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
 `;
 
 const Center = styled.div`
@@ -86,21 +107,43 @@ const TrackerWrap = styled.section`
 `;
 
 export default function ProgressPage() {
+  const router = useRouter();
+  const [loggingOut, setLoggingOut] = useState(false);
+  const { user } = useAuth();
+
+  async function handleLogout() {
+    setLoggingOut(true);
+    try {
+      await fetch('/api/auth/logout', { method: 'POST' });
+      router.push('/');
+      router.refresh();
+    } finally {
+      setLoggingOut(false);
+    }
+  }
+
   return (
     <Page>
       <Header>
-        <Container py={1}>
+  <Container $py={1}>
           <Row>
             <BackLink href="/">
               <ArrowLeft />
               <span>Back to Experience</span>
             </BackLink>
-            <Brand>Your Journey</Brand>
+            <Row style={{ gap: '1rem' }}>
+              <Brand>Your Journey</Brand>
+              {user && (
+                <LogoutButton onClick={handleLogout} disabled={loggingOut}>
+                  {loggingOut ? 'Signing out...' : 'Sign out'}
+                </LogoutButton>
+              )}
+            </Row>
           </Row>
         </Container>
       </Header>
 
-      <Container py={3}>
+  <Container $py={3}>
         <Center>
           <TitleXL>
             <GradientText>Learning Journey</GradientText>

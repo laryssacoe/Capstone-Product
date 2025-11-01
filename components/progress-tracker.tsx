@@ -1,12 +1,22 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Progress } from "@/components/ui/progress"
 import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Trophy, Target, Heart, Brain, Users, Star, TrendingUp, Award } from "lucide-react"
-import type { UserProgress } from "@/types/simulation"
+import type { TrackedScenario, UserProgress } from "@/types/simulation"
+import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogFooter,
+  AlertDialogTitle,
+  AlertDialogDescription,
+  AlertDialogAction,
+  AlertDialogCancel,
+} from "@/components/ui/alert-dialog"
 
 interface ProgressTrackerProps {
   userId?: string
@@ -14,49 +24,102 @@ interface ProgressTrackerProps {
 }
 
 export function ProgressTracker({ userId = "demo-user", className }: ProgressTrackerProps) {
-  const [progress, setProgress] = useState<UserProgress>({
-    userId,
-    totalEmpathyScore: 750,
-    scenariosCompleted: 12,
-    totalScenarios: 25,
-    issuesExplored: ["housing-discrimination", "workplace-disability", "corporate-racism"],
-    achievements: [
-      {
-        id: "first-scenario",
-        title: "First Steps",
-        description: "Completed your first scenario",
-        icon: "target",
-        unlockedAt: new Date("2024-01-15"),
-        category: "milestone",
-      },
-      {
-        id: "empathy-builder",
-        title: "Empathy Builder",
-        description: "Reached 500 empathy points",
-        icon: "heart",
-        unlockedAt: new Date("2024-01-20"),
-        category: "empathy",
-      },
-      {
-        id: "difficult-choices",
-        title: "Difficult Choices",
-        description: "Made 10 high-stakes decisions",
-        icon: "brain",
-        unlockedAt: new Date("2024-01-25"),
-        category: "decision",
-      },
-    ],
-    learningMetrics: {
-      empathyGrowth: 85,
-      decisionQuality: 78,
-      issueAwareness: 92,
-      resourceManagement: 71,
-      moralReasoning: 88,
-    },
-    streakDays: 7,
-    lastActive: new Date(),
-    timeSpent: 180, // minutes
+  const [progress, setProgress] = useState<UserProgress | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const [actionMessage, setActionMessage] = useState<string | null>(null)
+  const [pendingScenario, setPendingScenario] = useState<TrackedScenario | null>(null)
+  const [confirming, setConfirming] = useState(false)
+  const signInPrompt = "In order to start and see your journey, sign in."
+
+  const normalizeProgress = (data: UserProgress): UserProgress => ({
+    ...data,
+    achievements: data.achievements?.map((achievement) => ({
+      ...achievement,
+      unlockedAt: new Date(achievement.unlockedAt),
+    })) ?? [],
+    lastActive: data.lastActive ? new Date(data.lastActive) : null,
+    scenarios: data.scenarios ?? [],
   })
+
+  useEffect(() => {
+    let cancelled = false
+    async function loadProgress() {
+      setLoading(true)
+      setError(null)
+      try {
+        const response = await fetch("/api/progress", { cache: "no-store" })
+        if (!response.ok) {
+          if (response.status === 401) {
+            setError(signInPrompt)
+            return
+          }
+          const data = await response.json().catch(() => ({}))
+          throw new Error(data.error ?? "To load progress, please sign in.")
+        }
+        const data = await response.json()
+        if (!cancelled) {
+          setProgress(normalizeProgress({ ...data, userId: data.userId ?? userId } as UserProgress))
+        }
+      } catch (err) {
+        if (!cancelled) {
+          setError(err instanceof Error ? err.message : "Unable to load progress.")
+        }
+      } finally {
+        if (!cancelled) setLoading(false)
+      }
+    }
+    loadProgress()
+    return () => {
+      cancelled = true
+    }
+  }, [userId])
+
+  async function submitScenarioCompletion(scenario: TrackedScenario) {
+    setActionMessage(null)
+    try {
+      const response = await fetch("/api/journeys/complete", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          scenarioId: scenario.id,
+          scenario: {
+            title: scenario.title,
+            description: (scenario.metadata as any)?.description,
+            issue:
+              (scenario.metadata as any)?.issue ??
+              (scenario.issueTag
+                ? {
+                    id: scenario.issueTag,
+                    type: scenario.issueTag,
+                    severity: scenario.difficulty ?? undefined,
+                  }
+                : undefined),
+            difficulty: scenario.difficulty ?? undefined,
+            estimatedMinutes: scenario.estimatedMinutes ?? undefined,
+            minimumResources: (scenario.metadata as any)?.minimumResources,
+          },
+        }),
+      })
+      if (!response.ok) {
+        const data = await response.json().catch(() => ({}))
+        throw new Error(data.error ?? "Unable to update scenario.")
+      }
+      const data = await response.json()
+      setProgress(normalizeProgress(data))
+      setActionMessage("Scenario recorded! Progress updated.")
+    } catch (err) {
+      setActionMessage(err instanceof Error ? err.message : "Unable to update scenario.")
+    }
+  }
+
+  async function confirmScenarioCompletion() {
+    if (!pendingScenario) return
+    setConfirming(true)
+    await submitScenarioCompletion(pendingScenario)
+    setConfirming(false)
+    setPendingScenario(null)
+  }
 
   const getIconComponent = (iconName: string) => {
     const icons = {
@@ -82,11 +145,34 @@ export function ProgressTracker({ userId = "demo-user", className }: ProgressTra
     return colors[category as keyof typeof colors] || colors.milestone
   }
 
-  const completionPercentage = Math.round((progress.scenariosCompleted / progress.totalScenarios) * 100)
+  if (loading) {
+    return <div className={`text-center text-gray-300 ${className}`}>Loading your progress…</div>
+  }
+
+  if (error || !progress) {
+    return (
+      <div className={`text-center space-y-4 ${className}`}>
+        <p className="text-gray-300">{error ?? signInPrompt}</p>
+        <a
+          className="inline-flex justify-center rounded-lg bg-blue-600 px-6 py-2 text-white"
+          href="/login"
+        >
+          Go to sign in
+        </a>
+      </div>
+    )
+  }
+
   const empathyLevel = Math.floor(progress.totalEmpathyScore / 100) + 1
+  const completionPercentage =
+    progress.completionPercentage ??
+    Math.round((progress.scenariosCompleted / Math.max(progress.totalScenarios, 1)) * 100)
 
   return (
     <div className={`space-y-6 ${className}`}>
+      {actionMessage && (
+        <div className="rounded-lg border border-slate-700 bg-slate-800/60 p-3 text-sm text-slate-200">{actionMessage}</div>
+      )}
       {/* Overview Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 justify-items-center">
         <Card className="bg-slate-800/50 border-slate-700 w-full max-w-sm">
@@ -190,21 +276,59 @@ export function ProgressTracker({ userId = "demo-user", className }: ProgressTra
                 <div className="space-y-3">
                   <h4 className="font-medium text-gray-200">Issues Explored</h4>
                   <div className="space-y-2">
-                    {progress.issuesExplored.map((issue) => (
-                      <Badge
-                        key={issue}
-                        variant="secondary"
-                        className="mr-2 bg-slate-700 text-gray-300 border-slate-600"
-                      >
-                        {issue.replace(/-/g, " ").replace(/\b\w/g, (l) => l.toUpperCase())}
-                      </Badge>
-                    ))}
+                    {progress.issuesExplored.length ? (
+                      progress.issuesExplored.map((issue) => (
+                        <Badge
+                          key={issue}
+                          variant="secondary"
+                          className="mr-2 bg-slate-700 text-gray-300 border-slate-600"
+                        >
+                          {issue.replace(/-/g, " ").replace(/\b\w/g, (l) => l.toUpperCase())}
+                        </Badge>
+                      ))
+                    ) : (
+                      <p className="text-sm text-gray-400">Complete a scenario to uncover new issues.</p>
+                    )}
                   </div>
                   <p className="text-sm text-gray-400">
                     Time spent learning: {Math.floor(progress.timeSpent / 60)}h {progress.timeSpent % 60}m
                   </p>
                 </div>
               </div>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-slate-800/50 border-slate-700">
+            <CardHeader>
+              <CardTitle className="text-gray-100">Scenario Checklist</CardTitle>
+              <CardDescription className="text-gray-400">
+                Mark scenarios complete to sync achievements
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              {progress.scenarios.map((scenario) => (
+                <div
+                  key={scenario.id}
+                  className="flex flex-col gap-3 rounded-lg border border-slate-700/70 bg-slate-900/40 p-3 sm:flex-row sm:items-center sm:justify-between"
+                >
+                  <div>
+                    <p className="font-medium text-gray-100">{scenario.title}</p>
+                    <p className="text-sm text-gray-400 capitalize">
+                      {scenario.issueTag?.replace(/-/g, " ") ?? "General"} • Difficulty: {scenario.difficulty ?? "n/a"}
+                    </p>
+                  </div>
+                  {scenario.completed ? (
+                    <Badge className="self-start bg-emerald-500/20 text-emerald-300 border-emerald-500/50">Completed</Badge>
+                  ) : (
+                    <button
+                      className="self-start rounded-lg border border-blue-500/40 px-3 py-1 text-sm text-blue-200 transition hover:bg-blue-500/10"
+                      onClick={() => setPendingScenario(scenario)}
+                    >
+                      Mark complete
+                    </button>
+                  )}
+                </div>
+              ))}
             </CardContent>
           </Card>
         </TabsContent>
@@ -218,6 +342,9 @@ export function ProgressTracker({ userId = "demo-user", className }: ProgressTra
               </CardDescription>
             </CardHeader>
             <CardContent>
+              {progress.achievements.length === 0 && (
+                <p className="text-sm text-gray-400">Unlock an achievement by completing your first scenario.</p>
+              )}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {progress.achievements.map((achievement) => (
                   <div
@@ -231,7 +358,7 @@ export function ProgressTracker({ userId = "demo-user", className }: ProgressTra
                       <h4 className="font-medium text-gray-200">{achievement.title}</h4>
                       <p className="text-sm text-gray-400">{achievement.description}</p>
                       <p className="text-xs text-gray-500 mt-1">
-                        Unlocked {achievement.unlockedAt.toLocaleDateString()}
+                        Unlocked {achievement.unlockedAt.toLocaleDateString()} • +{achievement.points} pts
                       </p>
                     </div>
                   </div>
@@ -269,7 +396,7 @@ export function ProgressTracker({ userId = "demo-user", className }: ProgressTra
               <div className="p-4 bg-indigo-900/20 rounded-lg border border-indigo-800/30">
                 <h4 className="font-medium text-indigo-300 mb-2">Recent Progress</h4>
                 <p className="text-sm text-indigo-200/80">
-                  Your empathy score has grown by 15% this week! You're developing stronger emotional intelligence and
+                  Your empathy score has grown by 15% this week! You’re developing stronger emotional intelligence and
                   perspective-taking abilities.
                 </p>
               </div>
@@ -277,7 +404,7 @@ export function ProgressTracker({ userId = "demo-user", className }: ProgressTra
               <div className="p-4 bg-cyan-900/20 rounded-lg border border-cyan-800/30">
                 <h4 className="font-medium text-cyan-300 mb-2">Next Milestone</h4>
                 <p className="text-sm text-cyan-200/80">
-                  Complete 3 more scenarios to unlock the "Social Justice Advocate" achievement and reach Empathy Level{" "}
+                  Complete 3 more scenarios to unlock the “Social Justice Advocate” achievement and reach Empathy Level{" "}
                   {empathyLevel + 1}.
                 </p>
               </div>
@@ -285,6 +412,38 @@ export function ProgressTracker({ userId = "demo-user", className }: ProgressTra
           </Card>
         </TabsContent>
       </Tabs>
+
+      <AlertDialog open={!!pendingScenario} onOpenChange={(open) => {
+        if (!open && !confirming) setPendingScenario(null)
+      }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Mark scenario as complete?</AlertDialogTitle>
+            <AlertDialogDescription>
+              {pendingScenario ? (
+                <span>
+                  This will mark <strong>{pendingScenario.title}</strong> as finished and update your achievements.
+                  You can revisit the story anytime.
+                </span>
+              ) : (
+                "Confirm scenario completion."
+              )}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={confirming}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              disabled={confirming}
+              onClick={(event) => {
+                event.preventDefault()
+                confirmScenarioCompletion()
+              }}
+            >
+              {confirming ? "Saving..." : "Yes, mark complete"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }

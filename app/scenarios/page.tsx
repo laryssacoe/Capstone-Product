@@ -16,12 +16,12 @@ const Page = styled.div`
   background: #0f172a;
 `;
 
-const Container = styled.div<{ py?: number }>`
+const Container = styled.div<{ $py?: number }>`
   width: 100%;
   max-width: 80rem; /* ~1280px */
   margin: 0 auto;
   padding: 0 1.5rem;
-  ${(p) => p.py && `padding-top:${p.py}rem; padding-bottom:${p.py}rem;`}
+  ${(p) => p.$py && `padding-top:${p.$py}rem; padding-bottom:${p.$py}rem;`}
 `;
 
 const HeaderRow = styled.div`
@@ -88,7 +88,7 @@ export default function ScenariosPage() {
 
   return (
     <Page>
-      <Container py={2}>
+  <Container $py={2}>
         <HeaderRow>
           <BackBtn asChild variant="ghost" size="sm">
             <Link href="/">

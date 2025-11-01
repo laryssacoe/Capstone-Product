@@ -107,7 +107,7 @@ export function DecisionTree({
         <Alert>
           <Scale className="h-4 w-4" />
           <AlertDescription>
-            This is a moral dilemma. There may not be a "right" answer - consider the values and principles that matter
+            This is a moral dilemma. There may not be a “right” answer - consider the values and principles that matter
             most to you.
           </AlertDescription>
         </Alert>

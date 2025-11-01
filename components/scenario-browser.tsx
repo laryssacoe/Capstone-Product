@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import styled from 'styled-components';
 import {
   Card,
@@ -19,7 +19,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { getAllScenarios } from '@/lib/scenario-library';
 import type { Scenario } from '@/types/simulation';
 import {
   Search as SearchIcon,
@@ -364,17 +363,61 @@ interface ScenarioBrowserProps {
 export function ScenarioBrowser({ onScenarioSelect, userResources }: ScenarioBrowserProps) {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedIssueType, setSelectedIssueType] = useState<string>('all');
-  const [scenarios] = useState(getAllScenarios());
+  const [scenarios, setScenarios] = useState<Scenario[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const filteredScenarios = scenarios.filter((scenario) => {
-    const hay = `${scenario.title} ${scenario.description} ${scenario.socialIssue.type}`.toLowerCase();
-    const matchesSearch = hay.includes(searchTerm.toLowerCase());
-    const matchesIssueType =
-      selectedIssueType === 'all' || scenario.socialIssue.type === selectedIssueType;
-    return matchesSearch && matchesIssueType;
-  });
+  useEffect(() => {
+    let cancelled = false;
 
-  const issueTypes = ['racism', 'disability', 'poverty', 'mental-health', 'ageism'];
+    async function loadScenarios() {
+      setLoading(true);
+      setError(null);
+      try {
+        const response = await fetch('/api/scenarios', { cache: 'no-store' });
+        const raw = await response.text();
+        const data = raw ? JSON.parse(raw) : null;
+
+        if (!response.ok) {
+          throw new Error((data && data.error) || raw || 'Unable to load scenarios.');
+        }
+
+        if (!cancelled) {
+          setScenarios((data?.scenarios ?? []) as Scenario[]);
+        }
+      } catch (err) {
+        if (!cancelled) {
+          setError(err instanceof Error ? err.message : 'Unable to load scenarios.');
+        }
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    }
+
+    loadScenarios();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const issueTypes = useMemo(() => {
+    const types = new Set<string>();
+    scenarios.forEach((scenario) => {
+      types.add(scenario.socialIssue.type);
+    });
+    return Array.from(types).sort();
+  }, [scenarios]);
+
+  const filteredScenarios = useMemo(() => {
+    return scenarios.filter((scenario) => {
+      const hay = `${scenario.title} ${scenario.description} ${scenario.socialIssue.type}`.toLowerCase();
+      const matchesSearch = hay.includes(searchTerm.toLowerCase());
+      const matchesIssueType =
+        selectedIssueType === 'all' || scenario.socialIssue.type === selectedIssueType;
+      return matchesSearch && matchesIssueType;
+    });
+  }, [scenarios, searchTerm, selectedIssueType]);
 
   return (
     <Wrap>
@@ -408,65 +451,85 @@ export function ScenarioBrowser({ onScenarioSelect, userResources }: ScenarioBro
       </FilterCard>
 
       {/* Results */}
-      <Grid>
-        {filteredScenarios.map((scenario) => {
-          const diff = difficultyBadge(scenario);
-          const canPlay = canPlayScenario(scenario, userResources);
-
-          return (
-            <SCard key={scenario.id} dim={!canPlay}>
-              <SHeader>
-                <TitleRow>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                    <IconBox>{IssueIcon(scenario.socialIssue.type)}</IconBox>
-                    <div>
-                      <STitle>{scenario.title}</STitle>
-                      <BadgeRow>
-                        <TypeBadge hue={issueHue(scenario.socialIssue.type)}>
-                          {toTitleCase(scenario.socialIssue.type)}
-                        </TypeBadge>
-                        <LevelBadge level={diff.level}>{diff.label}</LevelBadge>
-                      </BadgeRow>
-                    </div>
-                  </div>
-                </TitleRow>
-                <SDescription>{scenario.description}</SDescription>
-              </SHeader>
-
-              <SContent>
-                <Highlight>
-                  <HighlightTitle>Primary Challenge:</HighlightTitle>
-                  <HighlightText>{scenario.socialIssue.description}</HighlightText>
-                </Highlight>
-
-                <MetaRow>
-                  <MetaLeft>
-                    <Clock width={16} height={16} />
-                    {scenario.estimatedDuration} minutes
-                  </MetaLeft>
-                  <span>{scenario.decisions.length} decision points</span>
-                </MetaRow>
-
-                <PrimaryButton
-                  onClick={() => onScenarioSelect(scenario)}
-                  disabled={!canPlay}
-                >
-                  {canPlay ? 'Begin Scenario' : 'Insufficient Resources'}
-                </PrimaryButton>
-              </SContent>
-            </SCard>
-          );
-        })}
-      </Grid>
-
-      {filteredScenarios.length === 0 && (
+      {loading ? (
         <EmptyWrap>
           <EmptyCard>
             <SearchIcon width={48} height={48} color="#94a3b8" />
-            <EmptyTitle>No scenarios found</EmptyTitle>
-            <EmptyText>Try adjusting your search or filters.</EmptyText>
+            <EmptyTitle>Loading scenarios…</EmptyTitle>
+            <EmptyText>Please wait while we prepare the journeys.</EmptyText>
           </EmptyCard>
         </EmptyWrap>
+      ) : error ? (
+        <EmptyWrap>
+          <EmptyCard>
+            <SearchIcon width={48} height={48} color="#ef4444" />
+            <EmptyTitle>Unable to load scenarios</EmptyTitle>
+            <EmptyText>{error}</EmptyText>
+          </EmptyCard>
+        </EmptyWrap>
+      ) : (
+        <>
+          <Grid>
+            {filteredScenarios.map((scenario) => {
+              const diff = difficultyBadge(scenario);
+              const canPlay = canPlayScenario(scenario, userResources);
+
+              return (
+                <SCard key={scenario.id} dim={!canPlay}>
+                  <SHeader>
+                    <TitleRow>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                        <IconBox>{IssueIcon(scenario.socialIssue.type)}</IconBox>
+                        <div>
+                          <STitle>{scenario.title}</STitle>
+                          <BadgeRow>
+                            <TypeBadge hue={issueHue(scenario.socialIssue.type)}>
+                              {toTitleCase(scenario.socialIssue.type)}
+                            </TypeBadge>
+                            <LevelBadge level={diff.level}>{diff.label}</LevelBadge>
+                          </BadgeRow>
+                        </div>
+                      </div>
+                    </TitleRow>
+                    <SDescription>{scenario.description}</SDescription>
+                  </SHeader>
+
+                  <SContent>
+                    <Highlight>
+                      <HighlightTitle>Primary Challenge:</HighlightTitle>
+                      <HighlightText>{scenario.socialIssue.description}</HighlightText>
+                    </Highlight>
+
+                    <MetaRow>
+                      <MetaLeft>
+                        <Clock width={16} height={16} />
+                        {scenario.estimatedDuration} minutes
+                      </MetaLeft>
+                      <span>{scenario.decisions.length} decision points</span>
+                    </MetaRow>
+
+                    <PrimaryButton
+                      onClick={() => onScenarioSelect(scenario)}
+                      disabled={!canPlay}
+                    >
+                      {canPlay ? 'Begin Scenario' : 'Insufficient Resources'}
+                    </PrimaryButton>
+                  </SContent>
+                </SCard>
+              );
+            })}
+          </Grid>
+
+          {filteredScenarios.length === 0 && (
+            <EmptyWrap>
+              <EmptyCard>
+                <SearchIcon width={48} height={48} color="#94a3b8" />
+                <EmptyTitle>No scenarios found</EmptyTitle>
+                <EmptyText>Try adjusting your search or filters.</EmptyText>
+              </EmptyCard>
+            </EmptyWrap>
+          )}
+        </>
       )}
     </Wrap>
   );

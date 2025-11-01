@@ -8,8 +8,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { ArrowLeft, Home, Volume2, VolumeX, Play, Pause, Heart, Brain, Eye } from "lucide-react";
 import { Canvas, useFrame } from "@react-three/fiber";
 import * as THREE from "three";
-import type { Avatar } from "@/types/simulation";
-import { getStoryForAvatar } from "@/lib/story-database";
+import type { Avatar, AvatarAppearance, Resources, SocialContext } from "@/types/simulation";
 
 const Page = styled.div`
   min-height: 100vh;
@@ -484,11 +483,175 @@ interface StoryPassage {
   next?: string;
 }
 
+type StoryNodeContentPayload = {
+  duration?: string | null;
+  text?: unknown;
+  choices?: { id: string; text?: string; leads_to?: string }[] | null;
+  next?: string | null;
+  emotion?: string | null;
+  intensity?: number | null;
+}
+
+type StoryNodePayload = {
+  id: string;
+  key: string;
+  content?: StoryNodeContentPayload | null;
+  media?: { visual?: string | null; audio?: string | null } | null;
+}
+
+type StoryTransitionPayload = {
+  fromNodeId: string;
+  toNodeId?: string | null;
+  pathId: string;
+  ordering?: number | null;
+}
+
+const defaultAppearance: AvatarAppearance = {
+  skinTone: "",
+  hairColor: "",
+  hairStyle: "",
+  clothing: "",
+  accessories: [],
+};
+
+const defaultResources: Resources = {
+  money: 0,
+  time: 0,
+  energy: 0,
+  socialSupport: 0,
+  mentalHealth: 0,
+  physicalHealth: 0,
+};
+
+const defaultSocialContext: SocialContext = {
+  socioeconomicStatus: "middle",
+  location: "",
+  familyStructure: "",
+  educationLevel: "",
+  employmentStatus: "",
+  healthConditions: [],
+  socialIssues: [],
+};
+
+function normalizeAvatar(raw: any, storySlug: string | null): Avatar {
+  const appearance: AvatarAppearance = {
+    ...defaultAppearance,
+    ...(raw?.appearance ?? {}),
+    accessories: Array.isArray(raw?.appearance?.accessories)
+      ? (raw.appearance.accessories as string[])
+      : defaultAppearance.accessories,
+  };
+
+  const initialResources: Resources = { ...defaultResources };
+  (Object.keys(defaultResources) as (keyof Resources)[]).forEach((key) => {
+    const value = raw?.initialResources?.[key];
+    initialResources[key] = typeof value === "number" ? value : defaultResources[key];
+  });
+
+  const rawContext = raw?.socialContext ?? {};
+  const socialContext: SocialContext = {
+    ...defaultSocialContext,
+    ...rawContext,
+    socioeconomicStatus: ["low", "middle", "high"].includes(rawContext?.socioeconomicStatus)
+      ? rawContext.socioeconomicStatus
+      : defaultSocialContext.socioeconomicStatus,
+    healthConditions: Array.isArray(rawContext?.healthConditions)
+      ? (rawContext.healthConditions as string[])
+      : [],
+    socialIssues: Array.isArray(rawContext?.socialIssues)
+      ? (rawContext.socialIssues as any[]).map((issue) => ({
+          id: issue?.id ?? "",
+          type: issue?.type ?? "racism",
+          severity: issue?.severity ?? "moderate",
+          description: issue?.description ?? "",
+          impacts: Array.isArray(issue?.impacts) ? issue.impacts : [],
+        }))
+      : [],
+  } as SocialContext;
+
+  return {
+    id: raw.id,
+    name: raw.name ?? "",
+    age: typeof raw.age === "number" ? raw.age : 0,
+    background: raw.background ?? "",
+    appearance,
+    initialResources,
+    socialContext,
+    isPlayable: !!raw.isPlayable,
+    storySlug,
+  };
+}
+
+function buildPersonaStory(
+  avatarId: string,
+  story: { title?: string | null; summary?: string | null } | null,
+  nodes: StoryNodePayload[],
+  transitions: StoryTransitionPayload[],
+): { avatarId: string; title: string; theme: string; passages: Record<string, StoryPassage> } {
+  const passages: Record<string, StoryPassage> = {};
+  const nodeById = new Map<string, StoryNodePayload>();
+  const keyById = new Map<string, string>();
+
+  nodes.forEach((node) => {
+    nodeById.set(node.id, node);
+    keyById.set(node.id, node.key);
+  });
+
+  const transitionsByFrom = new Map<string, StoryTransitionPayload[]>();
+  transitions.forEach((transition) => {
+    const list = transitionsByFrom.get(transition.fromNodeId) ?? [];
+    list.push(transition);
+    transitionsByFrom.set(transition.fromNodeId, list);
+  });
+
+  nodes.forEach((node) => {
+    const content = node.content ?? {};
+    const media = node.media ?? {};
+    const passage: StoryPassage = {
+      id: node.key,
+      duration: (content.duration as string) ?? "",
+      visual: (media.visual as string) ?? "",
+      audio: (media.audio as string) ?? "",
+      text: Array.isArray(content.text) ? (content.text as string[]) : [],
+      emotion: (content.emotion as string) ?? undefined,
+      intensity: typeof content.intensity === "number" ? content.intensity : undefined,
+    };
+
+    if (Array.isArray(content.choices) && content.choices.length) {
+      passage.choices = content.choices.map((choice) => ({
+        id: choice.id,
+        text: choice.text ?? "",
+        leads_to: choice.leads_to ?? "",
+      }));
+    } else {
+      const outgoing = transitionsByFrom.get(node.id) ?? [];
+      const first = outgoing[0];
+      if (!passage.next && first?.toNodeId) {
+        const key = keyById.get(first.toNodeId);
+        if (key) passage.next = key;
+      }
+    }
+
+    if (!passage.next && typeof content.next === "string") {
+      passage.next = content.next;
+    }
+
+    passages[node.key] = passage;
+  });
+
+  return {
+    avatarId,
+    title: story?.title ?? "",
+    theme: story?.summary ?? "",
+    passages,
+  };
+}
+
 export default function SimulationPage() {
   const router = useRouter();
 
   const [currentPassage, setCurrentPassage] = useState<string>("start");
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [selectedAvatar, setSelectedAvatar] = useState<Avatar | null>(null);
   const [currentStory, setCurrentStory] = useState<any>(null);
 
@@ -496,47 +659,150 @@ export default function SimulationPage() {
   const [isMuted, setIsMuted] = useState(false);
   const [currentEmotion, setCurrentEmotion] = useState<string>("neutral");
   const [emotionalIntensity, setEmotionalIntensity] = useState<number>(0.3);
+  const [hasReportedCompletion, setHasReportedCompletion] = useState(false);
 
   const audioRef = useRef<HTMLAudioElement>(null);
 
   useEffect(() => {
-    const avatarData = localStorage.getItem("selectedAvatar");
-    if (avatarData) {
-      const avatar = JSON.parse(avatarData) as Avatar;
-      setSelectedAvatar(avatar);
-      setCurrentStory(getStoryForAvatar(avatar.id));
-    } else {
-      router.push("/avatar");
+    let cancelled = false;
+
+    async function loadAvatarStory() {
+      const avatarId = localStorage.getItem("selectedAvatarId");
+      if (!avatarId) {
+        router.push("/avatar");
+        return;
+      }
+
+      setIsLoading(true);
+
+      try {
+        const response = await fetch(`/api/avatars/${avatarId}`, { cache: "no-store" });
+        const raw = await response.text();
+        const data = raw ? JSON.parse(raw) : null;
+
+        if (!response.ok) {
+          throw new Error((data && data.error) || raw || "Unable to load story.");
+        }
+
+        if (cancelled) return;
+
+        const normalizedAvatar = normalizeAvatar(data.avatar, data?.story?.slug ?? null);
+        if (!data.story) {
+          throw new Error("Story not available yet.");
+        }
+
+        const transformedStory = buildPersonaStory(
+          normalizedAvatar.id,
+          data.story,
+          (data.nodes ?? []) as StoryNodePayload[],
+          (data.transitions ?? []) as StoryTransitionPayload[],
+        );
+
+        if (!Object.keys(transformedStory.passages).length) {
+          throw new Error("Story data is incomplete.");
+        }
+
+        setSelectedAvatar(normalizedAvatar);
+        setCurrentStory(transformedStory);
+        const initialKey = transformedStory.passages["start"]
+          ? "start"
+          : Object.keys(transformedStory.passages)[0];
+        setCurrentPassage(initialKey);
+        setHasReportedCompletion(false);
+      } catch (err) {
+        if (!cancelled) {
+          console.error(err);
+          router.push("/avatar");
+        }
+      } finally {
+        if (!cancelled) {
+          setIsLoading(false);
+        }
+      }
     }
+
+    loadAvatarStory();
+
+    return () => {
+      cancelled = true;
+    };
   }, [router]);
 
   const passage: StoryPassage | undefined = currentStory?.passages[currentPassage];
 
   useEffect(() => {
+    if (!passage) return;
+    setCurrentEmotion(passage.emotion ?? "neutral");
+    setEmotionalIntensity(typeof passage.intensity === "number" ? passage.intensity : 0.3);
+  }, [passage]);
+
+  useEffect(() => {
+    if (!selectedAvatar || !currentStory || !passage) return;
+    const isTerminal = (!passage.next || passage.next.length === 0) && (!passage.choices || passage.choices.length === 0);
+    if (!isTerminal || hasReportedCompletion) return;
+
+    const controller = new AbortController();
+    const issue = selectedAvatar.socialContext.socialIssues[0];
+    const estimatedMinutes = Math.max(10, Object.keys(currentStory.passages ?? {}).length * 3);
+
+    fetch("/api/journeys/complete", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        scenarioId: selectedAvatar.id,
+        scenario: {
+          title: currentStory.title,
+          description: currentStory.theme,
+          issue,
+          difficulty: issue?.severity,
+          estimatedMinutes,
+          minimumResources: selectedAvatar.initialResources,
+        },
+      }),
+      signal: controller.signal,
+    })
+      .catch((err) => {
+        if (!controller.signal.aborted) {
+          console.error("Failed to sync scenario completion", err);
+        }
+      })
+      .finally(() => {
+        if (!controller.signal.aborted) {
+          setHasReportedCompletion(true);
+        }
+      });
+
+    return () => controller.abort();
+  }, [selectedAvatar, currentStory, passage, hasReportedCompletion]);
+
+  useEffect(() => {
     // passage audio lifecycle
-    if (!audioRef.current) return;
+    const audioElement = audioRef.current;
+    if (!audioElement) return () => {};
+
+    let timer: ReturnType<typeof setTimeout> | null = null;
 
     if (passage?.audio) {
-      audioRef.current.pause();
+      audioElement.pause();
       setIsAudioPlaying(false);
 
-      setTimeout(() => {
-        if (!audioRef.current) return;
-        audioRef.current.src = `/placeholder.svg?height=1&width=1&query=ambient-${passage.id}`;
-        audioRef.current.volume = 0.3;
-        audioRef.current.muted = isMuted;
-        audioRef.current.load();
+      timer = setTimeout(() => {
+        audioElement.src = `/placeholder.svg?height=1&width=1&query=ambient-${passage.id}`;
+        audioElement.volume = 0.3;
+        audioElement.muted = isMuted;
+        audioElement.load();
       }, 100);
     } else {
-      audioRef.current.pause();
+      audioElement.pause();
       setIsAudioPlaying(false);
     }
 
     return () => {
-      if (audioRef.current) {
-        audioRef.current.pause();
-        setIsAudioPlaying(false);
+      if (timer) {
+        clearTimeout(timer);
       }
+      audioElement.pause();
+      setIsAudioPlaying(false);
     };
   }, [passage, isMuted]);
 
@@ -589,23 +855,23 @@ export default function SimulationPage() {
     }, 1000);
   };
 
-  if (!currentStory || !selectedAvatar) {
-    return (
-      <Center>
-        <div>
-          <BlinkDot />
-          <div>Loading your story...</div>
-        </div>
-      </Center>
-    );
-  }
-
   if (isLoading) {
     return (
       <Center>
         <div>
           <BlinkDot />
           <div>Loading...</div>
+        </div>
+      </Center>
+    );
+  }
+
+  if (!currentStory || !selectedAvatar) {
+    return (
+      <Center>
+        <div>
+          <BlinkDot />
+          <div>Preparing your story...</div>
         </div>
       </Center>
     );

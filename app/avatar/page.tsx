@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import styled from "styled-components";
 import { Button as UIButton } from "@/components/ui/button";
 import { Badge as UIBadge } from "@/components/ui/badge";
@@ -9,67 +9,6 @@ import { Progress as UIProgress } from "@/components/ui/progress";
 import { Card as UICard, CardContent as UICardContent } from "@/components/ui/card";
 import { User, DollarSign, Clock, Zap, Users, Brain, Activity } from "lucide-react";
 import type { Avatar, Resources } from "@/types/simulation";
-
-const predefinedAvatars: Avatar[] = [
-  {
-    id: "maria-rodriguez",
-    name: "Maria Rodriguez",
-    age: 34,
-    background:
-      "Single mother working two jobs to support her family while facing housing discrimination",
-    appearance: { skinTone: "medium", hairColor: "black", hairStyle: "long-wavy", clothing: "casual-work", accessories: ["small-earrings"] },
-    initialResources: { money: 25, time: 40, energy: 35, socialSupport: 60, mentalHealth: 45, physicalHealth: 50 },
-    socialContext: {
-      socioeconomicStatus: "low",
-      location: "Urban apartment",
-      familyStructure: "Single parent with 2 children",
-      educationLevel: "High school diploma",
-      employmentStatus: "Two part-time jobs",
-      healthConditions: ["Chronic fatigue"],
-      socialIssues: [
-        { id: "housing-discrimination", type: "racism", severity: "moderate", description: "Faces discrimination when searching for housing due to ethnicity", impacts: [] },
-      ],
-    },
-  },
-  {
-    id: "sam-thompson",
-    name: "Sam Thompson",
-    age: 17,
-    background: "Recent highschool graduate navigating life after a car accident.",
-    appearance: { skinTone: "light", hairColor: "brown", hairStyle: "short-neat", clothing: "casual", accessories: ["glasses"] },
-    initialResources: { money: 45, time: 70, energy: 80, socialSupport: 40, mentalHealth: 35, physicalHealth: 90 },
-    socialContext: {
-      socioeconomicStatus: "middle",
-      location: "Suburban home with parents",
-      familyStructure: "Lives with supportive parents",
-      educationLevel: "Highschool Completed",
-      employmentStatus: "Unemployed, going to college",
-      healthConditions: ["Body Paralysis", "Social anxiety"],
-      socialIssues: [
-        { id: "disability", type: "disability", severity: "moderate", description: "Struggles with life after losing movement of the body.", impacts: [] },
-      ],
-    },
-  },
-  {
-    id: "aisha-johnson",
-    name: "Aisha Johnson",
-    age: 42,
-    background: "Corporate professional experiencing workplace discrimination and microaggressions",
-    appearance: { skinTone: "dark", hairColor: "black", hairStyle: "professional-short", clothing: "business-suit", accessories: ["professional-jewelry"] },
-    initialResources: { money: 75, time: 50, energy: 55, socialSupport: 50, mentalHealth: 40, physicalHealth: 70 },
-    socialContext: {
-      socioeconomicStatus: "middle",
-      location: "Urban condo",
-      familyStructure: "Married, no children",
-      educationLevel: "MBA",
-      employmentStatus: "Senior Manager at tech company",
-      healthConditions: ["Stress-related hypertension"],
-      socialIssues: [
-        { id: "workplace-racism", type: "racism", severity: "moderate", description: "Faces subtle discrimination and microaggressions in corporate environment", impacts: [] },
-      ],
-    },
-  },
-];
 
 const gradForAvatar = (id: string) => {
   switch (id) {
@@ -100,6 +39,18 @@ const getResourceLabel = (type: keyof Resources) => ({
   mentalHealth: "Mental Health",
   physicalHealth: "Physical Health",
 }[type]);
+
+type InteractionKind = "VIEW" | "SELECT" | "START";
+
+type AvatarWithMetrics = Avatar & {
+  storyId?: string | null;
+  metrics?: {
+    clicks: number;
+    starts: number;
+    score: number;
+    rank?: number | null;
+  };
+};
 
 const Page = styled.div`
   min-height: 100vh;
@@ -281,13 +232,97 @@ const SecondaryBtn = styled(UIButton)`
 
 export default function AvatarPage() {
   const router = useRouter();
-  const [selectedAvatar, setSelectedAvatar] = useState<Avatar | null>(null);
+  const [avatars, setAvatars] = useState<AvatarWithMetrics[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [selectedAvatar, setSelectedAvatar] = useState<AvatarWithMetrics | null>(null);
   const [showDetails, setShowDetails] = useState(false);
 
-  const handleAvatarSelect = (avatar: Avatar) => {
-    localStorage.setItem("selectedAvatar", JSON.stringify(avatar));
+  const recordInteraction = useCallback(
+    async (
+      avatarId: string,
+      kind: InteractionKind,
+      options?: { storyId?: string | null; metadata?: Record<string, unknown> },
+    ) => {
+      try {
+        const response = await fetch("/api/analytics/interactions", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            avatarId,
+            storyId: options?.storyId ?? undefined,
+            kind,
+            metadata: options?.metadata,
+          }),
+        });
+
+        if (!response.ok) {
+          throw new Error(`Failed with status ${response.status}`);
+        }
+      } catch (err) {
+        console.warn("[avatar] Unable to record interaction", err);
+      }
+    },
+    [],
+  );
+
+  const recordImpressions = useCallback(
+    (items: AvatarWithMetrics[]) => {
+      items.forEach((avatar) => {
+        void recordInteraction(avatar.id, "VIEW", {
+          storyId: avatar.storyId ?? null,
+          metadata: {
+            rank: avatar.metrics?.rank ?? null,
+          },
+        });
+      });
+    },
+    [recordInteraction],
+  );
+
+  const handleAvatarSelect = (avatar: AvatarWithMetrics) => {
+    void recordInteraction(avatar.id, "START", {
+      storyId: avatar.storyId ?? null,
+      metadata: {
+        rank: avatar.metrics?.rank ?? null,
+      },
+    });
+    localStorage.removeItem("selectedAvatar");
+    localStorage.setItem("selectedAvatarId", avatar.id);
     router.push("/simulation");
   };
+
+  useEffect(() => {
+    let active = true;
+    async function loadAvatars() {
+      setLoading(true);
+      setError(null);
+      try {
+  const response = await fetch("/api/avatars?featured=3&limit=3", { cache: "no-store" });
+        if (!response.ok) {
+          const text = await response.text();
+          throw new Error(text || "Unable to load avatars.");
+        }
+        const data = await response.json();
+        if (active) {
+          const nextAvatars = (data.avatars ?? []) as AvatarWithMetrics[];
+          setAvatars(nextAvatars);
+          recordImpressions(nextAvatars);
+        }
+      } catch (err) {
+        if (active) {
+          setError(err instanceof Error ? err.message : "Unable to load avatars.");
+        }
+      } finally {
+        if (active) setLoading(false);
+      }
+    }
+
+    loadAvatars();
+    return () => {
+      active = false;
+    };
+  }, [recordImpressions]);
 
   return (
     <Page>
@@ -306,56 +341,85 @@ export default function AvatarPage() {
           </Notice>
         </Hero>
 
-        <CardsGrid>
-          {predefinedAvatars.map((avatar) => {
-            const isSam = avatar.id === "sam-thompson";
-            const primaryType = isSam
-              ? avatar.socialContext.socialIssues[0]?.type.replace("-", " ").toUpperCase()
-              : "COMING SOON";
-            const displayBackground = isSam ? avatar.background : "Details coming soon.";
-            const displayLocation = isSam ? avatar.socialContext.location : "—";
-            const displayEmployment = isSam ? avatar.socialContext.employmentStatus : "—";
-            const displayEducation = isSam ? avatar.socialContext.educationLevel : "—";
+        {loading ? (
+          <Notice style={{ marginTop: "2rem", textAlign: "center" }}>Loading avatars…</Notice>
+        ) : error ? (
+          <Notice
+            style={{
+              marginTop: "2rem",
+              textAlign: "center",
+              borderColor: "rgba(239,68,68,.4)",
+              color: "#fecaca",
+            }}
+          >
+            {error}
+          </Notice>
+        ) : (
+          <CardsGrid>
+            {avatars.map((avatar, index) => {
+              const isPlayable = !!avatar.isPlayable;
+              const rank = avatar.metrics?.rank ?? index + 1;
+              const clicks = avatar.metrics?.clicks ?? 0;
+              const starts = avatar.metrics?.starts ?? 0;
+              const storyId = avatar.storyId ?? null;
+              const primaryType = isPlayable
+                ? avatar.socialContext.socialIssues[0]?.type.replace("-", " ").toUpperCase()
+                : "COMING SOON";
+              const displayBackground = isPlayable ? avatar.background : "Details coming soon.";
+              const displayLocation = isPlayable ? avatar.socialContext.location : "—";
+              const displayEmployment = isPlayable ? avatar.socialContext.employmentStatus : "—";
+              const displayEducation = isPlayable ? avatar.socialContext.educationLevel : "—";
 
-            return (
-              <Card
-                key={avatar.id}
-                onClick={isSam ? () => { setSelectedAvatar(avatar); setShowDetails(true); } : undefined}
-                style={!isSam ? { pointerEvents: "none", opacity: 0.6, cursor: "not-allowed" } : undefined}
-              >
-                <CardInner>
-                  <AvatarCircle $grad={gradForAvatar(avatar.id)}>
-                    <User size={48} color="#ffffff" />
-                  </AvatarCircle>
+              return (
+                <Card
+                  key={avatar.id}
+                  onClick={
+                    isPlayable
+                      ? () => {
+                          void recordInteraction(avatar.id, "SELECT", {
+                            storyId,
+                            metadata: { rank },
+                          });
+                          setSelectedAvatar(avatar);
+                          setShowDetails(true);
+                        }
+                      : undefined
+                  }
+                  style={!isPlayable ? { pointerEvents: "none", opacity: 0.6, cursor: "not-allowed" } : undefined}
+                >
+                  <CardInner>
+                    <AvatarCircle $grad={gradForAvatar(avatar.id)}>
+                      <User size={48} color="#ffffff" />
+                    </AvatarCircle>
+                    <Name>{avatar.name}</Name>
+                    <Age>Age {avatar.age}</Age>
+                    <BackgroundText>{displayBackground}</BackgroundText>
 
-                  <Name>{avatar.name}</Name>
-                  <Age>Age {avatar.age}</Age>
-                  <BackgroundText>{displayBackground}</BackgroundText>
+                    <PrimaryBox>
+                      <PrimaryLabel>Primary Challenge</PrimaryLabel>
+                      <PrimaryType>{primaryType}</PrimaryType>
+                    </PrimaryBox>
 
-                  <PrimaryBox>
-                    <PrimaryLabel>Primary Challenge</PrimaryLabel>
-                    <PrimaryType>{primaryType}</PrimaryType>
-                  </PrimaryBox>
-
-                  <InfoList>
-                    <InfoRow>
-                      <InfoLabel>Location</InfoLabel>
-                      <InfoValue>{displayLocation}</InfoValue>
-                    </InfoRow>
-                    <InfoRow>
-                      <InfoLabel>Employment</InfoLabel>
-                      <InfoValue>{displayEmployment}</InfoValue>
-                    </InfoRow>
-                    <InfoRow>
-                      <InfoLabel>Education</InfoLabel>
-                      <InfoValue>{displayEducation}</InfoValue>
-                    </InfoRow>
-                  </InfoList>
-                </CardInner>
-              </Card>
-            );
-          })}
-        </CardsGrid>
+                    <InfoList>
+                      <InfoRow>
+                        <InfoLabel>Location</InfoLabel>
+                        <InfoValue>{displayLocation}</InfoValue>
+                      </InfoRow>
+                      <InfoRow>
+                        <InfoLabel>Employment</InfoLabel>
+                        <InfoValue>{displayEmployment}</InfoValue>
+                      </InfoRow>
+                      <InfoRow>
+                        <InfoLabel>Education</InfoLabel>
+                        <InfoValue>{displayEducation}</InfoValue>
+                      </InfoRow>
+                    </InfoList>
+                  </CardInner>
+                </Card>
+              );
+            })}
+          </CardsGrid>
+        )}
 
         <BackRow>
           <BackBtn onClick={() => router.push("/")}>← Back to Home</BackBtn>

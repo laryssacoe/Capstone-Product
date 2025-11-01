@@ -195,7 +195,7 @@ export function SimulationInterface({ avatar, scenario, onScenarioComplete }: Si
                     Decision Results
                   </CardTitle>
                   <CardDescription>
-                    Here's what happened as a result of your choice: "{selectedDecision?.text}"
+                    Here’s what happened as a result of your choice: “{selectedDecision?.text}”
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">

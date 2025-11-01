@@ -7,7 +7,7 @@ import { Suspense } from "react"
 import "./globals.css"
 
 export const metadata: Metadata = {
-  title: "Empathy Bridge - Social Awareness Platform",
+  title: "Loop - Gamified Social Awareness",
   description: "An immersive life simulation platform that builds empathy and understanding around social issues",
   generator: "v0.app",
 }
