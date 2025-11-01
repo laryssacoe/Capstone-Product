@@ -1,0 +1,439 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma/client"
+}
+
+datasource db {
+  provider          = "postgresql"
+  url               = env("DATABASE_URL")
+  shadowDatabaseUrl = env("SHADOW_DATABASE_URL")
+}
+
+enum UserRole {
+  GUEST
+  CONSUMER
+  CREATOR
+  ADMIN
+}
+
+enum SessionKind {
+  GUEST
+  AUTHENTICATED
+}
+
+enum JourneyStatus {
+  NOT_STARTED
+  IN_PROGRESS
+  COMPLETED
+  ABANDONED
+}
+
+enum StoryStatus {
+  DRAFT
+  PENDING
+  APPROVED
+  REJECTED
+  ARCHIVED
+}
+
+enum StoryVisibility {
+  PRIVATE
+  UNLISTED
+  PUBLIC
+}
+
+enum StoryNodeType {
+  NARRATIVE
+  DECISION
+  RESOLUTION
+}
+
+enum CreatorProfileStatus {
+  DRAFT
+  REVIEW
+  ACTIVE
+  SUSPENDED
+}
+
+enum StoryInteractionKind {
+  VIEW
+  SELECT
+  START
+}
+
+enum StoryOwnershipStatus {
+  CREATOR_DRAFT
+  PENDING_TRANSFER
+  PLATFORM_OWNED
+  RETURNED
+}
+
+model User {
+  id             String    @id @default(cuid())
+  email          String?   @unique
+  username       String?   @unique
+  hashedPassword String?
+  role           UserRole  @default(CONSUMER)
+  onboardedAt    DateTime?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+  isAdmin        Boolean   @default(false)
+
+  profile                 UserProfile?
+  sessions                UserSession[]
+  journeys                JourneyProgress[]
+  achievements            UserAchievement[]
+  storyPlays              StoryPlaySession[]
+  stories                 TwineStory[]       @relation("StoryOwner")
+  authoredVersions        StoryVersion[]     @relation("VersionAuthor")
+  reviewedVersions        StoryVersion[]     @relation("VersionReviewer")
+  reviews                 StoryReview[]      @relation("ReviewAuthor")
+  creatorProfile          CreatorProfile?
+  approvedStories         TwineStory[]       @relation("StoryApprovedBy")
+  originalStories         TwineStory[]       @relation("StoryOriginalCreator")
+  reviewedCreatorProfiles CreatorProfile[]   @relation("CreatorProfileReviewer")
+  storyAuditLogs          StoryAuditLog[]    @relation("StoryAuditLogActor")
+  storyInteractions       StoryInteraction[]
+}
+
+model UserProfile {
+  id                String    @id @default(cuid())
+  userId            String    @unique
+  displayName       String?
+  avatarUrl         String?
+  bio               String?
+  timezone          String?
+  pronouns          String?
+  location          String?
+  publicEmail       String?
+  websiteUrl        String?
+  linkedinUrl       String?
+  twitterHandle     String?
+  instagramHandle   String?
+  tiktokHandle      String?
+  expertiseTags     String[]  @default([])
+  customLinks       Json?
+  consentAcceptedAt DateTime?
+  preferences       Json?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model CreatorProfile {
+  id                   String               @id @default(cuid())
+  userId               String               @unique
+  penName              String?
+  headline             String?
+  expertiseTags        String[]             @default([])
+  focusAreas           String[]             @default([])
+  languages            String[]             @default([])
+  tagline              String?
+  biography            String?
+  websiteUrl           String?
+  portfolioUrl         String?
+  contactEmail         String?
+  socialLinks          Json?
+  payoutDetails        Json?
+  guidelinesAcceptedAt DateTime?
+  termsAcceptedAt      DateTime?
+  consentAcceptedAt    DateTime?
+  consentStatement     String?
+  status               CreatorProfileStatus @default(DRAFT)
+  completedAt          DateTime?
+  lastReviewedAt       DateTime?
+  lastReviewerId       String?
+  rejectionReason      String?
+  createdAt            DateTime             @default(now())
+  updatedAt            DateTime             @updatedAt
+
+  user             User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  lastReviewer     User?        @relation("CreatorProfileReviewer", fields: [lastReviewerId], references: [id], onDelete: SetNull)
+  storiesSubmitted TwineStory[] @relation("StoryOriginalCreatorProfile")
+}
+
+model UserSession {
+  id        String      @id @default(cuid())
+  token     String      @unique
+  kind      SessionKind @default(GUEST)
+  userId    String?
+  expiresAt DateTime?
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+
+  user              User?              @relation(fields: [userId], references: [id], onDelete: SetNull)
+  journeys          JourneyProgress[]
+  storyPlays        StoryPlaySession[]
+  achievements      UserAchievement[]
+  storyInteractions StoryInteraction[]
+}
+
+model Scenario {
+  id               String   @id
+  title            String
+  summary          String?
+  issueTag         String?
+  difficulty       String?
+  estimatedMinutes Int?
+  metadata         Json?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  journeys JourneyProgress[]
+}
+
+model JourneyProgress {
+  id          String        @id @default(cuid())
+  scenarioId  String
+  userId      String?
+  sessionId   String?
+  status      JourneyStatus @default(IN_PROGRESS)
+  currentNode String?
+  checkpoints Json?
+  resources   Json?
+  notes       String?
+  startedAt   DateTime      @default(now())
+  completedAt DateTime?
+
+  scenario     Scenario          @relation(fields: [scenarioId], references: [id], onDelete: Cascade)
+  user         User?             @relation(fields: [userId], references: [id], onDelete: SetNull)
+  session      UserSession?      @relation(fields: [sessionId], references: [id], onDelete: SetNull)
+  achievements UserAchievement[]
+
+  @@unique([userId, scenarioId], map: "JourneyProgress_userId_scenarioId_key")
+}
+
+model Achievement {
+  id          String   @id @default(cuid())
+  code        String   @unique
+  title       String
+  description String
+  points      Int      @default(0)
+  icon        String?
+  unlockHint  String?
+  unlockLogic Json?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  userAwards UserAchievement[]
+}
+
+model UserAchievement {
+  id            String   @id @default(cuid())
+  achievementId String
+  userId        String?
+  sessionId     String?
+  journeyId     String?
+  unlockedAt    DateTime @default(now())
+  metadata      Json?
+
+  achievement Achievement      @relation(fields: [achievementId], references: [id], onDelete: Cascade)
+  user        User?            @relation(fields: [userId], references: [id], onDelete: SetNull)
+  session     UserSession?     @relation(fields: [sessionId], references: [id], onDelete: SetNull)
+  journey     JourneyProgress? @relation(fields: [journeyId], references: [id], onDelete: SetNull)
+}
+
+model TwineStory {
+  id                       String               @id @default(cuid())
+  slug                     String               @unique
+  title                    String
+  summary                  String?
+  tags                     String[]
+  visibility               StoryVisibility      @default(PRIVATE)
+  ownerId                  String?
+  originalCreatorId        String?
+  originalCreatorProfileId String?
+  approvedById             String?
+  ownershipStatus          StoryOwnershipStatus @default(CREATOR_DRAFT)
+  submittedAt              DateTime?
+  transferConsentAt        DateTime?
+  transferConsentIp        String?
+  transferConsentUserAgent String?
+  approvalToken            String?
+  approvalTokenExpiresAt   DateTime?
+  approvedAt               DateTime?
+  reviewComment            String?
+  creditText               String?
+  latestVersionId          String?              @unique
+  createdAt                DateTime             @default(now())
+  updatedAt                DateTime             @updatedAt
+
+  owner                  User?              @relation("StoryOwner", fields: [ownerId], references: [id], onDelete: SetNull)
+  originalCreator        User?              @relation("StoryOriginalCreator", fields: [originalCreatorId], references: [id], onDelete: SetNull)
+  originalCreatorProfile CreatorProfile?    @relation("StoryOriginalCreatorProfile", fields: [originalCreatorProfileId], references: [id], onDelete: SetNull)
+  approvedBy             User?              @relation("StoryApprovedBy", fields: [approvedById], references: [id], onDelete: SetNull)
+  versions               StoryVersion[]     @relation("StoryVersions")
+  latestVersion          StoryVersion?      @relation("StoryLatest", fields: [latestVersionId], references: [id])
+  playSessions           StoryPlaySession[]
+  nodes                  StoryNode[]
+  paths                  StoryPath[]
+  transitions            StoryTransition[]
+  avatars                AvatarProfile[]
+  auditLogs              StoryAuditLog[]
+  interactions           StoryInteraction[]
+}
+
+model StoryVersion {
+  id              String               @id @default(cuid())
+  storyId         String
+  authorId        String?
+  reviewerId      String?
+  versionNumber   Int
+  status          StoryStatus          @default(DRAFT)
+  changelog       String?
+  content         Json?
+  sourceUrl       String?
+  assetPath       String?
+  metadata        Json?
+  submittedAt     DateTime?            @default(now())
+  reviewedAt      DateTime?
+  ownershipStatus StoryOwnershipStatus @default(CREATOR_DRAFT)
+  consentSnapshot Json?
+  createdAt       DateTime             @default(now())
+  updatedAt       DateTime?            @updatedAt
+
+  story        TwineStory         @relation("StoryVersions", fields: [storyId], references: [id], onDelete: Cascade)
+  featuredIn   TwineStory?        @relation("StoryLatest")
+  author       User?              @relation("VersionAuthor", fields: [authorId], references: [id], onDelete: SetNull)
+  reviewer     User?              @relation("VersionReviewer", fields: [reviewerId], references: [id], onDelete: SetNull)
+  reviews      StoryReview[]
+  playSessions StoryPlaySession[]
+}
+
+model StoryAuditLog {
+  id        String   @id @default(cuid())
+  storyId   String
+  actorId   String?
+  action    String
+  note      String?
+  metadata  Json?
+  createdAt DateTime @default(now())
+
+  story TwineStory @relation(fields: [storyId], references: [id], onDelete: Cascade)
+  actor User?      @relation("StoryAuditLogActor", fields: [actorId], references: [id], onDelete: SetNull)
+}
+
+model StoryReview {
+  id         String      @id @default(cuid())
+  versionId  String
+  reviewerId String
+  status     StoryStatus
+  feedback   String?
+  createdAt  DateTime    @default(now())
+
+  version  StoryVersion @relation(fields: [versionId], references: [id], onDelete: Cascade)
+  reviewer User         @relation("ReviewAuthor", fields: [reviewerId], references: [id], onDelete: Cascade)
+}
+
+model StoryPlaySession {
+  id          String    @id @default(cuid())
+  storyId     String
+  versionId   String?
+  userId      String?
+  sessionId   String?
+  startedAt   DateTime  @default(now())
+  completedAt DateTime?
+  progress    Json?
+  rating      Int?
+  feedback    String?
+
+  story   TwineStory    @relation(fields: [storyId], references: [id], onDelete: Cascade)
+  version StoryVersion? @relation(fields: [versionId], references: [id], onDelete: SetNull)
+  user    User?         @relation(fields: [userId], references: [id], onDelete: SetNull)
+  session UserSession?  @relation(fields: [sessionId], references: [id], onDelete: SetNull)
+}
+
+model StoryNode {
+  id        String        @id @default(cuid())
+  storyId   String
+  key       String
+  title     String?
+  synopsis  String?
+  type      StoryNodeType @default(NARRATIVE)
+  content   Json?
+  media     Json?
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+
+  story    TwineStory        @relation(fields: [storyId], references: [id], onDelete: Cascade)
+  outgoing StoryTransition[] @relation("OutgoingTransitions")
+  incoming StoryTransition[] @relation("IncomingTransitions")
+
+  @@unique([storyId, key])
+}
+
+model StoryPath {
+  id        String   @id @default(cuid())
+  storyId   String
+  key       String
+  label     String
+  summary   String?
+  metadata  Json?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  story       TwineStory        @relation(fields: [storyId], references: [id], onDelete: Cascade)
+  transitions StoryTransition[]
+
+  @@unique([storyId, key])
+}
+
+model StoryTransition {
+  id         String   @id @default(cuid())
+  storyId    String
+  fromNodeId String
+  pathId     String
+  toNodeId   String?
+  ordering   Int?
+  condition  Json?
+  effect     Json?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  story    TwineStory @relation(fields: [storyId], references: [id], onDelete: Cascade)
+  fromNode StoryNode  @relation("OutgoingTransitions", fields: [fromNodeId], references: [id], onDelete: Cascade)
+  toNode   StoryNode? @relation("IncomingTransitions", fields: [toNodeId], references: [id], onDelete: SetNull)
+  path     StoryPath  @relation(fields: [pathId], references: [id], onDelete: Cascade)
+
+  @@unique([storyId, fromNodeId, pathId, toNodeId])
+}
+
+model AvatarProfile {
+  id               String   @id
+  name             String
+  age              Int?
+  background       String?
+  appearance       Json?
+  initialResources Json
+  socialContext    Json?
+  isPlayable       Boolean  @default(false)
+  storyId          String?
+  experienceClicks Int      @default(0)
+  experienceStarts Int      @default(0)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  story        TwineStory?        @relation(fields: [storyId], references: [id], onDelete: SetNull)
+  interactions StoryInteraction[]
+}
+
+model StoryInteraction {
+  id        String               @id @default(cuid())
+  avatarId  String
+  storyId   String?
+  sessionId String?
+  userId    String?
+  kind      StoryInteractionKind
+  metadata  Json?
+  createdAt DateTime             @default(now())
+
+  avatar  AvatarProfile @relation(fields: [avatarId], references: [id], onDelete: Cascade)
+  story   TwineStory?   @relation(fields: [storyId], references: [id], onDelete: SetNull)
+  session UserSession?  @relation(fields: [sessionId], references: [id], onDelete: SetNull)
+  user    User?         @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([avatarId, kind, createdAt])
+  @@index([sessionId])
+  @@index([userId])
+}
