@@ -528,7 +528,7 @@ export default function HomePage() {
         <HeaderInner>
           <Brand>
             <LogoImage>
-              <Image src="/logo.png" alt="Loop Logo" fill sizes="120px" priority style={{ objectFit: "contain" }} />
+              <Image src="/public/logo.png" alt="Loop Logo" fill sizes="120px" priority style={{ objectFit: "contain" }} />
             </LogoImage>
           </Brand>
           <Nav>
@@ -701,7 +701,7 @@ export default function HomePage() {
         <FooterInner>
           <FooterBrand>
             <LogoImage>
-              <Image src="/logo.png" alt="Loop Logo" fill sizes="120px" style={{ objectFit: "contain" }} />
+              <Image src="/public/logo.png" alt="Loop Logo" fill sizes="120px" style={{ objectFit: "contain" }} />
             </LogoImage>
           </FooterBrand>
           <FooterText>Building empathy through immersive experiences</FooterText>
