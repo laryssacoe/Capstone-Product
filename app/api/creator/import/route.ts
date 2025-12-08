@@ -12,6 +12,8 @@ import {
 } from "@/lib/server/twine-transform"
 import { upsertStoryGraph, type StoryPayload } from "@/lib/server/story-graph"
 import { twineHtmlToTwison } from "@/lib/server/twine-html"
+export const dynamic = "force-dynamic"
+
 
 const importOverridesSchema = z.object({
   slug: z.string().min(1).regex(/^[a-z0-9-]+$/i, "Story code must be URL safe.").optional(),

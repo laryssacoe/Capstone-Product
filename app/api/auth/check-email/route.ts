@@ -2,6 +2,8 @@ import { NextResponse } from "next/server"
 import { z } from "zod"
 
 import { prisma } from "@/lib/server/prisma"
+export const dynamic = "force-dynamic"
+
 
 const querySchema = z.object({
   email: z

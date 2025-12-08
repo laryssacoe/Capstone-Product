@@ -4,6 +4,8 @@ import { getCurrentSession } from "@/lib/server/auth"
 import { buildStoryApprovalLinks, isMailerConfigured, sendStoryPendingUpdateEmail } from "@/lib/server/mailer"
 import { prisma } from "@/lib/server/prisma"
 import {
+export const dynamic = "force-dynamic"
+
   storyPayloadSchema,
   storyUpdatePayloadSchema,
   upsertStoryGraph,

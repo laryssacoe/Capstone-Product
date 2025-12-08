@@ -4,6 +4,8 @@ import { z } from "zod"
 import { getCurrentSession } from "@/lib/server/auth"
 import { prisma } from "@/lib/server/prisma"
 import {
+export const dynamic = "force-dynamic"
+
   applyStoryApprovalDecision,
   extractApprovalToken,
   isStoryApprovalError,

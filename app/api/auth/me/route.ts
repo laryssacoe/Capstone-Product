@@ -2,6 +2,8 @@ import { NextResponse } from "next/server"
 
 import { getCurrentSession } from "@/lib/server/auth"
 import { prisma } from "@/lib/server/prisma"
+export const dynamic = "force-dynamic"
+
 
 export async function GET() {
   const session = await getCurrentSession()

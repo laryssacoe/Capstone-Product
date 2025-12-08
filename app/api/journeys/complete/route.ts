@@ -3,6 +3,8 @@ import { z } from "zod"
 import { getCurrentSession } from "@/lib/server/auth"
 import { completeScenario, getUserProgress } from "@/lib/server/progress"
 import { ensureBaseContent } from "@/lib/server/bootstrap"
+export const dynamic = "force-dynamic"
+
 
 const scenarioDetailsSchema = z.object({
   title: z.string().optional(),

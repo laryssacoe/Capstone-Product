@@ -6,6 +6,8 @@ import { resolve as resolveA, resolveMx } from "node:dns/promises"
 import { prisma } from "@/lib/server/prisma"
 import { createSession } from "@/lib/server/auth"
 import { verifyEmailWithKickbox } from "@/lib/server/email-verification"
+export const dynamic = "force-dynamic"
+
 
 const registerSchema = z.object({
   email: z

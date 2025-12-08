@@ -2,6 +2,8 @@ import { NextResponse } from "next/server"
 import { getCurrentSession } from "@/lib/server/auth"
 import { ensureBaseContent } from "@/lib/server/bootstrap"
 import { getUserProgress } from "@/lib/server/progress"
+export const dynamic = "force-dynamic"
+
 
 export async function GET() {
   const session = await getCurrentSession()

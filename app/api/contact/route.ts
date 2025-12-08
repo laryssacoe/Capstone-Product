@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import nodemailer from "nodemailer"
+export const dynamic = "force-dynamic"
+
 
 export async function POST(req: NextRequest) {
   const { name, email, message, anonymous } = await req.json()

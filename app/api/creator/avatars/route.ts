@@ -5,6 +5,8 @@ import { z } from "zod"
 import { getCurrentSession } from "@/lib/server/auth"
 import type { Prisma } from "@/src/generated/prisma/client"
 import { prisma } from "@/lib/server/prisma"
+export const dynamic = "force-dynamic"
+
 
 const resourcesSchema = z.record(z.number().min(0).max(100))
 

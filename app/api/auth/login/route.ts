@@ -3,6 +3,8 @@ import bcrypt from "bcryptjs"
 import { z } from "zod"
 import { prisma } from "@/lib/server/prisma"
 import { createSession } from "@/lib/server/auth"
+export const dynamic = "force-dynamic"
+
 
 const loginSchema = z.object({
   email: z.string().email(),

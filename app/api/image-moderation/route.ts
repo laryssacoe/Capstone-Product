@@ -3,6 +3,8 @@ import { z } from "zod"
 
 import { getCurrentSession } from "@/lib/server/auth"
 import { prisma } from "@/lib/server/prisma"
+export const dynamic = "force-dynamic"
+
 
 const MAX_DATA_URI_LENGTH = 4 * 1024 * 1024 // ~4MB encoded
 const dataUriPattern = /^data:image\/[a-zA-Z0-9+.-]+;base64,/i
