@@ -11,6 +11,11 @@ export default defineConfig({
       provider: "v8",
       reporter: ["text", "lcov"],
       reportsDirectory: "./coverage/backend",
+      exclude: [
+        "src/generated/**",
+        "lib/server/mailer.ts", // integration with SMTP; covered in higher-level e2e
+        "node_modules/**",
+      ],
     },
   },
   resolve: {
