@@ -273,6 +273,8 @@ model TwineStory {
   avatars                AvatarProfile[]
   auditLogs              StoryAuditLog[]
   interactions           StoryInteraction[]
+
+  @@unique([title])
 }
 
 model StoryVersion {
