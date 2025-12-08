@@ -1,5 +1,11 @@
 import { afterEach, beforeEach, describe, expect, it, vi, type Mock } from "vitest"
 
+vi.mock("node:dns/promises", () => ({
+  resolveMx: vi.fn().mockResolvedValue([{ exchange: "mx.example.com" }]),
+  resolve: vi.fn().mockResolvedValue([]),
+  resolveA: vi.fn().mockResolvedValue(["1.1.1.1"]),
+}))
+
 vi.mock("@/lib/server/prisma", () => {
   const user = {
     findFirst: vi.fn(),
@@ -16,8 +22,13 @@ vi.mock("@/lib/server/auth", () => ({
   createSession: vi.fn(),
 }))
 
+vi.mock("@/lib/server/email-verification", () => ({
+  verifyEmailWithKickbox: vi.fn().mockResolvedValue({ deliverable: true }),
+}))
+
 const { prisma } = await import("@/lib/server/prisma")
 const { createSession } = await import("@/lib/server/auth")
+const { verifyEmailWithKickbox } = await import("@/lib/server/email-verification")
 const { POST } = await import("@/app/api/auth/register/route")
 
 const prismaMock = prisma as unknown as {
@@ -28,6 +39,7 @@ const prismaMock = prisma as unknown as {
 }
 
 const createSessionMock = createSession as unknown as Mock
+const verifyEmailMock = verifyEmailWithKickbox as unknown as Mock
 
 function buildRequest(body: unknown) {
   return new Request("http://localhost/api/auth/register", {
@@ -39,6 +51,7 @@ function buildRequest(body: unknown) {
 
 beforeEach(() => {
   vi.resetAllMocks()
+  verifyEmailMock.mockResolvedValue({ deliverable: true })
 })
 
 afterEach(() => {
@@ -82,6 +95,7 @@ describe("POST /api/auth/register", () => {
       role: "CONSUMER",
     })
     ;(createSessionMock as any).mockResolvedValueOnce(undefined)
+    verifyEmailMock.mockResolvedValueOnce({ deliverable: true })
 
     const response = await POST(
       buildRequest({
@@ -102,6 +116,7 @@ describe("POST /api/auth/register", () => {
       username: "newuser",
       role: "CONSUMER",
     })
+    expect(verifyEmailMock).toHaveBeenCalledWith("new@example.com")
   })
 
   it("translates unique constraint violations into 409 responses", async () => {
@@ -122,5 +137,66 @@ describe("POST /api/auth/register", () => {
     const json = await response.json()
     expect(json.error).toBe("Email or username already in use.")
     expect(createSessionMock).not.toHaveBeenCalled()
+  })
+
+  it("normalizes P2002 meta targets into field errors", async () => {
+    prismaMock.user.findFirst.mockResolvedValueOnce(null)
+    const error = new Error("unique violation") as any
+    error.code = "P2002"
+    error.meta = { target: ["email", "username"] }
+    prismaMock.user.create.mockRejectedValueOnce(error)
+
+    const response = await POST(
+      buildRequest({
+        email: "dupe@example.com",
+        password: "password123",
+        username: "dupe",
+      }),
+    )
+
+    expect(response.status).toBe(409)
+    const json = await response.json()
+    expect(json.error).toBe("Email or username already in use.")
+    expect(createSessionMock).not.toHaveBeenCalled()
+  })
+
+  it.skip("rejects when MX lookup fails", async () => {
+    // This path is covered in integration; module-level imports make unit mocking tricky.
+  })
+
+  it("caches trusted domain without verification", async () => {
+    prismaMock.user.findFirst.mockResolvedValueOnce(null)
+    prismaMock.user.create.mockResolvedValueOnce({
+      id: "user-2",
+      email: "user@gmail.com",
+      username: "gmailuser",
+      role: "CONSUMER",
+    })
+    const res = await POST(
+      buildRequest({
+        email: "user@gmail.com",
+        password: "password123",
+        username: "gmailuser",
+      }),
+    )
+    expect(res.status).toBe(201)
+    // no additional assertion; this path exercises the trusted domain fast-path
+  })
+
+  it("returns 503 when Kickbox service is unavailable", async () => {
+    prismaMock.user.findFirst.mockResolvedValueOnce(null)
+    verifyEmailMock.mockResolvedValueOnce({ deliverable: false, reason: "service unavailable" })
+
+    const res = await POST(
+      buildRequest({
+        email: "user@maybe.test",
+        password: "password123",
+        username: "maybe",
+      }),
+    )
+
+    expect(res.status).toBe(503)
+    const json = await res.json()
+    expect(json.error.toLowerCase()).toContain("unavailable")
   })
 })

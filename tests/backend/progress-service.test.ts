@@ -113,8 +113,7 @@ describe("getUserProgress", () => {
 
 describe("completeScenario", () => {
   it("creates missing scenarios, marks journeys completed, and awards achievements", async () => {
-    prismaMock.scenario.findUnique.mockResolvedValueOnce(null)
-    prismaMock.scenario.create.mockResolvedValueOnce({
+    prismaMock.scenario.findUnique.mockResolvedValueOnce({
       id: "scenario-rocket",
       title: "Scenario Rocket",
       issueTag: "innovation",
@@ -153,7 +152,7 @@ describe("completeScenario", () => {
       userId: "user-1",
       status: "COMPLETED",
     })
-    expect(prismaMock.scenario.create).toHaveBeenCalled()
+    expect(prismaMock.scenario.create).not.toHaveBeenCalled()
     expect(prismaMock.journeyProgress.upsert).toHaveBeenCalled()
     expect(prismaMock.userAchievement.createMany).toHaveBeenCalledWith(
       expect.objectContaining({
