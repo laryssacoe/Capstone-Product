@@ -4,6 +4,9 @@ import { prisma } from "@/lib/server/prisma";
 export const dynamic = "force-dynamic"
 
 
+
+
+
 export async function PATCH(request: Request) {
   const session = await getCurrentSession();
   if (!session?.user?.isAdmin) {

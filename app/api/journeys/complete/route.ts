@@ -6,6 +6,9 @@ import { ensureBaseContent } from "@/lib/server/bootstrap"
 export const dynamic = "force-dynamic"
 
 
+
+
+
 const scenarioDetailsSchema = z.object({
   title: z.string().optional(),
   description: z.string().optional(),

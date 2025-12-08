@@ -3,14 +3,9 @@ import { NextResponse } from "next/server"
 import { getCurrentSession } from "@/lib/server/auth"
 import { buildStoryApprovalLinks, isMailerConfigured, sendStoryPendingUpdateEmail } from "@/lib/server/mailer"
 import { prisma } from "@/lib/server/prisma"
-import {
-export const dynamic = "force-dynamic"
+import { storyPayloadSchema, storyUpdatePayloadSchema, upsertStoryGraph, type StoryPayload } from "@/lib/server/story-graph"
 
-  storyPayloadSchema,
-  storyUpdatePayloadSchema,
-  upsertStoryGraph,
-  type StoryPayload,
-} from "@/lib/server/story-graph"
+export const dynamic = "force-dynamic"
 
 type SessionUser = {
   id: string

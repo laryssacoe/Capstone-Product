@@ -1,9 +1,12 @@
 import { NextResponse } from "next/server"
 import { z } from "zod"
 
+
 import { getCurrentSession } from "@/lib/server/auth"
 import { prisma } from "@/lib/server/prisma"
 export const dynamic = "force-dynamic"
+
+
 
 
 const stringArray = z.array(z.string().trim().min(1).max(80)).max(16)

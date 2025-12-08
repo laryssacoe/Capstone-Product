@@ -1,8 +1,11 @@
 import { NextResponse } from "next/server"
 
+
 import { ensureBaseContent } from "@/lib/server/bootstrap"
 import { prisma } from "@/lib/server/prisma"
 export const dynamic = "force-dynamic"
+
+
 
 
 function parseBoolean(value: string | null): boolean {

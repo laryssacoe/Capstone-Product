@@ -3,14 +3,9 @@ import { z } from "zod"
 
 import { getCurrentSession } from "@/lib/server/auth"
 import { prisma } from "@/lib/server/prisma"
-import {
-export const dynamic = "force-dynamic"
+import { applyStoryApprovalDecision, extractApprovalToken, isStoryApprovalError, type StoryApprovalDecision } from "@/lib/server/story-approval"
 
-  applyStoryApprovalDecision,
-  extractApprovalToken,
-  isStoryApprovalError,
-  type StoryApprovalDecision,
-} from "@/lib/server/story-approval"
+export const dynamic = "force-dynamic"
 
 const payloadSchema = z.object({
   versionId: z.string().min(1),

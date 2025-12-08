@@ -5,6 +5,9 @@ import { getUserProgress } from "@/lib/server/progress"
 export const dynamic = "force-dynamic"
 
 
+
+
+
 export async function GET() {
   const session = await getCurrentSession()
   if (!session?.user) {
