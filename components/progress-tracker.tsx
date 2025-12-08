@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Trophy, Target, Heart, Brain, Users, Star, TrendingUp, Award } from "lucide-react"
 import type { TrackedScenario, UserProgress } from "@/types/simulation"
+import { useToast } from "@/hooks/use-toast"
 import {
   AlertDialog,
   AlertDialogContent,
@@ -31,6 +32,7 @@ export function ProgressTracker({ userId = "demo-user", className }: ProgressTra
   const [pendingScenario, setPendingScenario] = useState<TrackedScenario | null>(null)
   const [confirming, setConfirming] = useState(false)
   const signInPrompt = "In order to start and see your journey, sign in."
+  const { toast } = useToast()
 
   const normalizeProgress = (data: UserProgress): UserProgress => ({
     ...data,
@@ -103,13 +105,20 @@ export function ProgressTracker({ userId = "demo-user", className }: ProgressTra
       })
       if (!response.ok) {
         const data = await response.json().catch(() => ({}))
-        throw new Error(data.error ?? "Unable to update scenario.")
+        const message = data.error ?? "Unable to update scenario."
+        throw new Error(message)
       }
       const data = await response.json()
       setProgress(normalizeProgress(data))
       setActionMessage("Scenario recorded! Progress updated.")
     } catch (err) {
-      setActionMessage(err instanceof Error ? err.message : "Unable to update scenario.")
+      const message = err instanceof Error ? err.message : "Unable to update scenario."
+      setActionMessage(message)
+      toast({
+        title: "Could not save scenario",
+        description: message,
+        variant: "destructive",
+      })
     }
   }
 
