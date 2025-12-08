@@ -26921,11 +26921,11 @@ export namespace Prisma {
   export type TwineStoryWhereUniqueInput = Prisma.AtLeast<{
     id?: string
     slug?: string
+    title?: string
     latestVersionId?: string
     AND?: TwineStoryWhereInput | TwineStoryWhereInput[]
     OR?: TwineStoryWhereInput[]
     NOT?: TwineStoryWhereInput | TwineStoryWhereInput[]
-    title?: StringFilter<"TwineStory"> | string
     summary?: StringNullableFilter<"TwineStory"> | string | null
     tags?: StringNullableListFilter<"TwineStory">
     visibility?: EnumStoryVisibilityFilter<"TwineStory"> | $Enums.StoryVisibility
@@ -26958,7 +26958,7 @@ export namespace Prisma {
     avatars?: AvatarProfileListRelationFilter
     auditLogs?: StoryAuditLogListRelationFilter
     interactions?: StoryInteractionListRelationFilter
-  }, "id" | "slug" | "latestVersionId">
+  }, "id" | "slug" | "latestVersionId" | "title">
 
   export type TwineStoryOrderByWithAggregationInput = {
     id?: SortOrder
