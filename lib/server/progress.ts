@@ -16,12 +16,6 @@ type ScenarioDetailsPayload = {
   minimumResources?: Record<string, number | undefined>
 }
 
-const toTitleCase = (value: string) =>
-  value
-    .replace(/-/g, " ")
-    .replace(/\b\w/g, (c) => c.toUpperCase())
-    .replace(/\B\w/g, (c) => c.toLowerCase())
-    
 export async function getUserProgress(userId: string) {
   const [scenarios, journeys, achievements] = await Promise.all([
     prisma.scenario.findMany(),
@@ -87,35 +81,11 @@ export async function getUserProgress(userId: string) {
   }
 }
 
-async function ensureScenarioRecord(scenarioId: string, details?: ScenarioDetailsPayload) {
-  const existing = await prisma.scenario.findUnique({ where: { id: scenarioId } })
-  if (existing) return existing
-
-  const title = details?.title ?? toTitleCase(scenarioId)
-  const summary = details?.description ?? null
-  const issueTag = details?.issue?.type ?? null
-  const difficulty = details?.difficulty ?? details?.issue?.severity ?? null
-  const estimatedMinutes = details?.estimatedMinutes ?? 10
-
-  return prisma.scenario.create({
-    data: {
-      id: scenarioId,
-      title,
-      summary,
-      issueTag,
-      difficulty,
-      estimatedMinutes,
-      metadata: {
-        description: details?.description ?? null,
-        issue: details?.issue ?? null,
-        minimumResources: details?.minimumResources ?? null,
-      },
-    },
-  })
-}
-
-export async function completeScenario(userId: string, scenarioId: string, details?: ScenarioDetailsPayload) {
-  const scenario = await ensureScenarioRecord(scenarioId, details)
+export async function completeScenario(userId: string, scenarioId: string, _details?: ScenarioDetailsPayload) {
+  const scenario = await prisma.scenario.findUnique({ where: { id: scenarioId } })
+  if (!scenario) {
+    throw new Error("Scenario not found.")
+  }
 
   const journey = await prisma.journeyProgress.upsert({
     where: {

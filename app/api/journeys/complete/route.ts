@@ -51,7 +51,9 @@ export async function POST(request: Request) {
   try {
     await completeScenario(session.user.id, parsed.data.scenarioId, parsed.data.scenario ?? undefined)
   } catch (error) {
-    return NextResponse.json({ error: (error as Error).message }, { status: 400 })
+    const message = (error as Error).message || "Unable to complete scenario."
+    const status = message.toLowerCase().includes("not found") ? 404 : 400
+    return NextResponse.json({ error: message }, { status })
   }
 
   const progress = await getUserProgress(session.user.id)

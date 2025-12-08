@@ -104,6 +104,7 @@ function buildSystemScenarios(records: Array<{
 
     return {
       id: record.id,
+      slug: record.id,
       title: record.title,
       description: record.summary ?? issueDescription,
       socialIssue: {
@@ -121,6 +122,7 @@ function buildSystemScenarios(records: Array<{
         source: "system",
         scenarioId: record.id,
         issueTag: record.issueTag,
+        storySlug: record.id,
       },
     }
   })
@@ -245,6 +247,7 @@ export async function GET() {
           const scenarioId = story.slug ?? avatar.id
           return {
             id: scenarioId,
+            slug: scenarioId,
             title: story.title ?? `${avatar.name}'s Journey`,
             description: story.summary ?? avatar.background ?? "",
             socialIssue: {
@@ -308,6 +311,7 @@ export async function GET() {
 
       const scenarioPayload = {
         id: story.slug ?? story.id,
+        slug: story.slug ?? story.id,
         title: story.title ?? toTitleCase(story.slug ?? story.id),
         description: story.summary ?? issueDescription,
         socialIssue: {

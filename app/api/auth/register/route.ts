@@ -5,6 +5,7 @@ import { resolve as resolveA, resolveMx } from "node:dns/promises"
 
 import { prisma } from "@/lib/server/prisma"
 import { createSession } from "@/lib/server/auth"
+import { verifyEmailWithKickbox } from "@/lib/server/email-verification"
 
 const registerSchema = z.object({
   email: z
@@ -132,6 +133,19 @@ export async function POST(request: Request) {
   } catch (error) {
     const message = error instanceof Error ? error.message : "Please use a valid email address."
     return NextResponse.json({ error: message }, { status: 400 })
+  }
+
+  const kickbox = await verifyEmailWithKickbox(email)
+  if (!kickbox.deliverable) {
+    const reason = kickbox.reason ?? "This email could not be verified. Please use a real email address."
+    const serviceDown =
+      reason.toLowerCase().includes("unavailable") ||
+      reason.toLowerCase().includes("service") ||
+      reason.toLowerCase().includes("error")
+    return NextResponse.json(
+      { error: serviceDown ? "Email verification service is unavailable. Please try again shortly." : reason },
+      { status: serviceDown ? 503 : 400 },
+    )
   }
 
   const existing = await prisma.user.findFirst({
