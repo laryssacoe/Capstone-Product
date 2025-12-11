@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server"
 
 
-import { ensureBaseContent } from "@/lib/server/bootstrap"
 import { prisma } from "@/lib/server/prisma"
 export const dynamic = "force-dynamic"
 
@@ -26,7 +25,7 @@ function toTitleCase(value: string) {
     .replace(/\B\w/g, (c) => c.toLowerCase())
 }
 
-const SOCIAL_ISSUE_TYPES = ["racism", "disability", "poverty", "ageism", "gender", "lgbtq", "mental-health"] as const
+const SOCIAL_ISSUE_TYPES = ["racism", "disability", "poverty", "ageism", "gender", "lgbtq", "mental-health", "immigration"] as const
 type SocialIssueType = (typeof SOCIAL_ISSUE_TYPES)[number]
 const SOCIAL_ISSUE_SET = new Set<SocialIssueType>(SOCIAL_ISSUE_TYPES)
 
@@ -60,6 +59,7 @@ function normalizeIssueType(raw: unknown): SocialIssueType {
   if (input.includes("gender")) return "gender"
   if (input.includes("age")) return "ageism"
   if (input.includes("poverty") || input.includes("income") || input.includes("housing")) return "poverty"
+  if (input.includes("immigra") || input.includes("deport")) return "immigration"
   return "racism"
 }
 
@@ -135,10 +135,15 @@ function buildSystemScenarios(records: Array<{
 
 export async function GET() {
   try {
-    await ensureBaseContent()
-
+    // Only fetch avatars linked to PUBLIC + PLATFORM_OWNED stories
     const [avatars, systemScenarios, approvedStories] = await Promise.all([
       prisma.avatarProfile.findMany({
+        where: {
+          story: {
+            visibility: "PUBLIC",
+            ownershipStatus: "PLATFORM_OWNED",
+          },
+        },
         include: {
           story: {
             include: {
@@ -154,9 +159,11 @@ export async function GET() {
       prisma.scenario.findMany({
         orderBy: [{ estimatedMinutes: "asc" }, { title: "asc" }],
       }),
+      // FIX: Only fetch PUBLIC + PLATFORM_OWNED stories for public scenarios page
       prisma.twineStory.findMany({
         where: {
-          OR: [{ approvedAt: { not: null } }, { ownershipStatus: "PLATFORM_OWNED" }],
+          visibility: "PUBLIC",
+          ownershipStatus: "PLATFORM_OWNED",
         },
         include: {
           nodes: {
@@ -191,7 +198,10 @@ export async function GET() {
     }
 
     for (const scenario of buildSystemScenarios(systemScenarios)) {
-      upsertScenario(`system:${scenario.id}`, scenario)
+      const key = `story:${scenario.slug ?? scenario.id}`
+      if (!scenarioMap.has(key)) {
+        upsertScenario(`system:${scenario.id}`, scenario)
+      }
     }
 
     avatars
@@ -202,13 +212,8 @@ export async function GET() {
             return null
           }
 
-          const isApproved = Boolean(story.approvedAt) || story.ownershipStatus === "PLATFORM_OWNED"
-          if (!isApproved) {
+          if (story.visibility !== "PUBLIC" || story.ownershipStatus !== "PLATFORM_OWNED") {
             return null
-          }
-
-          if (story.visibility !== "PUBLIC") {
-            storyIdsNeedingVisibility.add(story.id)
           }
 
           if (!avatar.isPlayable) {
@@ -292,10 +297,6 @@ export async function GET() {
       })
 
     for (const story of approvedStories) {
-      if (story.visibility !== "PUBLIC") {
-        storyIdsNeedingVisibility.add(story.id)
-      }
-
       const nodes = Array.isArray(story.nodes) ? story.nodes : []
       const decisions = nodes
         .filter((node) => node && node.type === "DECISION")
@@ -339,20 +340,9 @@ export async function GET() {
       }
 
       const scenarioKey = story.slug ? `story:${story.slug}` : `story:${story.id}`
-      if (scenarioMap.has(scenarioKey)) {
-        upsertScenario(scenarioKey, {
-          metadata: scenarioPayload.metadata,
-        })
-      } else {
+      if (!scenarioMap.has(scenarioKey)) {
         upsertScenario(scenarioKey, scenarioPayload)
       }
-    }
-
-    if (storyIdsNeedingVisibility.size > 0) {
-      await prisma.twineStory.updateMany({
-        where: { id: { in: Array.from(storyIdsNeedingVisibility) } },
-        data: { visibility: "PUBLIC" },
-      })
     }
 
     if (avatarIdsNeedingPlayable.size > 0) {
