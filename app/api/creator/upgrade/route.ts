@@ -3,7 +3,7 @@ import { NextResponse } from "next/server"
 
 import { getCurrentSession } from "@/lib/server/auth"
 import { prisma } from "@/lib/server/prisma"
-import { StoryNodeType, CreatorProfileStatus } from "@/src/generated/prisma/client"
+import { StoryNodeType } from "@/src/generated/prisma/client"
 
 export const dynamic = "force-dynamic"
 
@@ -262,43 +262,61 @@ export async function POST() {
 
   // Check if already a creator
   if (session.user.role === "CREATOR" || session.user.role === "ADMIN") {
-    return NextResponse.json({ message: "Already a creator" }, { status: 200 })
+    return NextResponse.json({ message: "Already upgraded." }, { status: 200 })
   }
 
   try {
-    // Upgrade user to creator role
-    await prisma.user.update({
+    const now = new Date()
+    const displayName = session.user.username || session.user.email || "Creator"
+
+    // Upgrade user to creator role and ensure profile consent
+    const updatedUser = await prisma.user.update({
       where: { id: session.user.id },
-      data: { role: "CREATOR" },
-    })
-
-    // Create or ensure creator profile exists
-    const existingProfile = await prisma.creatorProfile.findUnique({
-      where: { userId: session.user.id },
-    })
-
-    if (!existingProfile) {
-      await prisma.creatorProfile.create({
-        data: {
-          id: randomUUID(),
-          userId: session.user.id,
-          status: CreatorProfileStatus.REVIEW,
-          createdAt: new Date(),
-          updatedAt: new Date(),
+      data: {
+        role: "CREATOR",
+        profile: {
+          upsert: {
+            update: { consentAcceptedAt: now },
+            create: { consentAcceptedAt: now, displayName },
+          },
         },
+      },
+      select: { id: true, email: true, username: true, role: true },
+    })
+
+    // Optionally create creator profile if delegate exists
+    if (typeof prisma.creatorProfile?.findUnique === "function") {
+      const existingProfile = await prisma.creatorProfile.findUnique({
+        where: { userId: session.user.id },
       })
+
+      if (!existingProfile && typeof prisma.creatorProfile?.create === "function") {
+        await prisma.creatorProfile.create({
+          data: {
+            id: randomUUID(),
+            userId: session.user.id,
+            status: "REVIEW",
+            createdAt: now,
+            updatedAt: now,
+          },
+        })
+      }
     }
 
-    // Create example story for the new creator
+    // Create example story for the new creator 
     try {
-      await createExampleStory(session.user.id)
+      if (
+        typeof prisma.twineStory?.findFirst === "function" &&
+        typeof prisma.twineStory?.create === "function"
+      ) {
+        await createExampleStory(session.user.id)
+      }
     } catch (storyError) {
       console.error("[api/creator/upgrade] Failed to create example story:", storyError)
     }
 
     return NextResponse.json({ 
-      message: "Upgraded to creator",
-      hasExampleStory: true,
+      user: updatedUser,
     }, { status: 200 })
   } catch (error) {
     console.error("[api/creator/upgrade] Failed to upgrade user:", error)
