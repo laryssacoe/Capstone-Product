@@ -39,6 +39,7 @@ const baseProgress = {
       difficulty: "moderate",
       estimatedMinutes: 15,
       completed: true,
+      metadata: {},
     },
     {
       id: "job-interview",
@@ -47,6 +48,7 @@ const baseProgress = {
       difficulty: "moderate",
       estimatedMinutes: 20,
       completed: false,
+      metadata: { hasStarted: true, storySlug: "job-interview" },  // Added progress metadata
     },
   ],
 }
@@ -91,7 +93,7 @@ describe("ProgressTracker", () => {
     expect(screen.getByRole("link", { name: /Sign In/i })).toHaveAttribute("href", "/login")
   })
 
-  it("displays completed and incomplete stories separately", async () => {
+  it("displays completed and in-progress stories separately", async () => {
     mockFetch(createJsonResponse(baseProgress))
 
     render(<ProgressTracker />)
@@ -100,5 +102,31 @@ describe("ProgressTracker", () => {
     expect(screen.getByText(/Continue Your Journey/i)).toBeInTheDocument()
     expect(screen.getByText("Housing Search")).toBeInTheDocument()
     expect(screen.getByText("Job Interview")).toBeInTheDocument()
+  })
+
+  it("does not show Continue Your Journey for new users with no started stories", async () => {
+    const newUserProgress = {
+      ...baseProgress,
+      scenariosCompleted: 0,
+      timeSpent: 0,
+      scenarios: [
+        {
+          id: "job-interview",
+          title: "Job Interview",
+          issueTag: "workplace-disability",
+          difficulty: "moderate",
+          estimatedMinutes: 20,
+          completed: false,
+          metadata: {},  // No hasStarted - user hasn't begun this story
+        },
+      ],
+      achievements: [],
+    }
+    mockFetch(createJsonResponse(newUserProgress))
+
+    render(<ProgressTracker />)
+
+    await waitFor(() => expect(screen.getByText(/Start Your First Story/i)).toBeInTheDocument())
+    expect(screen.queryByText(/Continue Your Journey/i)).not.toBeInTheDocument()
   })
 })
