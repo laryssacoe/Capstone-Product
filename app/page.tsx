@@ -11,11 +11,13 @@ import * as THREE from "three";
 import { Button as UIButton } from "@/components/ui/button";
 import { Badge as UIBadge } from "@/components/ui/badge";
 import { Input as UIInput } from "@/components/ui/input";
+import { TutorialPrompt } from "@/components/tutorial-prompt"
 
 import { Globe, Heart, Brain, ChevronDown, Mail } from "lucide-react";
 
 import { Canvas, useFrame } from "@react-three/fiber";
 import { OrbitControls, Environment, Html, Sphere } from "@react-three/drei";
+
 
 function InteractiveGlobe() {
   const globeRef = useRef<THREE.Mesh>(null);
@@ -179,6 +181,10 @@ const NavLink = styled(Link)`
   font-weight: 600;
   transition: color .2s ease;
   &:hover { color: #fff; }
+`;
+
+const Dot = styled.div`
+  width: .6rem; height: .6rem; border-radius: 9999px;
 `;
 
 const ContactBtn = styled(UIButton)`
@@ -528,7 +534,7 @@ export default function HomePage() {
         <HeaderInner>
           <Brand>
             <LogoImage>
-              <Image src="/public/logo.png" alt="Loop Logo" fill sizes="120px" priority style={{ objectFit: "contain" }} />
+              <Image src="/images/logo.png" alt="Loop Logo" fill sizes="120px" priority style={{ objectFit: "contain" }} />
             </LogoImage>
           </Brand>
           <Nav>
@@ -559,7 +565,7 @@ export default function HomePage() {
             <WarningNote>
               <strong>Note:</strong> {user
                 ? <>Messages are sent from your account and are <u>not anonymous</u>.</>
-                : <>Messages sent without an account are anonymous and we can’t reply directly.</>}
+                : <>Messages sent without an account are anonymous and we can't reply directly.</>}
             </WarningNote>
 
             {showErrorMessage && <ErrorBox>{errorMessage}</ErrorBox>}
@@ -604,8 +610,8 @@ export default function HomePage() {
             <strong>Message sent successfully!</strong>
             <div style={{ fontSize: ".9rem", color: "#047857" }}>
               {user?.email
-                ? "We’ll get back to you soon."
-                : "Thanks for reaching out. Anonymous messages don’t include contact info, so we won’t be able to reply directly."}
+                ? "We'll get back to you soon."
+                : "Thanks for reaching out. Anonymous messages don't include contact info, so we won't be able to reply directly."}
             </div>
           </div>
         </Toast>
@@ -690,7 +696,7 @@ export default function HomePage() {
             <FeatureCard>
               <IconWrap><Heart size={32} color="#f472b6" /></IconWrap>
               <FeatureTitle>Empathy Building</FeatureTitle>
-              <FeatureText>Gain insight into others’ experiences and build genuine understanding.</FeatureText>
+              <FeatureText>Gain insight into others' experiences and build genuine understanding.</FeatureText>
             </FeatureCard>
           </FeatureGrid>
         </FeaturesInner>
@@ -701,16 +707,14 @@ export default function HomePage() {
         <FooterInner>
           <FooterBrand>
             <LogoImage>
-              <Image src="/public/logo.png" alt="Loop Logo" fill sizes="120px" style={{ objectFit: "contain" }} />
+              <Image src="/images/logo.png" alt="Loop Logo" fill sizes="120px" style={{ objectFit: "contain" }} />
             </LogoImage>
           </FooterBrand>
           <FooterText>Building empathy through immersive experiences</FooterText>
         </FooterInner>
       </Footer>
+
+      <TutorialPrompt href="/hero-example?tab=learn" />
     </Page>
   );
 }
-
-const Dot = styled.div`
-  width: .6rem; height: .6rem; border-radius: 9999px;
-`;
