@@ -49,6 +49,27 @@ export async function getUserProgress(userId: string) {
     // Continue without StoryCompletion data if schema is not available
   }
 
+  // Fetch StorySave records to find in-progress stories
+  let userSaves: Array<{ storySlug: string; currentPassageId: string; updatedAt: Date }> = []
+  try {
+    const saves = await prisma.storySave.findMany({
+      where: { userId },
+      select: { storySlug: true, currentPassageId: true, updatedAt: true },
+      orderBy: { updatedAt: "desc" },
+    })
+    userSaves = saves
+  } catch (error) {
+    console.warn("[getUserProgress] Could not fetch StorySave records:", error)
+  }
+
+  // Create a map of started stories (storySlug -> currentPassageId)
+  const startedStories = new Map<string, string>()
+  for (const save of userSaves) {
+    if (!startedStories.has(save.storySlug)) {
+      startedStories.set(save.storySlug, save.currentPassageId)
+    }
+  }
+
   // Get completed stories 
   const completedJourneys = journeys.filter((j) => j.status === "COMPLETED")
   const completedStorySlugs = new Set(storyCompletions.map((c) => c.storySlug))
@@ -127,13 +148,23 @@ export async function getUserProgress(userId: string) {
 
   const metrics = buildLearningMetrics(completedCount, uniqueIssues.length, achievements.length)
   
-  // Build scenario states with completion status from both sources
+  // Build scenario states with completion status and in-progress status
   const scenarioStates = scenarios.map((scenario) => {
     const metadata = scenario.metadata as Record<string, unknown> | null
     const storySlug = (metadata?.storySlug as string) ?? scenario.id
     
     // Check if completed via JourneyProgress or StoryCompletion
     const isCompleted = completedScenarioIds.has(scenario.id) || completedStorySlugs.has(storySlug)
+    
+    // Check if story has been started (has a save) but not completed
+    const hasStartedViaSlug = startedStories.has(storySlug)
+    const hasStartedViaId = startedStories.has(scenario.id)
+    const hasStarted = (hasStartedViaSlug || hasStartedViaId) && !isCompleted
+    
+    // Get current passage ID if in progress
+    const currentPassageId = hasStarted 
+      ? (startedStories.get(storySlug) || startedStories.get(scenario.id))
+      : undefined
     
     return {
       id: scenario.id,
@@ -142,18 +173,24 @@ export async function getUserProgress(userId: string) {
       difficulty: scenario.difficulty,
       estimatedMinutes: scenario.estimatedMinutes,
       completed: isCompleted,
-      metadata: metadata ?? null,
+      metadata: {
+        ...(metadata ?? {}),
+        storySlug,
+        hasStarted,
+        currentPassageId,
+      },
     }
   })
 
   // Get most recent activity date
   const lastJourneyDate = journeys.length ? (journeys[0].completedAt ?? journeys[0].startedAt) : null
   const lastCompletionDate = storyCompletions.length ? storyCompletions[0].createdAt : null
+  const lastSaveDate = userSaves.length ? userSaves[0].updatedAt : null
+  
   let lastActive: Date | null = null
-  if (lastJourneyDate && lastCompletionDate) {
-    lastActive = lastJourneyDate > lastCompletionDate ? lastJourneyDate : lastCompletionDate
-  } else {
-    lastActive = lastJourneyDate ?? lastCompletionDate
+  const dates = [lastJourneyDate, lastCompletionDate, lastSaveDate].filter((d): d is Date => d !== null)
+  if (dates.length > 0) {
+    lastActive = dates.reduce((latest, date) => (date > latest ? date : latest))
   }
 
   return {
