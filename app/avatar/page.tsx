@@ -1,49 +1,30 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useCallback, useEffect, useState } from "react";
-import styled from "styled-components";
+import { useEffect, useState } from "react";
+import styled, { keyframes } from "styled-components";
 import { Button as UIButton } from "@/components/ui/button";
 import { Badge as UIBadge } from "@/components/ui/badge";
-import { Progress as UIProgress } from "@/components/ui/progress";
 import { Card as UICard, CardContent as UICardContent } from "@/components/ui/card";
-import { User, DollarSign, Clock, Zap, Users, Brain, Activity } from "lucide-react";
-import type { Avatar, Resources } from "@/types/simulation";
-
-const gradForAvatar = (id: string) => {
-  switch (id) {
-    case "maria-rodriguez": return "linear-gradient(135deg,#f43f5e,#ec4899)";
-    case "sam-thompson":  return "linear-gradient(135deg,#3b82f6,#6366f1)";
-    case "aisha-johnson":   return "linear-gradient(135deg,#8b5cf6,#7c3aed)";
-    default:                return "linear-gradient(135deg,#64748b,#334155)";
-  }
-};
-const valueColor = (v: number) => (v >= 70 ? "#22c55e" : v >= 40 ? "#eab308" : "#ef4444");
-
-const getResourceIcon = (type: keyof Resources) => {
-  const s = 16;
-  switch (type) {
-    case "money": return <DollarSign size={s} />;
-    case "time": return <Clock size={s} />;
-    case "energy": return <Zap size={s} />;
-    case "socialSupport": return <Users size={s} />;
-    case "mentalHealth": return <Brain size={s} />;
-    case "physicalHealth": return <Activity size={s} />;
-  }
-};
-const getResourceLabel = (type: keyof Resources) => ({
-  money: "Financial Resources",
-  time: "Available Time",
-  energy: "Energy Level",
-  socialSupport: "Social Support",
-  mentalHealth: "Mental Health",
-  physicalHealth: "Physical Health",
-}[type]);
-
-type InteractionKind = "VIEW" | "SELECT" | "START";
+import { 
+  User, 
+  DollarSign, 
+  Clock, 
+  Heart, 
+  X,
+  MapPin,
+  Briefcase,
+  GraduationCap,
+  ArrowRight,
+  Play,
+  AlertCircle
+} from "lucide-react";
+import type { Avatar } from "@/types/simulation";
 
 type AvatarWithMetrics = Avatar & {
   storyId?: string | null;
+  storyTitle?: string | null;
+  storySummary?: string | null;
   metrics?: {
     clicks: number;
     starts: number;
@@ -52,182 +33,658 @@ type AvatarWithMetrics = Avatar & {
   };
 };
 
+const gradForAvatar = (id: string) => {
+  switch (id) {
+    case "maria-rodriguez": return "linear-gradient(135deg, #ec4899, #f43f5e)";
+    case "sam-thompson": return "linear-gradient(135deg, #6366f1, #3b82f6)";
+    case "aisha-johnson": return "linear-gradient(135deg, #8b5cf6, #a78bfa)";
+    case "ana-wheelchair": return "linear-gradient(135deg, #8b5cf6, #c084fc)";
+    case "katrina-mahinay": return "linear-gradient(135deg, #8b5cf6, #c084fc)";
+    default: return "linear-gradient(135deg, #6366f1, #8b5cf6)";
+  }
+};
+
+// Get avatar profile image, only return valid image paths
+const getAvatarImage = (avatar: AvatarWithMetrics): string => {
+  const imagePath = (avatar.appearance as any)?.image || (avatar as any).image || "";
+  
+  // Only trust image paths in /scenes/ directory 
+  if (imagePath && imagePath.startsWith("/scenes/")) {
+    return imagePath;
+  }
+  
+  // Return empty string for invalid/placeholder paths to show icon fallback
+  return "";
+};
+
+const fadeIn = keyframes`
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+`;
+
+const shimmer = keyframes`
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+`;
+
 const Page = styled.div`
   min-height: 100vh;
   color: #e2e8f0;
-  background: radial-gradient(120% 120% at 10% -20%, rgba(59,130,246,.10), transparent 60%),
-              #0f172a;
+  background: 
+    radial-gradient(ellipse at top, rgba(139, 92, 246, 0.15), transparent 50%),
+    radial-gradient(ellipse at bottom right, rgba(59, 130, 246, 0.1), transparent 50%),
+    #0a0f1a;
 `;
 
 const Container = styled.div`
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  padding: 3rem 1rem;
-  max-width: 72rem;
+  padding: 3rem 1.5rem 4rem;
+  max-width: 80rem;
   margin: 0 auto;
 `;
 
 const Hero = styled.header`
   text-align: center;
   margin: 0 auto 3.5rem;
-  max-width: 60rem;
+  max-width: 42rem;
+  animation: ${fadeIn} 0.6s ease-out;
 `;
+
 const Title = styled.h1`
-  font-size: clamp(2.25rem, 3.5vw, 3.5rem);
+  font-size: clamp(2rem, 4vw, 2.75rem);
   font-weight: 800;
-  margin: 0 0 1rem;
-  color: #f1f5f9;
-  line-height: 1.2;
+  margin: 0 0 0.75rem;
+  color: #f8fafc;
+  letter-spacing: -0.02em;
 `;
-const GradientWord = styled.span`
-  display: block;
-  background: linear-gradient(90deg,#60a5fa,#c084fc,#93c5fd);
+
+const GradientText = styled.span`
+  background: linear-gradient(135deg, #a78bfa, #60a5fa, #c084fc);
+  background-size: 200% auto;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
+  animation: ${shimmer} 3s linear infinite;
 `;
-const Underline = styled.div`
-  width: 5rem; height: 4px; margin: 0.5rem auto 1rem;
-  background: linear-gradient(90deg,#3b82f6,#7c3aed);
-  border-radius: 999px;
+
+const Subtitle = styled.p`
+  color: #94a3b8;
+  font-size: 1.1rem;
+  line-height: 1.7;
+  margin: 0;
 `;
-const Lead = styled.p`
-  color: #94a3b8; line-height: 1.8; margin: 0 auto; max-width: 48rem;
-`;
+
 const Notice = styled.div`
-  margin-top: 1.25rem; padding: 0.9rem 1rem; border-radius: .75rem;
-  border: 1px solid rgba(180, 83, 9, .35);
-  color: ##a75050; background: linear-gradient(90deg, rgba(146,64,14,.18), rgba(194,65,12,.16));
-  backdrop-filter: blur(4px);
-  font-size: .9rem; font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.625rem;
+  margin-top: 1.5rem;
+  padding: 0.75rem 1.25rem;
+  border-radius: 0.75rem;
+  border: 1px solid rgba(251, 191, 36, 0.25);
+  background: rgba(251, 191, 36, 0.08);
+  font-size: 0.875rem;
+  color: #fcd34d;
+  
+  svg {
+    flex-shrink: 0;
+  }
 `;
 
 const CardsGrid = styled.div`
-  display: grid; gap: 2rem; flex: 1 0 auto;
-  grid-template-columns: repeat(1, minmax(0,1fr));
-  @media (min-width: 1024px){ grid-template-columns: repeat(3, minmax(0,1fr)); }
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+  justify-content: center;
+  width: 100%;
+  animation: ${fadeIn} 0.6s ease-out 0.2s both;
 `;
 
-const Card = styled(UICard)`
-  border: 1px solid rgba(71,85,105,.45);
-  background:
-    radial-gradient(120% 140% at 10% -20%, rgba(59,130,246,.10), transparent 55%),
-    rgba(2,6,23,.75);
+const CardWrapper = styled.div`
+  width: 100%;
+  max-width: 360px;
+  
+  @media (min-width: 768px) {
+    width: calc(50% - 0.75rem);
+    max-width: 380px;
+  }
+  
+  @media (min-width: 1024px) {
+    width: calc(33.333% - 1rem);
+    max-width: 380px;
+  }
+`;
+
+const StoryCard = styled(UICard)<{ $isPlayable?: boolean }>`
+  height: 100%;
+  background: linear-gradient(180deg, rgba(30, 41, 59, 0.8), rgba(15, 23, 42, 0.9));
+  border: 1px solid rgba(71, 85, 105, 0.4);
   border-radius: 1.25rem;
-  box-shadow: 0 16px 36px rgba(2,6,23,.55);
-  transition: transform .25s ease, border-color .25s ease, box-shadow .25s ease;
-  &:hover{ transform: translateY(-2px); border-color: rgba(148,163,184,.6); box-shadow: 0 20px 44px rgba(2,6,23,.6); }
-  cursor: pointer;
+  overflow: hidden;
+  transition: all 0.3s ease;
+  cursor: ${({ $isPlayable }) => ($isPlayable ? "pointer" : "default")};
+  opacity: ${({ $isPlayable }) => ($isPlayable ? 1 : 0.5)};
+  position: relative;
+
+  ${({ $isPlayable }) =>
+    $isPlayable &&
+    `
+    &:hover {
+      transform: translateY(-6px);
+      border-color: rgba(139, 92, 246, 0.5);
+      box-shadow: 
+        0 20px 40px -15px rgba(0, 0, 0, 0.5),
+        0 0 0 1px rgba(139, 92, 246, 0.1);
+    }
+    
+    &:hover .avatar-glow {
+      opacity: 1;
+    }
+  `}
 `;
+
+const AvatarGlow = styled.div`
+  position: absolute;
+  top: -50%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 200px;
+  height: 200px;
+  background: radial-gradient(circle, rgba(139, 92, 246, 0.3), transparent 70%);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+`;
+
 const CardInner = styled(UICardContent)`
-  padding: 2rem;
+  padding: 1.75rem;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
 `;
+
+const AvatarSection = styled.div`
+  text-align: center;
+  margin-bottom: 1.25rem;
+`;
+
 const AvatarCircle = styled.div<{ $grad: string }>`
-  width: 96px; height: 96px; margin: 0 auto 1rem; border-radius: 9999px;
-  display: grid; place-items: center; background: ${({ $grad }) => $grad};
-  box-shadow: 0 10px 24px rgba(0,0,0,.35);
-  svg { width: 48px; height: 48px; color: #fff; }
+  width: 80px;
+  height: 80px;
+  margin: 0 auto 1rem;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: ${({ $grad }) => $grad};
+  box-shadow: 
+    0 8px 24px -8px rgba(0, 0, 0, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  position: relative;
+  overflow: hidden;
+  
+  &::after {
+    content: '';
+    position: absolute;
+    inset: -3px;
+    border-radius: 50%;
+    border: 2px solid rgba(255, 255, 255, 0.1);
+    pointer-events: none;
+  }
+  
+  svg {
+    width: 36px;
+    height: 36px;
+    color: #fff;
+  }
 `;
-const Name = styled.h3`
-  font-size: 1.375rem; font-weight: 700; color: #f8fafc; margin: 0 0 .25rem; text-align: center;
+
+const AvatarImage = styled.img`
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+  display: block;
 `;
-const Age = styled.p` color: #94a3b8; text-align: center; margin: 0 0 .75rem; `;
+
+const CharacterName = styled.h3`
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #f8fafc;
+  margin: 0 0 0.25rem;
+`;
+
+const CharacterMeta = styled.p`
+  color: #64748b;
+  font-size: 0.875rem;
+  margin: 0;
+`;
+
+const Divider = styled.div`
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(71, 85, 105, 0.5), transparent);
+  margin: 1rem 0;
+`;
+
 const BackgroundText = styled.p`
-  color: #cbd5e1; text-align: center; line-height: 1.7; font-size: .95rem; margin: 0 0 1.25rem;
-`;
-const PrimaryBox = styled.div`
-  border: 1px solid rgba(127,29,29,.35);
-  background: linear-gradient(180deg, rgba(127,29,29,.28), rgba(71,13,13,.25));
-  border-radius: .85rem; padding: 1rem; margin-bottom: 1.25rem;
-`;
-const PrimaryLabel = styled.p`
-  color: #fca5a5; letter-spacing: .12em; text-transform: uppercase; font-weight: 700;
-  font-size: .7rem; margin: 0 0 .4rem;
-`;
-const PrimaryType = styled.p`
-  color: #fecaca; font-weight: 700; margin: 0; font-size: 1rem;
+  color: #94a3b8;
+  font-size: 0.9rem;
+  line-height: 1.65;
+  margin: 0 0 1.25rem;
+  flex: 1;
 `;
 
-/* aligned info */
-const InfoList = styled.div` display: grid; row-gap: 8px; `;
-const InfoRow = styled.div`
-  display: grid; grid-template-columns: 140px 1fr; align-items: center;
-  padding: 6px 0; border-bottom: 1px solid rgba(100,116,139,.35);
-  &:last-child{ border-bottom: none; }
+const ChallengeBox = styled.div`
+  background: rgba(239, 68, 68, 0.08);
+  border: 1px solid rgba(239, 68, 68, 0.2);
+  border-radius: 0.75rem;
+  padding: 0.875rem 1rem;
+  margin-bottom: 1rem;
 `;
-const InfoLabel = styled.span` color: #94a3b8; font-weight: 600; `;
+
+const ChallengeLabel = styled.p`
+  color: #f87171;
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin: 0 0 0.375rem;
+`;
+
+const ChallengeValue = styled.p`
+  color: #fca5a5;
+  font-size: 0.95rem;
+  font-weight: 600;
+  margin: 0;
+  text-transform: capitalize;
+`;
+
+const InfoGrid = styled.div`
+  display: grid;
+  gap: 0.5rem;
+`;
+
+const InfoItem = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid rgba(71, 85, 105, 0.25);
+  
+  &:last-child {
+    border-bottom: none;
+  }
+`;
+
+const InfoLabel = styled.span`
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #64748b;
+  font-size: 0.8rem;
+  
+  svg {
+    width: 14px;
+    height: 14px;
+  }
+`;
+
 const InfoValue = styled.span`
-  color: #e5e7eb; text-align: right; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
-`;
-
-const BackRow = styled.div` display: flex; justify-content: center; padding: 0 0 2rem; `;
-const BackBtn = styled(UIButton)`
-  background: rgba(30,41,59,.6);
-  margin: 40px 0 0; border-radius: .75rem;  
   color: #cbd5e1;
-  border: 1px solid rgba(100,116,139,.4);
-  padding: .55rem 1.1rem;
-  &:hover{ background: rgba(30,41,59,.8); color:#fff; border-color: rgba(148,163,184,.6); }
+  font-size: 0.85rem;
+  font-weight: 500;
 `;
 
-const Overlay = styled.div`
-  position: fixed; inset: 0; z-index: 50; display: grid; place-items: center;
-  padding: 1rem; background: rgba(2,6,23,.85); backdrop-filter: blur(6px);
+const ComingSoonOverlay = styled.div`
+  position: absolute;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.7);
+  backdrop-filter: blur(2px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 1.25rem;
 `;
-const ModalCard = styled(UICard)`
-  width: 100%; max-width: 720px; max-height: 90vh; overflow: hidden;
-  border-color: rgba(71,85,105,.6);
-  background:
-    radial-gradient(120% 140% at 10% -20%, rgba(59,130,246,.10), transparent 55%),
-    linear-gradient(180deg, rgba(15,23,42,.96), rgba(2,6,23,.98));
-  color: #e2e8f0; box-shadow: 0 14px 34px rgba(2,6,23,.55);
+
+const ComingSoonBadge = styled.div`
+  background: rgba(71, 85, 105, 0.8);
+  color: #94a3b8;
+  font-size: 0.8rem;
+  font-weight: 600;
+  padding: 0.5rem 1.25rem;
+  border-radius: 2rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 `;
-const ModalContent = styled(UICardContent)` padding: 1.25rem 1.25rem 1.5rem; overflow-y: auto; `;
-const HeaderRow = styled.div` display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.25rem; `;
-const PersonRow = styled.div` display: flex; align-items: center; gap: 1rem; `;
-const HeadName = styled.h2` margin: 0; font-weight: 800; font-size: 1.35rem; color: #f1f5f9; `;
-const Subtle = styled.p` margin: .2rem 0 0; color: #94a3b8; `;
-const CloseBtn = styled(UIButton)`
-  background: transparent; border: 1px solid rgba(148,163,184,.28);
-  color: #94a3b8; padding: .25rem .55rem;
-  &:hover { background: rgba(30,41,59,.55); color: #e2e8f0; }
+
+const SavedProgressBadge = styled.div`
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  background: rgba(34, 197, 94, 0.15);
+  border: 1px solid rgba(34, 197, 94, 0.3);
+  color: #4ade80;
+  font-size: 0.7rem;
+  font-weight: 600;
+  padding: 0.35rem 0.75rem;
+  border-radius: 2rem;
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  z-index: 5;
 `;
-const Section = styled.section` display: grid; gap: .5rem; `;
-const SectionTitle = styled.h3` margin: 0 0 .25rem; font-weight: 700; font-size: 1.05rem; color: #e2e8f0; `;
-const BodyText = styled.p` margin: 0; color: #cbd5e1; line-height: 1.7; `;
-const ResourcesGrid = styled.div`
-  display: grid; gap: .9rem; grid-template-columns: repeat(2, minmax(0,1fr));
-  @media (max-width: 560px){ grid-template-columns: 1fr; }
+
+const BackRow = styled.div`
+  display: flex;
+  justify-content: center;
+  margin-top: 3rem;
+  animation: ${fadeIn} 0.6s ease-out 0.4s both;
 `;
-const Resource = styled.div` display: grid; gap: .35rem; `;
-const ResourceTop = styled.div` display: grid; grid-template-columns: 1fr auto; align-items: center; `;
-const ResourceLeft = styled.div` display: inline-flex; align-items: center; gap: .5rem; color: #cbd5e1; `;
-const ResourceVal = styled.span<{ $v: number }>` font-weight: 800; color: ${({ $v }) => valueColor($v)}; `;
-const Bar = styled(UIProgress)`
-  height: 8px; border-radius: 9999px; background: #334155;
-  & > div { background: #f59e0b; }
+
+const BackBtn = styled(UIButton)`
+  background: rgba(30, 41, 59, 0.6);
+  border: 1px solid rgba(71, 85, 105, 0.4);
+  border-radius: 0.75rem;
+  color: #94a3b8;
+  padding: 0.625rem 1.25rem;
+  font-size: 0.9rem;
+  
+  &:hover {
+    background: rgba(51, 65, 85, 0.6);
+    color: #e2e8f0;
+    border-color: rgba(100, 116, 139, 0.5);
+  }
 `;
-const ChallengeCard = styled.div`
-  background: rgba(30,41,59,.55);
-  border: 1px solid rgba(71,85,105,.55);
-  border-radius: .75rem; padding: 1rem;
+
+const LoadingState = styled.div`
+  text-align: center;
+  padding: 4rem 1rem;
+  color: #64748b;
+  font-size: 0.95rem;
 `;
-const Chip = styled(UIBadge)`
-  font-size: .72rem; color: #c7d2fe; background: rgba(67,56,202,.22);
-  border: 1px solid rgba(148,163,184,.35);
+
+const ErrorState = styled.div`
+  text-align: center;
+  padding: 2rem 1.5rem;
+  color: #f87171;
+  background: rgba(239, 68, 68, 0.08);
+  border: 1px solid rgba(239, 68, 68, 0.2);
+  border-radius: 1rem;
+  max-width: 28rem;
+  margin: 0 auto;
+  font-size: 0.9rem;
 `;
-const Severity = styled(UIBadge)`
-  font-size: .72rem; color: #bfdbfe; background: rgba(59,130,246,.18);
-  border: 1px solid rgba(148,163,184,.35);
+
+/* Modal Styles */
+const ModalOverlay = styled.div`
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  background: rgba(10, 15, 26, 0.9);
+  backdrop-filter: blur(8px);
+  animation: ${fadeIn} 0.2s ease-out;
 `;
-const Footer = styled.div` display: flex; gap: .75rem; padding-top: .75rem; `;
-const PrimaryBtn = styled(UIButton)<{ $grad: string }>`
-  flex: 1; color: #f8fafc; border: none; background: ${({ $grad }) => $grad};
-  box-shadow: 0 8px 20px rgba(88,80,236,.25); &:hover{ filter: brightness(1.05); }
+
+const ModalCard = styled.div`
+  width: 100%;
+  max-width: 480px;
+  background: linear-gradient(180deg, rgba(30, 41, 59, 0.98), rgba(15, 23, 42, 0.98));
+  border: 1px solid rgba(71, 85, 105, 0.5);
+  border-radius: 1.5rem;
+  overflow: hidden;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.6);
+  animation: ${fadeIn} 0.3s ease-out;
 `;
-const SecondaryBtn = styled(UIButton)`
-  border: 1px solid rgba(148,163,184,.32); color: #cbd5e1; background: transparent;
-  &:hover { background: rgba(30,41,59,.6); color: #e2e8f0; }
+
+const ModalHeader = styled.div`
+  padding: 1.5rem;
+  text-align: center;
+  border-bottom: 1px solid rgba(71, 85, 105, 0.3);
+  position: relative;
+`;
+
+const ModalCloseBtn = styled.button`
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(51, 65, 85, 0.5);
+  border: 1px solid rgba(71, 85, 105, 0.5);
+  border-radius: 0.5rem;
+  color: #94a3b8;
+  cursor: pointer;
+  transition: all 0.2s;
+  
+  &:hover {
+    background: rgba(71, 85, 105, 0.5);
+    color: #e2e8f0;
+  }
+`;
+
+const ModalAvatar = styled.div<{ $grad: string }>`
+  width: 72px;
+  height: 72px;
+  margin: 0 auto 1rem;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: ${({ $grad }) => $grad};
+  box-shadow: 0 8px 24px -8px rgba(0, 0, 0, 0.4);
+  overflow: hidden;
+  
+  svg {
+    width: 32px;
+    height: 32px;
+    color: #fff;
+  }
+`;
+
+const ModalAvatarImage = styled.img`
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+  display: block;
+`;
+
+const ModalName = styled.h2`
+  font-size: 1.375rem;
+  font-weight: 700;
+  color: #f8fafc;
+  margin: 0 0 0.25rem;
+`;
+
+const ModalMeta = styled.p`
+  color: #64748b;
+  font-size: 0.9rem;
+  margin: 0;
+`;
+
+const ModalBody = styled.div`
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+`;
+
+const ModalSection = styled.div``;
+
+const ModalSectionTitle = styled.h4`
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: #64748b;
+  margin: 0 0 0.625rem;
+`;
+
+const ModalText = styled.p`
+  color: #cbd5e1;
+  font-size: 0.925rem;
+  line-height: 1.65;
+  margin: 0;
+`;
+
+const ModalChallengeBox = styled.div`
+  background: rgba(139, 92, 246, 0.08);
+  border: 1px solid rgba(139, 92, 246, 0.2);
+  border-radius: 0.75rem;
+  padding: 1rem;
+`;
+
+const ModalChallengeHeader = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.5rem;
+`;
+
+const ModalChallengeBadge = styled(UIBadge)`
+  background: rgba(139, 92, 246, 0.2);
+  color: #c4b5fd;
+  border: none;
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: capitalize;
+`;
+
+const ModalSeverityBadge = styled(UIBadge)`
+  background: rgba(59, 130, 246, 0.15);
+  color: #93c5fd;
+  border: none;
+  font-size: 0.7rem;
+`;
+
+const ModalChallengeDesc = styled.p`
+  color: #94a3b8;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  margin: 0;
+`;
+
+const ResourcesRow = styled.div`
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.75rem;
+`;
+
+const ResourceBox = styled.div`
+  background: rgba(15, 23, 42, 0.5);
+  border: 1px solid rgba(71, 85, 105, 0.3);
+  border-radius: 0.625rem;
+  padding: 0.75rem;
+  text-align: center;
+`;
+
+const ResourceIcon = styled.div<{ $color: string }>`
+  color: ${({ $color }) => $color};
+  margin-bottom: 0.375rem;
+  
+  svg {
+    width: 18px;
+    height: 18px;
+  }
+`;
+
+const ResourceValue = styled.div`
+  font-size: 1rem;
+  font-weight: 700;
+  color: #e2e8f0;
+`;
+
+const ResourceLabel = styled.div`
+  font-size: 0.65rem;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  margin-top: 0.125rem;
+`;
+
+const SavedProgressInfo = styled.div`
+  background: rgba(34, 197, 94, 0.08);
+  border: 1px solid rgba(34, 197, 94, 0.2);
+  border-radius: 0.75rem;
+  padding: 0.875rem 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+`;
+
+const SavedProgressIcon = styled.div`
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(34, 197, 94, 0.15);
+  border-radius: 50%;
+  color: #4ade80;
+  flex-shrink: 0;
+`;
+
+const SavedProgressText = styled.div`
+  flex: 1;
+`;
+
+const SavedProgressTitle = styled.div`
+  color: #4ade80;
+  font-size: 0.85rem;
+  font-weight: 600;
+`;
+
+const SavedProgressDesc = styled.div`
+  color: #94a3b8;
+  font-size: 0.75rem;
+  margin-top: 0.125rem;
+`;
+
+const ModalFooter = styled.div`
+  padding: 0 1.5rem 1.5rem;
+  display: flex;
+  gap: 0.75rem;
+`;
+
+const StartBtn = styled(UIButton)<{ $grad: string }>`
+  flex: 1;
+  background: ${({ $grad }) => $grad};
+  border: none;
+  color: #fff;
+  font-weight: 600;
+  padding: 0.875rem 1.25rem;
+  border-radius: 0.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  transition: all 0.2s;
+  
+  &:hover {
+    filter: brightness(1.1);
+    transform: translateY(-1px);
+  }
+`;
+
+const CancelBtn = styled(UIButton)`
+  background: rgba(51, 65, 85, 0.5);
+  border: 1px solid rgba(71, 85, 105, 0.5);
+  color: #94a3b8;
+  padding: 0.875rem 1.25rem;
+  border-radius: 0.75rem;
+  
+  &:hover {
+    background: rgba(71, 85, 105, 0.5);
+    color: #e2e8f0;
+  }
 `;
 
 export default function AvatarPage() {
@@ -236,264 +693,317 @@ export default function AvatarPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedAvatar, setSelectedAvatar] = useState<AvatarWithMetrics | null>(null);
-  const [showDetails, setShowDetails] = useState(false);
+  const [savedProgress, setSavedProgress] = useState<Record<string, boolean>>({});
 
-  const recordInteraction = useCallback(
-    async (
-      avatarId: string,
-      kind: InteractionKind,
-      options?: { storyId?: string | null; metadata?: Record<string, unknown> },
-    ) => {
-      try {
-        const response = await fetch("/api/analytics/interactions", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            avatarId,
-            storyId: options?.storyId ?? undefined,
-            kind,
-            metadata: options?.metadata,
-          }),
-        });
-
-        if (!response.ok) {
-          throw new Error(`Failed with status ${response.status}`);
-        }
-      } catch (err) {
-        console.warn("[avatar] Unable to record interaction", err);
-      }
-    },
-    [],
-  );
-
-  const recordImpressions = useCallback(
-    (items: AvatarWithMetrics[]) => {
-      items.forEach((avatar) => {
-        void recordInteraction(avatar.id, "VIEW", {
-          storyId: avatar.storyId ?? null,
-          metadata: {
-            rank: avatar.metrics?.rank ?? null,
-          },
-        });
-      });
-    },
-    [recordInteraction],
-  );
-
-  const handleAvatarSelect = (avatar: AvatarWithMetrics) => {
-    void recordInteraction(avatar.id, "START", {
-      storyId: avatar.storyId ?? null,
-      metadata: {
-        rank: avatar.metrics?.rank ?? null,
-      },
-    });
+  const handleStart = (avatar: AvatarWithMetrics) => {
+    const storySlug = avatar.storySlug || avatar.id;
     localStorage.removeItem("selectedAvatar");
     localStorage.setItem("selectedAvatarId", avatar.id);
-    router.push("/simulation");
+    router.push(`/simulation?story=${encodeURIComponent(storySlug)}`);
   };
+
+  // Check for saved progress for each avatar
+  useEffect(() => {
+    async function checkSavedProgress() {
+      if (typeof window === "undefined") return;
+      
+      const sessionId = localStorage.getItem("loop_session_id");
+      if (!sessionId) return;
+
+      const progressMap: Record<string, boolean> = {};
+      
+      for (const avatar of avatars) {
+        const storySlug = avatar.storySlug || avatar.id;
+        try {
+          const res = await fetch(
+            `/api/saves?storySlug=${encodeURIComponent(storySlug)}&sessionId=${encodeURIComponent(sessionId)}`
+          );
+          if (res.ok) {
+            const data = await res.json();
+            // Check if there's a save that's not at the start
+            const hasMeaningfulProgress = data.saves?.some(
+              (save: any) => save.currentPassageId && save.currentPassageId !== "start"
+            );
+            if (hasMeaningfulProgress) {
+              progressMap[avatar.id] = true;
+            }
+          }
+        } catch (e) {
+          // Ignore errors for individual saves
+        }
+      }
+      
+      setSavedProgress(progressMap);
+    }
+
+    if (avatars.length > 0) {
+      checkSavedProgress();
+    }
+  }, [avatars]);
 
   useEffect(() => {
     let active = true;
+    
     async function loadAvatars() {
       setLoading(true);
       setError(null);
+      
       try {
-  const response = await fetch("/api/avatars?featured=3&limit=3", { cache: "no-store" });
+        const response = await fetch("/api/avatars?featured=3&limit=6", { cache: "no-store" });
+        
         if (!response.ok) {
           const text = await response.text();
-          throw new Error(text || "Unable to load avatars.");
+          throw new Error(text || "Unable to load stories.");
         }
+        
         const data = await response.json();
+        
         if (active) {
-          const nextAvatars = (data.avatars ?? []) as AvatarWithMetrics[];
-          setAvatars(nextAvatars);
-          recordImpressions(nextAvatars);
+          setAvatars((data.avatars ?? []) as AvatarWithMetrics[]);
         }
       } catch (err) {
         if (active) {
-          setError(err instanceof Error ? err.message : "Unable to load avatars.");
+          setError(err instanceof Error ? err.message : "Unable to load stories.");
         }
       } finally {
-        if (active) setLoading(false);
+        if (active) {
+          setLoading(false);
+        }
       }
     }
 
     loadAvatars();
+    
     return () => {
       active = false;
     };
-  }, [recordImpressions]);
+  }, []);
+
+  const hasSavedProgress = (avatarId: string) => savedProgress[avatarId] ?? false;
 
   return (
     <Page>
       <Container>
         <Hero>
           <Title>
-            Choose Your
-            <GradientWord>Story</GradientWord>
+            Choose Your <GradientText>Story</GradientText>
           </Title>
-          <Underline />
-          <Lead>
-            Experience the daily struggles and systemic barriers faced by real people in our society.
-          </Lead>
+          <Subtitle>
+            Experience the daily realities and challenges faced by others. 
+            Make choices, face consequences, and build understanding.
+          </Subtitle>
           <Notice>
-            These simulations address real social issues including discrimination and systemic inequality.
+            <AlertCircle size={16} />
+            The stories included here are simulations inspired by real social issues
           </Notice>
         </Hero>
 
         {loading ? (
-          <Notice style={{ marginTop: "2rem", textAlign: "center" }}>Loading avatars…</Notice>
+          <LoadingState>Finding available stories...</LoadingState>
         ) : error ? (
-          <Notice
-            style={{
-              marginTop: "2rem",
-              textAlign: "center",
-              borderColor: "rgba(239,68,68,.4)",
-              color: "#fecaca",
-            }}
-          >
-            {error}
-          </Notice>
+          <ErrorState>{error}</ErrorState>
         ) : (
           <CardsGrid>
-            {avatars.map((avatar, index) => {
+            {avatars.map((avatar) => {
               const isPlayable = !!avatar.isPlayable;
-              const rank = avatar.metrics?.rank ?? index + 1;
-              const clicks = avatar.metrics?.clicks ?? 0;
-              const starts = avatar.metrics?.starts ?? 0;
-              const storyId = avatar.storyId ?? null;
-              const primaryType = isPlayable
-                ? avatar.socialContext.socialIssues[0]?.type.replace("-", " ").toUpperCase()
-                : "COMING SOON";
-              const displayBackground = isPlayable ? avatar.background : "Details coming soon.";
-              const displayLocation = isPlayable ? avatar.socialContext.location : "—";
-              const displayEmployment = isPlayable ? avatar.socialContext.employmentStatus : "—";
-              const displayEducation = isPlayable ? avatar.socialContext.educationLevel : "—";
+              const primaryIssue = avatar.socialContext?.socialIssues?.[0];
+              const challengeType = primaryIssue?.type?.replace(/-/g, " ") || "Life challenges";
+              const avatarImage = getAvatarImage(avatar);
+              const hasProgress = hasSavedProgress(avatar.id);
 
               return (
-                <Card
-                  key={avatar.id}
-                  onClick={
-                    isPlayable
-                      ? () => {
-                          void recordInteraction(avatar.id, "SELECT", {
-                            storyId,
-                            metadata: { rank },
-                          });
-                          setSelectedAvatar(avatar);
-                          setShowDetails(true);
-                        }
-                      : undefined
-                  }
-                  style={!isPlayable ? { pointerEvents: "none", opacity: 0.6, cursor: "not-allowed" } : undefined}
-                >
-                  <CardInner>
-                    <AvatarCircle $grad={gradForAvatar(avatar.id)}>
-                      <User size={48} color="#ffffff" />
-                    </AvatarCircle>
-                    <Name>{avatar.name}</Name>
-                    <Age>Age {avatar.age}</Age>
-                    <BackgroundText>{displayBackground}</BackgroundText>
+                <CardWrapper key={avatar.id}>
+                  <StoryCard
+                    $isPlayable={isPlayable}
+                    onClick={isPlayable ? () => setSelectedAvatar(avatar) : undefined}
+                  >
+                    <AvatarGlow className="avatar-glow" />
+                    
+                    {/* Show saved progress badge */}
+                    {isPlayable && hasProgress && (
+                      <SavedProgressBadge>
+                        <Play size={10} />
+                        In Progress
+                      </SavedProgressBadge>
+                    )}
+                    
+                    <CardInner>
+                      <AvatarSection>
+                        <AvatarCircle $grad={gradForAvatar(avatar.id)}>
+                          {avatarImage ? (
+                            <AvatarImage src={avatarImage} alt={avatar.name} />
+                          ) : (
+                            <User />
+                          )}
+                        </AvatarCircle>
+                        <CharacterName>{avatar.name}</CharacterName>
+                        <CharacterMeta>Age {avatar.age}</CharacterMeta>
+                      </AvatarSection>
 
-                    <PrimaryBox>
-                      <PrimaryLabel>Primary Challenge</PrimaryLabel>
-                      <PrimaryType>{primaryType}</PrimaryType>
-                    </PrimaryBox>
+                      <Divider />
 
-                    <InfoList>
-                      <InfoRow>
-                        <InfoLabel>Location</InfoLabel>
-                        <InfoValue>{displayLocation}</InfoValue>
-                      </InfoRow>
-                      <InfoRow>
-                        <InfoLabel>Employment</InfoLabel>
-                        <InfoValue>{displayEmployment}</InfoValue>
-                      </InfoRow>
-                      <InfoRow>
-                        <InfoLabel>Education</InfoLabel>
-                        <InfoValue>{displayEducation}</InfoValue>
-                      </InfoRow>
-                    </InfoList>
-                  </CardInner>
-                </Card>
+                      <BackgroundText>
+                        {isPlayable ? avatar.background : "This story is still being developed. Check back soon."}
+                      </BackgroundText>
+
+                      {isPlayable && (
+                        <>
+                          <ChallengeBox>
+                            <ChallengeLabel>Primary Challenge</ChallengeLabel>
+                            <ChallengeValue>{challengeType}</ChallengeValue>
+                          </ChallengeBox>
+
+                          <InfoGrid>
+                            <InfoItem>
+                              <InfoLabel><MapPin /> Location</InfoLabel>
+                              <InfoValue>{avatar.socialContext?.location || "—"}</InfoValue>
+                            </InfoItem>
+                            <InfoItem>
+                              <InfoLabel><Briefcase /> Work</InfoLabel>
+                              <InfoValue>{avatar.socialContext?.employmentStatus || "—"}</InfoValue>
+                            </InfoItem>
+                            <InfoItem>
+                              <InfoLabel><GraduationCap /> Education</InfoLabel>
+                              <InfoValue>{avatar.socialContext?.educationLevel || "—"}</InfoValue>
+                            </InfoItem>
+                          </InfoGrid>
+                        </>
+                      )}
+                    </CardInner>
+
+                    {!isPlayable && (
+                      <ComingSoonOverlay>
+                        <ComingSoonBadge>Coming Soon</ComingSoonBadge>
+                      </ComingSoonOverlay>
+                    )}
+                  </StoryCard>
+                </CardWrapper>
               );
             })}
           </CardsGrid>
         )}
 
         <BackRow>
-          <BackBtn onClick={() => router.push("/")}>← Back to Home</BackBtn>
+          <BackBtn onClick={() => router.push("/")}>
+            ← Back to Home
+          </BackBtn>
         </BackRow>
       </Container>
 
-      {selectedAvatar && showDetails && (
-        <Overlay>
-          <ModalCard>
-            <ModalContent>
-              <HeaderRow>
-                <PersonRow>
-                  <AvatarCircle $grad={gradForAvatar(selectedAvatar.id)} style={{ margin: 0, width: 64, height: 64 }}>
-                    <User size={32} color="#ffffff" />
-                  </AvatarCircle>
-                  <div>
-                    <HeadName>{selectedAvatar.name}</HeadName>
-                    <Subtle>Age {selectedAvatar.age}</Subtle>
-                  </div>
-                </PersonRow>
-                <CloseBtn variant="ghost" size="sm" onClick={() => setShowDetails(false)}>✕</CloseBtn>
-              </HeaderRow>
+      {/* Detail Modal */}
+      {selectedAvatar && (
+        <ModalOverlay onClick={() => setSelectedAvatar(null)}>
+          <ModalCard onClick={(e) => e.stopPropagation()}>
+            <ModalHeader>
+              <ModalCloseBtn onClick={() => setSelectedAvatar(null)}>
+                <X size={16} />
+              </ModalCloseBtn>
+              <ModalAvatar $grad={gradForAvatar(selectedAvatar.id)}>
+                {getAvatarImage(selectedAvatar) ? (
+                  <ModalAvatarImage
+                    src={getAvatarImage(selectedAvatar)}
+                    alt={selectedAvatar.name}
+                  />
+                ) : (
+                  <User />
+                )}
+              </ModalAvatar>
+              <ModalName>{selectedAvatar.name}</ModalName>
+              <ModalMeta>Age {selectedAvatar.age} • {selectedAvatar.socialContext?.location}</ModalMeta>
+            </ModalHeader>
 
-              <Section style={{ marginBottom: "1rem" }}>
-                <SectionTitle>Background</SectionTitle>
-                <BodyText>{selectedAvatar.background}</BodyText>
-              </Section>
+            <ModalBody>
+              {/* Show saved progress notice if exists */}
+              {hasSavedProgress(selectedAvatar.id) && (
+                <SavedProgressInfo>
+                  <SavedProgressIcon>
+                    <Play size={16} />
+                  </SavedProgressIcon>
+                  <SavedProgressText>
+                    <SavedProgressTitle>Progress Saved</SavedProgressTitle>
+                    <SavedProgressDesc>You have saved progress in this story. You&apos;ll continue where you left off.</SavedProgressDesc>
+                  </SavedProgressText>
+                </SavedProgressInfo>
+              )}
 
-              <Section>
-                <SectionTitle>Starting Resources</SectionTitle>
-                <ResourcesGrid>
-                  {Object.entries(selectedAvatar.initialResources).map(([key, value]) => (
-                    <Resource key={key}>
-                      <ResourceTop>
-                        <ResourceLeft>
-                          {getResourceIcon(key as keyof Resources)}
-                          <span style={{ fontSize: ".95rem" }}>{getResourceLabel(key as keyof Resources)}</span>
-                        </ResourceLeft>
-                        <ResourceVal $v={value}>{value}%</ResourceVal>
-                      </ResourceTop>
-                      <Bar value={value} />
-                    </Resource>
-                  ))}
-                </ResourcesGrid>
-              </Section>
+              <ModalSection>
+                <ModalSectionTitle>Background</ModalSectionTitle>
+                <ModalText>{selectedAvatar.background}</ModalText>
+              </ModalSection>
 
-              <Section style={{ marginTop: "1rem" }}>
-                <SectionTitle>Primary Challenge</SectionTitle>
-                {selectedAvatar.socialContext.socialIssues.map((issue) => (
-                  <ChallengeCard key={issue.id}>
-                    <div style={{ display: "flex", justifyContent: "space-between", marginBottom: ".5rem" }}>
-                      <Chip>{issue.type.replace("-", " ")}</Chip>
-                      <Severity>{issue.severity}</Severity>
-                    </div>
-                    <BodyText style={{ fontSize: ".95rem" }}>{issue.description}</BodyText>
-                  </ChallengeCard>
-                ))}
-              </Section>
+              {selectedAvatar.socialContext?.socialIssues?.[0] && (
+                <ModalSection>
+                  <ModalSectionTitle>Primary Challenge</ModalSectionTitle>
+                  <ModalChallengeBox>
+                    <ModalChallengeHeader>
+                      <ModalChallengeBadge>
+                        {selectedAvatar.socialContext.socialIssues[0].type.replace(/-/g, " ")}
+                      </ModalChallengeBadge>
+                      <ModalSeverityBadge>
+                        {selectedAvatar.socialContext.socialIssues[0].severity}
+                      </ModalSeverityBadge>
+                    </ModalChallengeHeader>
+                    <ModalChallengeDesc>
+                      {selectedAvatar.socialContext.socialIssues[0].description}
+                    </ModalChallengeDesc>
+                  </ModalChallengeBox>
+                </ModalSection>
+              )}
 
-              <Footer>
-                <PrimaryBtn
-                  $grad={gradForAvatar(selectedAvatar.id)}
-                  size="lg"
-                  onClick={() => handleAvatarSelect(selectedAvatar)}
-                >
-                  Begin Journey as {selectedAvatar.name}
-                </PrimaryBtn>
-                <SecondaryBtn variant="outline" onClick={() => setShowDetails(false)}>
-                  Back to Selection
-                </SecondaryBtn>
-              </Footer>
-            </ModalContent>
+              <ModalSection>
+                <ModalSectionTitle>Starting Resources</ModalSectionTitle>
+                <ResourcesRow>
+                  <ResourceBox>
+                    <ResourceIcon $color="#4ade80">
+                      <DollarSign />
+                    </ResourceIcon>
+                    <ResourceValue>${selectedAvatar.initialResources?.money ?? 500}</ResourceValue>
+                    <ResourceLabel>Money</ResourceLabel>
+                  </ResourceBox>
+                  <ResourceBox>
+                    <ResourceIcon $color="#f87171">
+                      <Heart />
+                    </ResourceIcon>
+                    <ResourceValue>
+                      {selectedAvatar.initialResources?.physicalHealth ?? 
+                       selectedAvatar.initialResources?.mentalHealth ?? 100}%
+                    </ResourceValue>
+                    <ResourceLabel>Health</ResourceLabel>
+                  </ResourceBox>
+                  <ResourceBox>
+                    <ResourceIcon $color="#60a5fa">
+                      <Clock />
+                    </ResourceIcon>
+                    <ResourceValue>~15</ResourceValue>
+                    <ResourceLabel>Minutes</ResourceLabel>
+                  </ResourceBox>
+                </ResourcesRow>
+              </ModalSection>
+            </ModalBody>
+
+            <ModalFooter>
+              <CancelBtn onClick={() => setSelectedAvatar(null)}>
+                Back
+              </CancelBtn>
+              <StartBtn 
+                $grad={gradForAvatar(selectedAvatar.id)}
+                onClick={() => handleStart(selectedAvatar)}
+              >
+                {hasSavedProgress(selectedAvatar.id) ? (
+                  <>
+                    Continue Journey
+                    <Play size={18} />
+                  </>
+                ) : (
+                  <>
+                    Begin Journey
+                    <ArrowRight size={18} />
+                  </>
+                )}
+              </StartBtn>
+            </ModalFooter>
           </ModalCard>
-        </Overlay>
+        </ModalOverlay>
       )}
     </Page>
   );

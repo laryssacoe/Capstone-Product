@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server"
 
 
-import { ensureBaseContent } from "@/lib/server/bootstrap"
 import { prisma } from "@/lib/server/prisma"
 export const dynamic = "force-dynamic"
 
@@ -19,8 +18,6 @@ export async function GET(_request: Request, { params }: RouteParams) {
   if (!id) {
     return NextResponse.json({ error: "Missing avatar id." }, { status: 400 })
   }
-
-  await ensureBaseContent()
 
   const avatar = await prisma.avatarProfile.findUnique({
     where: { id },
