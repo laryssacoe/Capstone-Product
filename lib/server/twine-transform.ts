@@ -231,6 +231,25 @@ export function convertTwisonToStoryPayload(
     }
 
     const text = passage.text?.trim() ?? ""
+    const paragraphs = text
+      ? text
+          .split(/\n+/)
+          .map((paragraph) => paragraph.trim())
+          .filter(Boolean)
+      : []
+    const mediaCandidate = (passage.metadata as any)?.media ?? {}
+    const media =
+      mediaCandidate && typeof mediaCandidate === "object"
+        ? {
+            visual:
+              typeof mediaCandidate.visual === "string"
+                ? mediaCandidate.visual
+                : typeof mediaCandidate.image === "string"
+                  ? mediaCandidate.image
+                  : undefined,
+            audio: typeof mediaCandidate.audio === "string" ? mediaCandidate.audio : undefined,
+          }
+        : undefined
 
     return {
       key,
@@ -238,7 +257,7 @@ export function convertTwisonToStoryPayload(
       synopsis: text.split("\n").slice(0, 2).join(" ").slice(0, 160) || undefined,
       type,
       content: {
-        text,
+        text: paragraphs.length ? paragraphs : text ? [text] : [],
         tags: passageTags,
         metadata: {
           pid: passage.pid,
@@ -246,7 +265,7 @@ export function convertTwisonToStoryPayload(
           raw: passage,
         },
       },
-      media: passage.metadata?.media ?? undefined,
+      media: media?.visual || media?.audio ? media : undefined,
     }
   })
 
