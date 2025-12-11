@@ -10,7 +10,7 @@ type Choice = {
   id: string
   text: string
   leads_to: string
-  effects?: { money?: number; health?: number; time?: number; mentalHealth?: number; support?: number }
+  effects?: { money?: number; health?: number; time?: number }
 }
 
 type Passage = {
@@ -40,9 +40,7 @@ type StoryData = {
     initialResources: {
       money: number
       time: number
-      socialSupport: number
-      mentalHealth: number
-      physicalHealth: number
+      health: number
     }
     socialContext: {
       socioeconomicStatus: string
@@ -63,6 +61,9 @@ type StoryData = {
   }
   passages: Record<string, Passage>
 }
+
+// Default image for passages without specific backgrounds
+const DEFAULT_IMAGE = "/scenes/neutral-image.png"
 
 const STORY_DATA: StoryData = {
   slug: "katrina-guardian-week",
@@ -85,9 +86,7 @@ const STORY_DATA: StoryData = {
     initialResources: {
       money: 120,
       time: 100,
-      socialSupport: 20,
-      mentalHealth: 65,
-      physicalHealth: 70,
+      health: 70,
     },
     socialContext: {
       socioeconomicStatus: "working class",
@@ -148,13 +147,13 @@ const STORY_DATA: StoryData = {
           id: "wake-gently",
           text: "Wake them gently and start the morning slowly",
           leads_to: "waking-siblings",
-          effects: { mentalHealth: 2 },
+          effects: { health: 2 },
         },
         {
           id: "let-sleep",
           text: "Let them sleep a little longer and get up alone",
           leads_to: "alone-in-kitchen",
-          effects: { mentalHealth: 3 },
+          effects: { health: 3 },
         },
         {
           id: "go-mail-first",
@@ -235,19 +234,19 @@ const STORY_DATA: StoryData = {
           id: "hide-letter",
           text: "Hide the letter and pretend the day is normal",
           leads_to: "hiding-fear",
-          effects: { mentalHealth: -3 },
+          effects: { health: -3 },
         },
         {
           id: "tell-miko",
           text: "Tell Miko about the letter before Ali wakes up",
           leads_to: "tell-miko",
-          effects: { mentalHealth: -2, support: 2 },
+          effects: { health: -2 },
         },
         {
           id: "tell-both",
           text: "Wake both kids and tell them together",
           leads_to: "tell-both-kids",
-          effects: { mentalHealth: -4, support: 3 },
+          effects: { health: -4 },
         },
       ],
     },
@@ -322,13 +321,13 @@ const STORY_DATA: StoryData = {
           id: "reassure-miko",
           text: "Tell him you have a plan, even if you do not",
           leads_to: "reassuring-miko",
-          effects: { mentalHealth: -2 },
+          effects: { health: -2 },
         },
         {
           id: "admit-fear",
           text: "Admit you are scared but trying your best",
           leads_to: "honest-with-miko",
-          effects: { mentalHealth: -3, support: 3 },
+          effects: { health: -3 },
         },
       ],
     },
@@ -393,13 +392,13 @@ const STORY_DATA: StoryData = {
           id: "soft-truth",
           text: "Explain gently without telling them everything",
           leads_to: "breakfast-math",
-          effects: { mentalHealth: -2 },
+          effects: { health: -2 },
         },
         {
           id: "full-truth",
           text: "Tell them more than they probably need to hear",
           leads_to: "too-much-truth",
-          effects: { mentalHealth: -5 },
+          effects: { health: -5 },
         },
       ],
     },
@@ -449,13 +448,13 @@ const STORY_DATA: StoryData = {
           id: "cook-all",
           text: "Cook everything and let everyone eat together",
           leads_to: "eating-together",
-          effects: { money: -3, health: 5, mentalHealth: 3 },
+          effects: { money: -3, health: 8 },
         },
         {
           id: "skip-own-meal",
           text: "Serve the kids and pretend you are not hungry",
           leads_to: "skipping-breakfast",
-          effects: { health: -5, mentalHealth: -2 },
+          effects: { health: -7 },
         },
         {
           id: "save-food",
@@ -584,7 +583,7 @@ const STORY_DATA: StoryData = {
           id: "stay-home",
           text: "Keep the kids home and try to catch up on life",
           leads_to: "staying-home",
-          effects: { health: 2, mentalHealth: -3, time: -5 },
+          effects: { health: -1, time: -5 },
         },
       ],
     },
@@ -649,13 +648,13 @@ const STORY_DATA: StoryData = {
           id: "promise-fix",
           text: "Promise you will catch up and keep walking",
           leads_to: "false-promise",
-          effects: { mentalHealth: -2 },
+          effects: { health: -2 },
         },
         {
           id: "soft-truth-teacher",
           text: "Tell him a little bit about what is happening",
           leads_to: "partial-truth-teacher",
-          effects: { mentalHealth: -2, support: 3 },
+          effects: { health: -2 },
         },
         {
           id: "avoid-meeting",
@@ -738,19 +737,19 @@ const STORY_DATA: StoryData = {
           id: "ask-help",
           text: "Ask for extensions and whatever help they can give",
           leads_to: "accepting-help",
-          effects: { time: 5, mentalHealth: 3, support: 5 },
+          effects: { time: 5, health: 5 },
         },
         {
           id: "downplay",
           text: "Downplay everything and say you will be fine",
           leads_to: "refusing-help",
-          effects: { mentalHealth: -3 },
+          effects: { health: -3 },
         },
         {
           id: "leave-early",
           text: "Cut the meeting short and rush to your next thing",
           leads_to: "rushing-out",
-          effects: { mentalHealth: -2, time: -3 },
+          effects: { health: -2, time: -3 },
         },
       ],
     },
@@ -960,13 +959,13 @@ const STORY_DATA: StoryData = {
           id: "promise-better",
           text: "Promise you will make it work somehow",
           leads_to: "promising-carlos",
-          effects: { mentalHealth: -2 },
+          effects: { health: -2 },
         },
         {
           id: "be-honest-boss",
           text: "Tell him things are falling apart at home",
           leads_to: "honest-with-carlos",
-          effects: { mentalHealth: -2, support: 4 },
+          effects: { health: -2 },
         },
       ],
     },
@@ -1116,7 +1115,7 @@ const STORY_DATA: StoryData = {
           id: "buy-all",
           text: "Buy everything and hope nothing unexpected happens",
           leads_to: "buying-everything",
-          effects: { money: -25, health: 3, mentalHealth: 2, time: -2 },
+          effects: { money: -25, health: 5, time: -2 },
         },
         {
           id: "put-something-back",
@@ -1128,7 +1127,7 @@ const STORY_DATA: StoryData = {
           id: "leave-empty",
           text: "Leave with nothing and tell yourself you can manage",
           leads_to: "leaving-empty",
-          effects: { health: -3, mentalHealth: -4 },
+          effects: { health: -7 },
         },
       ],
     },
@@ -1219,19 +1218,19 @@ const STORY_DATA: StoryData = {
           id: "keep-cleaning",
           text: "Keep cleaning even though you are exhausted",
           leads_to: "exhausted-cleaning",
-          effects: { health: -6, mentalHealth: -4, time: -5 },
+          effects: { health: -10, time: -5 },
         },
         {
           id: "rest-a-minute",
           text: "Sit down for a moment and let yourself breathe",
           leads_to: "moment-of-rest",
-          effects: { health: 2, mentalHealth: 4, time: -2 },
+          effects: { health: 6, time: -2 },
         },
         {
           id: "check-bank",
           text: "Check your bank account before doing anything else",
           leads_to: "checking-bank",
-          effects: { mentalHealth: -3, time: -2 },
+          effects: { health: -3, time: -2 },
         },
       ],
     },
@@ -1315,13 +1314,13 @@ const STORY_DATA: StoryData = {
           id: "tell-truth-friends",
           text: "Tell them what is actually happening",
           leads_to: "truth-to-friends",
-          effects: { time: -5, mentalHealth: -2, support: 5 },
+          effects: { time: -5, health: -2 },
         },
         {
           id: "ignore-friends",
           text: "Ignore the messages and put the phone away",
           leads_to: "ignoring-friends",
-          effects: { mentalHealth: -4 },
+          effects: { health: -4 },
         },
       ],
     },
@@ -1427,19 +1426,19 @@ const STORY_DATA: StoryData = {
           id: "plan-next-week",
           text: "Make a rough plan for next week and keep going",
           leads_to: "making-a-plan",
-          effects: { mentalHealth: 2, time: -3 },
+          effects: { health: 2, time: -3 },
         },
         {
           id: "call-mom",
           text: "Call your mom and tell her everything",
           leads_to: "calling-mom",
-          effects: { time: -5, mentalHealth: 4, support: 3 },
+          effects: { time: -5, health: 4 },
         },
         {
           id: "sit-in-silence",
           text: "Sit in silence and let yourself feel everything",
           leads_to: "feeling-everything",
-          effects: { mentalHealth: -3, time: -2 },
+          effects: { health: -3, time: -2 },
         },
       ],
     },
@@ -1658,7 +1657,7 @@ function buildNodesPathsTransitions(storyId: string, passages: Record<string, Pa
     const mediaVisual =
       passage.media?.background?.path ??
       passage.image ??
-      null
+      DEFAULT_IMAGE
     const mediaAudio =
       passage.media?.soundEffect?.path ??
       passage.audio ??
