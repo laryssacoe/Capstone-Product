@@ -552,6 +552,7 @@ export default function CreatorStoryPreviewPage() {
   const [graph, setGraph] = useState<GraphResponse | null>(null)
   const [currentKey, setCurrentKey] = useState<string | null>(null)
   const [choicesReady, setChoicesReady] = useState(false)
+  const [showChoices, setShowChoices] = useState(false)
   const [audioEnabled, setAudioEnabled] = useState(true)
   const [avatarImageError, setAvatarImageError] = useState(false)
   const [isTransitioning, setIsTransitioning] = useState(false)
@@ -599,10 +600,12 @@ export default function CreatorStoryPreviewPage() {
 
   // Reset choices animation on passage change
   useEffect(() => {
+    setShowChoices(false)
     setChoicesReady(false)
     setIsTransitioning(true)
     const timer1 = setTimeout(() => setIsTransitioning(false), 250)
-    const timer2 = setTimeout(() => setChoicesReady(true), 100)
+    const timer2 = setTimeout(() => setShowChoices(true), 600)  
+    const timer3 = setTimeout(() => setChoicesReady(true), 800) 
     return () => {
       clearTimeout(timer1)
       clearTimeout(timer2)
@@ -801,7 +804,7 @@ export default function CreatorStoryPreviewPage() {
           </NarrativeText>
         </TextBox>
         
-        {hasChoices && (
+        {hasChoices && showChoices && (
           <ChoicesContainer $visible={choicesReady}>
             <ChoicesGrid>
               {choices.map((choice, index) => (

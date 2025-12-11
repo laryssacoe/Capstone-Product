@@ -466,19 +466,34 @@ const Tooltip = styled.div`
   color: #fff; white-space: nowrap; background: rgba(0,0,0,.9);
 `;
 
+const PageLoader = styled.div<{ $loaded: boolean }>`
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: #0f172a;
+  opacity: ${({ $loaded }) => ($loaded ? 0 : 1)};
+  pointer-events: ${({ $loaded }) => ($loaded ? "none" : "all")};
+  transition: opacity 0.3s ease-out;
+`;
+
 export default function HomePage() {
   const { user } = useAuth();
-  // Import ProfileBubbleChip
   // @ts-ignore
   const ProfileBubbleChip = require("@/components/profile-bubble-chip").ProfileBubbleChip;
   const [showScrollIndicator, setShowScrollIndicator] = useState(true);
-  // Remove email state, use user.email
   const [message, setMessage] = useState("");
   const [showContactForm, setShowContactForm] = useState(false);
   const [showSuccessMessage, setShowSuccessMessage] = useState(false);
   const [showErrorMessage, setShowErrorMessage] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [sending, setSending] = useState(false);
+  const [isLoaded, setIsLoaded] = useState(false);
+
+  useEffect(() => {
+    // Small delay to let styles and canvas initialize
+    const timer = setTimeout(() => setIsLoaded(true), 100);
+    return () => clearTimeout(timer);
+  }, []);
 
   useEffect(() => {
     const onScroll = () => setShowScrollIndicator(!(window.scrollY > window.innerHeight * 0.8));
@@ -529,6 +544,7 @@ export default function HomePage() {
 
   return (
     <Page>
+      <PageLoader $loaded={isLoaded} />
       {/* Header */}
       <Header>
         <HeaderInner>
