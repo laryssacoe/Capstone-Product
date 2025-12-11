@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, useCallback } from 'react';
 import styled from 'styled-components';
 import {
   Card,
@@ -28,6 +28,8 @@ import {
   Heart,
   Brain,
   Scale,
+  Play,
+  User,
 } from 'lucide-react';
 
 // Styled Components
@@ -98,12 +100,15 @@ const IssueContent = styled(SelectContent)`
   color: #e5e7eb;
 `;
 
-const Grid = styled.div`
+const Grid = styled.div<{ $count: number }>`
   display: grid;
   gap: 2rem;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  justify-items: stretch;
 
   @media (min-width: 768px) {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: ${({ $count }) =>
+      $count >= 2 ? 'repeat(2, minmax(0, 1fr))' : `repeat(${$count || 1}, minmax(320px, 1fr))`};
   }
 `;
 
@@ -112,6 +117,7 @@ const SCard = styled(Card)<{ dim?: boolean }>`
   border-color: rgba(51, 65, 85, 0.5);
   backdrop-filter: blur(6px);
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  position: relative;
   ${(p) => p.dim && 'opacity: 0.6;'}
 
   &:hover {
@@ -132,12 +138,27 @@ const TitleRow = styled.div`
 `;
 
 const IconBox = styled.div`
-  padding: 0.5rem;
-  border-radius: 0.75rem;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
   background: rgba(51, 65, 85, 0.5);
-  display: inline-flex;
+  display: flex;
   align-items: center;
   justify-content: center;
+  overflow: hidden;
+  flex-shrink: 0;
+  
+  svg {
+    width: 24px;
+    height: 24px;
+    color: #94a3b8;
+  }
+`;
+
+const AvatarImage = styled.img`
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 `;
 
 const STitle = styled(CardTitle)`
@@ -227,6 +248,23 @@ const LevelBadge = styled(Badge)<{ level: Level }>`
   text-transform: none;
 `;
 
+const InProgressBadge = styled.div`
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  background: rgba(34, 197, 94, 0.15);
+  border: 1px solid rgba(34, 197, 94, 0.3);
+  color: #4ade80;
+  font-size: 0.7rem;
+  font-weight: 600;
+  padding: 0.35rem 0.75rem;
+  border-radius: 2rem;
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  z-index: 5;
+`;
+
 const SDescription = styled(CardDescription)`
   color: #cbd5e1;
   font-size: 1rem;
@@ -269,13 +307,20 @@ const MetaLeft = styled.span`
   gap: 0.25rem;
 `;
 
-const PrimaryButton = styled(Button)`
+const PrimaryButton = styled(Button)<{ $isResume?: boolean }>`
   width: 100%;
   color: #fff;
-  background-image: linear-gradient(90deg, #2563eb, #7c3aed);
+  background-image: ${({ $isResume }) =>
+    $isResume
+      ? 'linear-gradient(90deg, #059669, #10b981)'
+      : 'linear-gradient(90deg, #2563eb, #7c3aed)'};
   border: 0;
   padding: 0.75rem 1rem;
   font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
 
   &:hover:not(:disabled) {
     filter: brightness(1.05);
@@ -326,6 +371,7 @@ const HUE_BY_TYPE: HueMap = {
   poverty: 'amber',
   'mental-health': 'indigo',
   ageism: 'slate',
+  immigration: 'emerald',
 };
 
 const issueHue = (raw: string): Hue =>
@@ -338,18 +384,46 @@ const IssueIcon = (raw: string) => {
   if (t === 'poverty') return <AlertTriangle width={20} height={20} />;
   if (t === 'mental-health') return <Brain width={20} height={20} />;
   if (t === 'ageism') return <Clock width={20} height={20} />;
-  return <Scale width={20} height={20} />;
+  if (t === 'immigration') return <Scale width={20} height={20} />;
+  return <User width={20} height={20} />;
+};
+
+// Get scenario profile image 
+const getScenarioImage = (scenario: Scenario): string | null => {
+  // Check metadata for appearance.image
+  const imagePath = (scenario as any)?.metadata?.appearance?.image || "";
+  
+  // Only trust image paths in /scenes/ directory 
+  if (imagePath && imagePath.startsWith("/scenes/")) {
+    return imagePath;
+  }
+  
+  // Return null for invalid or placeholder paths to show icon fallback
+  return null;
+};
+
+// Get story slug from scenario
+const getStorySlug = (scenario: Scenario): string => {
+  return (
+    (scenario as any)?.metadata?.storySlug ||
+    (scenario as any)?.storySlug ||
+    (scenario as any)?.slug ||
+    scenario.id
+  );
 };
 
 const difficultyBadge = (scenario: Scenario): { label: string; level: Level } => {
-  const total = Object.values(scenario.minimumResources).reduce((s, n) => s + n, 0);
+  const total = Object.values(scenario.minimumResources || {}).reduce(
+    (s, n) => s + (n as number),
+    0
+  );
   if (total < 100) return { label: 'Beginner', level: 'beginner' };
   if (total < 200) return { label: 'Intermediate', level: 'intermediate' };
   return { label: 'Advanced', level: 'advanced' };
 };
 
 const canPlayScenario = (scenario: Scenario, userResources?: any) => {
-  if (!userResources) return true;
+  if (!userResources || !scenario.minimumResources) return true;
   return Object.entries(scenario.minimumResources).every(
     ([k, req]) => (userResources as any)[k] >= req
   );
@@ -357,15 +431,70 @@ const canPlayScenario = (scenario: Scenario, userResources?: any) => {
 
 interface ScenarioBrowserProps {
   onScenarioSelect: (scenario: Scenario) => void;
+  onScenariosLoaded?: (count: number) => void;
   userResources?: any;
 }
 
-export function ScenarioBrowser({ onScenarioSelect, userResources }: ScenarioBrowserProps) {
+export function ScenarioBrowser({
+  onScenarioSelect,
+  onScenariosLoaded,
+  userResources,
+}: ScenarioBrowserProps) {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedIssueType, setSelectedIssueType] = useState<string>('all');
   const [scenarios, setScenarios] = useState<Scenario[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [savedProgress, setSavedProgress] = useState<Record<string, boolean>>({});
+
+  // Memoize the callback to prevent infinite loops
+  const notifyLoaded = useCallback(
+    (count: number) => {
+      if (onScenariosLoaded) {
+        onScenariosLoaded(count);
+      }
+    },
+    [onScenariosLoaded]
+  );
+
+  // Check for saved progress for each scenario
+  useEffect(() => {
+    async function checkSavedProgress() {
+      if (typeof window === 'undefined') return;
+
+      const sessionId = localStorage.getItem('loop_session_id');
+      if (!sessionId || scenarios.length === 0) return;
+
+      const progressMap: Record<string, boolean> = {};
+
+      for (const scenario of scenarios) {
+        const storySlug = getStorySlug(scenario);
+        try {
+          const res = await fetch(
+            `/api/saves?storySlug=${encodeURIComponent(storySlug)}&sessionId=${encodeURIComponent(sessionId)}`
+          );
+          if (res.ok) {
+            const data = await res.json();
+            // Check if there's a save that's not at the start
+            const hasMeaningfulProgress = data.saves?.some(
+              (save: any) => save.currentPassageId && save.currentPassageId !== 'start'
+            );
+            if (hasMeaningfulProgress) {
+              progressMap[scenario.id] = true;
+            }
+          }
+        } catch (e) {
+          // Ignore errors for individual saves
+        }
+      }
+
+      setSavedProgress(progressMap);
+    }
+
+    if (scenarios.length > 0) {
+      checkSavedProgress();
+    }
+  }, [scenarios]);
 
   useEffect(() => {
     let cancelled = false;
@@ -383,11 +512,15 @@ export function ScenarioBrowser({ onScenarioSelect, userResources }: ScenarioBro
         }
 
         if (!cancelled) {
-          setScenarios((data?.scenarios ?? []) as Scenario[]);
+          const items = (data?.scenarios ?? []) as Scenario[];
+          const unique = Array.from(new Map(items.map((s) => [s.id, s])).values());
+          setScenarios(unique);
+          notifyLoaded(unique.length);
         }
       } catch (err) {
         if (!cancelled) {
           setError(err instanceof Error ? err.message : 'Unable to load scenarios.');
+          notifyLoaded(0);
         }
       } finally {
         if (!cancelled) setLoading(false);
@@ -399,25 +532,30 @@ export function ScenarioBrowser({ onScenarioSelect, userResources }: ScenarioBro
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [notifyLoaded]);
 
   const issueTypes = useMemo(() => {
     const types = new Set<string>();
     scenarios.forEach((scenario) => {
-      types.add(scenario.socialIssue.type);
+      if (scenario.socialIssue?.type) {
+        types.add(scenario.socialIssue.type);
+      }
     });
     return Array.from(types).sort();
   }, [scenarios]);
 
   const filteredScenarios = useMemo(() => {
     return scenarios.filter((scenario) => {
-      const hay = `${scenario.title} ${scenario.description} ${scenario.socialIssue.type}`.toLowerCase();
+      const hay =
+        `${scenario.title} ${scenario.description} ${scenario.socialIssue?.type || ''}`.toLowerCase();
       const matchesSearch = hay.includes(searchTerm.toLowerCase());
       const matchesIssueType =
-        selectedIssueType === 'all' || scenario.socialIssue.type === selectedIssueType;
+        selectedIssueType === 'all' || scenario.socialIssue?.type === selectedIssueType;
       return matchesSearch && matchesIssueType;
     });
   }, [scenarios, searchTerm, selectedIssueType]);
+
+  const hasSavedProgress = (scenarioId: string) => savedProgress[scenarioId] ?? false;
 
   return (
     <Wrap>
@@ -469,23 +607,41 @@ export function ScenarioBrowser({ onScenarioSelect, userResources }: ScenarioBro
         </EmptyWrap>
       ) : (
         <>
-          <Grid>
+          <Grid $count={filteredScenarios.length || 1}>
             {filteredScenarios.map((scenario) => {
               const diff = difficultyBadge(scenario);
               const canPlay = canPlayScenario(scenario, userResources);
+              const hasProgress = hasSavedProgress(scenario.id);
+              const profileImage = getScenarioImage(scenario);
 
               return (
                 <SCard key={scenario.id} dim={!canPlay}>
+                  {/* Show in-progress badge */}
+                  {hasProgress && (
+                    <InProgressBadge>
+                      <Play size={10} />
+                      In Progress
+                    </InProgressBadge>
+                  )}
+
                   <SHeader>
                     <TitleRow>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                        <IconBox>{IssueIcon(scenario.socialIssue.type)}</IconBox>
+                        <IconBox>
+                          {profileImage ? (
+                            <AvatarImage src={profileImage} alt={scenario.title} />
+                          ) : (
+                            IssueIcon(scenario.socialIssue?.type || '')
+                          )}
+                        </IconBox>
                         <div>
                           <STitle>{scenario.title}</STitle>
                           <BadgeRow>
-                            <TypeBadge hue={issueHue(scenario.socialIssue.type)}>
-                              {toTitleCase(scenario.socialIssue.type)}
-                            </TypeBadge>
+                            {scenario.socialIssue?.type && (
+                              <TypeBadge hue={issueHue(scenario.socialIssue.type)}>
+                                {toTitleCase(scenario.socialIssue.type)}
+                              </TypeBadge>
+                            )}
                             <LevelBadge level={diff.level}>{diff.label}</LevelBadge>
                           </BadgeRow>
                         </div>
@@ -495,24 +651,36 @@ export function ScenarioBrowser({ onScenarioSelect, userResources }: ScenarioBro
                   </SHeader>
 
                   <SContent>
-                    <Highlight>
-                      <HighlightTitle>Primary Challenge:</HighlightTitle>
-                      <HighlightText>{scenario.socialIssue.description}</HighlightText>
-                    </Highlight>
+                    {scenario.socialIssue?.description && (
+                      <Highlight>
+                        <HighlightTitle>Primary Challenge:</HighlightTitle>
+                        <HighlightText>{scenario.socialIssue.description}</HighlightText>
+                      </Highlight>
+                    )}
 
                     <MetaRow>
                       <MetaLeft>
                         <Clock width={16} height={16} />
-                        {scenario.estimatedDuration} minutes
+                        {scenario.estimatedDuration || 15} minutes
                       </MetaLeft>
-                      <span>{scenario.decisions.length} decision points</span>
+                      <span>{scenario.decisions?.length || 0} decision points</span>
                     </MetaRow>
 
                     <PrimaryButton
                       onClick={() => onScenarioSelect(scenario)}
                       disabled={!canPlay}
+                      $isResume={hasProgress}
                     >
-                      {canPlay ? 'Begin Scenario' : 'Insufficient Resources'}
+                      {!canPlay ? (
+                        'Insufficient Resources'
+                      ) : hasProgress ? (
+                        <>
+                          <Play size={16} />
+                          Continue Scenario
+                        </>
+                      ) : (
+                        'Begin Scenario'
+                      )}
                     </PrimaryButton>
                   </SContent>
                 </SCard>
