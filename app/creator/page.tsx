@@ -192,18 +192,24 @@ const CardContent = styled.div`
   padding: 24px;
 `
 
-// Empty State
 const EmptyState = styled.div`
   border-radius: 16px;
   border: 1px solid rgba(51, 65, 85, 0.5);
   background-color: rgba(30, 41, 59, 0.4);
   padding: 96px 24px;
   text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
 `
 
 const EmptyIcon = styled.div`
   color: #60a5fa;
   margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 `
 
 const EmptyTitle = styled.h3`
@@ -218,7 +224,6 @@ const EmptyText = styled.p`
   margin: 0;
 `
 
-// Story Grid
 const StoriesGrid = styled.div`
   display: grid;
   gap: 24px;
@@ -242,6 +247,8 @@ const StoryCard = styled.div`
   flex-direction: column;
   gap: 16px;
   transition: border-color 0.2s;
+  height: 100%;         
+  min-height: 340px;     
 
   &:hover {
     border-color: rgba(59, 130, 246, 0.5);
@@ -316,6 +323,7 @@ const StorySummary = styled.p`
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
+  flex: 1;               
 `
 
 const StoryFooter = styled.div`
@@ -343,6 +351,7 @@ const StoryActions = styled.div`
   display: flex;
   flex-direction: column;
   gap: 8px;
+  margin-top: auto;      
 `
 
 const ActionButtonRow = styled.div`
@@ -810,13 +819,12 @@ const EditingBannerSubtitle = styled.p`
   margin: 0;
 `
 
-// Import Page Grid
 const ImportGrid = styled.div`
   display: grid;
   gap: 24px;
   
   @media (min-width: 1024px) {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(2, minmax(0, 1fr));  
   }
 `
 
@@ -824,6 +832,8 @@ const ImportColumn = styled.div`
   display: flex;
   flex-direction: column;
   gap: 16px;
+  min-width: 0;          
+  overflow: hidden;      
 `
 
 const CodeBlock = styled.pre`
@@ -836,6 +846,8 @@ const CodeBlock = styled.pre`
   color: rgb(203, 213, 225);
   max-height: 288px;
   overflow-y: auto;
+  white-space: pre-wrap;   
+  word-break: break-word;  
 `
 
 const SmallCodeBlock = styled.pre`
@@ -846,6 +858,8 @@ const SmallCodeBlock = styled.pre`
   padding: 12px;
   font-size: 12px;
   color: rgb(226, 232, 240);
+  white-space: pre-wrap;  
+  word-break: break-word;  
 `
 
 const LinkRow = styled.div`
