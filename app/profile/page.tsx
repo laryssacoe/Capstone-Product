@@ -13,7 +13,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Badge } from "@/components/ui/badge"
 import { useToast } from "@/hooks/use-toast"
 import { useAuth } from "@/hooks/use-auth"
-import { User, Mail, Globe, MapPin, Clock, Tag, LinkIcon, X, LogOut, Camera, Sparkles } from "lucide-react"
+import { User, Mail, Globe, MapPin, Clock, Tag, LinkIcon, X, LogOut, Camera } from "lucide-react"
 
 type ProfileFormState = {
 	displayName: string
@@ -883,7 +883,6 @@ export default function ProfilePage() {
 									<p>Creator submissions unlock once the section below is complete and approved by the Loop team.</p>
 									{hasUnsavedProfileChanges && (
 										<span className="flex items-center gap-1 text-xs text-amber-300">
-											<Sparkles className="h-3.5 w-3.5" />
 											Unsaved changes — remember to save.
 										</span>
 									)}
