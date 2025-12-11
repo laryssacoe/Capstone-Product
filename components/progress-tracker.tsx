@@ -379,7 +379,7 @@ const StoryLinkTime = styled.div`
 
 const EmptyStateContainer = styled.div`
   text-align: center;
-  padding: 32px 0;
+  padding: 32px 0 16px 0;
 `
 
 const EmptyStateIcon = styled.div`
@@ -402,12 +402,12 @@ const EmptyStateTitle = styled.h3`
 
 const EmptyStateText = styled.p`
   color: rgb(148, 163, 184);
-  margin: 0 0 24px 0;
+  margin: 0;
 `
 
 const FooterSection = styled.div`
   text-align: center;
-  padding-top: 32px;
+  padding-top: 16px;
   border-top: 1px solid rgba(51, 65, 85, 0.5);
 `
 
@@ -502,6 +502,17 @@ export function ProgressTracker({ userId = "demo-user", className }: ProgressTra
   const completedScenarios = progress.scenarios.filter((s) => s.completed)
   const totalTimeMinutes = progress.timeSpent ?? 0
 
+  const inProgressScenarios = progress.scenarios.filter((s) => {
+    if (s.completed) return false
+    // Check if user has started story
+    const metadata = s.metadata as Record<string, unknown> | null
+    const hasProgress = metadata?.hasStarted === true || 
+                        metadata?.currentPassageId !== undefined ||
+                        metadata?.visitedPassages !== undefined ||
+                        ((s as any).timeSpent !== undefined && (s as any).timeSpent > 0)
+    return hasProgress
+  })
+
   // Empathy metrics based on real data
   const empathyMetrics = [
     {
@@ -561,6 +572,9 @@ export function ProgressTracker({ userId = "demo-user", className }: ProgressTra
     }
     return `~${minutes}m`
   }
+
+  // Check if user has any activity at all
+  const hasAnyActivity = completedScenarios.length > 0 || inProgressScenarios.length > 0 || progress.timeSpent > 0
 
   return (
     <Container className={className}>
@@ -673,41 +687,37 @@ export function ProgressTracker({ userId = "demo-user", className }: ProgressTra
         </div>
       )}
 
-      {/* Up Next / Incomplete Stories */}
-      {progress.scenarios.filter((s) => !s.completed).length > 0 && (
+      {/* Continue Your Journey show only if user has started stories */}
+      {inProgressScenarios.length > 0 && (
         <div>
           <SectionTitleSmall>
             <BookOpen size={20} color="#60a5fa" />
             Continue Your Journey
           </SectionTitleSmall>
           <StoriesList>
-            {progress.scenarios
-              .filter((s) => !s.completed)
-              .slice(0, 3)
-              .map((scenario) => {
-                // Use storySlug from metadata if available, otherwise scenario id
-                const storySlug = (scenario.metadata as any)?.storySlug ?? scenario.id
-                return (
-                  <StoryLink key={scenario.id} href={`/simulation/${storySlug}`}>
-                    <div>
-                      <StoryTitle>{scenario.title}</StoryTitle>
-                      <StoryCategory>{formatIssueTag(scenario.issueTag)}</StoryCategory>
-                    </div>
-                    {scenario.estimatedMinutes && (
-                      <StoryLinkTime>
-                        <Clock size={16} />
-                        {scenario.estimatedMinutes} min
-                      </StoryLinkTime>
-                    )}
-                  </StoryLink>
-                )
-              })}
+            {inProgressScenarios.slice(0, 3).map((scenario) => {
+              const storySlug = (scenario.metadata as Record<string, unknown>)?.storySlug as string ?? scenario.id
+              return (
+                <StoryLink key={scenario.id} href={`/simulation?story=${storySlug}`}>
+                  <div>
+                    <StoryTitle>{scenario.title}</StoryTitle>
+                    <StoryCategory>{formatIssueTag(scenario.issueTag)}</StoryCategory>
+                  </div>
+                  {scenario.estimatedMinutes && (
+                    <StoryLinkTime>
+                      <Clock size={16} />
+                      {scenario.estimatedMinutes} min
+                    </StoryLinkTime>
+                  )}
+                </StoryLink>
+              )
+            })}
           </StoriesList>
         </div>
       )}
 
       {/* Empty state */}
-      {completedScenarios.length === 0 && (
+      {!hasAnyActivity && (
         <EmptyStateContainer>
           <EmptyStateIcon>
             <Target size={32} color="#60a5fa" />
@@ -719,7 +729,6 @@ export function ProgressTracker({ userId = "demo-user", className }: ProgressTra
         </EmptyStateContainer>
       )}
 
-      {/* Continue Button */}
       <FooterSection>
         <PrimaryButton href="/scenarios">
           Explore More Stories

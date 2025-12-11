@@ -394,10 +394,10 @@ const getScenarioImage = (scenario: Scenario): string | null => {
   const imagePath = (scenario as any)?.metadata?.appearance?.image || "";
   
   // Only trust image paths in /scenes/ directory 
-  if (imagePath && imagePath.startsWith("/scenes/")) {
+  if (imagePath && (imagePath.startsWith("/scenes/") || imagePath.startsWith("/images/scenes/"))) {
     return imagePath;
   }
-  
+
   // Return null for invalid or placeholder paths to show icon fallback
   return null;
 };
