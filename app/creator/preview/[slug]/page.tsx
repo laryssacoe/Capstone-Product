@@ -405,17 +405,27 @@ const ChoiceEffects = styled.div`
   display: flex;
   gap: 0.25rem;
   flex-shrink: 0;
+  flex-wrap: wrap;
+  justify-content: flex-end;
   align-items: center;
 `
 
 const EffectTag = styled.span<{ $positive: boolean }>`
-  font-size: 0.65rem;
-  padding: 0.15rem 0.4rem;
-  border-radius: 0.25rem;
+  font-size: 0.7rem;
+  padding: 0.2rem 0.5rem;
+  border-radius: 0.3rem;
   font-weight: 600;
   background: ${({ $positive }) => ($positive ? "rgba(34, 197, 94, 0.22)" : "rgba(239, 68, 68, 0.22)")};
   color: ${({ $positive }) => ($positive ? "#86efac" : "#fca5a5")};
   border: 1px solid ${({ $positive }) => ($positive ? "rgba(34, 197, 94, 0.35)" : "rgba(239, 68, 68, 0.35)")};
+  display: flex;
+  align-items: center;
+  gap: 0.2rem;
+  
+  svg {
+    width: 10px;
+    height: 10px;
+  }
 `
 
 const ContinueButton = styled.button`
@@ -542,6 +552,40 @@ const ErrorScreen = styled.div`
   gap: 1.5rem;
 `
 
+// Helper to render effect tags with icons 
+const renderEffectTag = (type: 'money' | 'health' | 'time', value: number) => {
+  if (value === 0) return null
+  
+  const isPositive = value > 0
+  const prefix = isPositive ? "+" : ""
+  
+  switch (type) {
+    case 'money':
+      return (
+        <EffectTag key="money" $positive={isPositive}>
+          <DollarSign />
+          {prefix}{value}
+        </EffectTag>
+      )
+    case 'health':
+      return (
+        <EffectTag key="health" $positive={isPositive}>
+          <Heart />
+          {prefix}{value}
+        </EffectTag>
+      )
+    case 'time':
+      return (
+        <EffectTag key="time" $positive={isPositive}>
+          <Clock />
+          {prefix}{value}
+        </EffectTag>
+      )
+    default:
+      return null
+  }
+}
+
 export default function CreatorStoryPreviewPage() {
   const params = useParams<{ slug: string }>()
   const router = useRouter()
@@ -638,7 +682,7 @@ export default function CreatorStoryPreviewPage() {
       setStats(prev => ({
         money: Math.max(0, prev.money + (choice.effects?.money ?? 0)),
         health: Math.max(0, Math.min(100, prev.health + (choice.effects?.health ?? 0))),
-        time: Math.max(0, prev.time - Math.abs(choice.effects?.time ?? 0)),
+        time: Math.max(0, prev.time + (choice.effects?.time ?? 0)),
       }))
     }
     
@@ -815,27 +859,14 @@ export default function CreatorStoryPreviewPage() {
                   onClick={() => handleChoice(choice)}
                 >
                   <ChoiceText>{choice.text}</ChoiceText>
-                  {choice.effects && (
-                    <ChoiceEffects>
-                      {choice.effects.time !== undefined && choice.effects.time !== 0 && (
-                        <EffectTag $positive={choice.effects.time > 0}>
-                          {choice.effects.time > 0 ? "+" : "-"}{Math.abs(choice.effects.time)}h
-                        </EffectTag>
-                      )}
-                      {choice.effects.money !== undefined && choice.effects.money !== 0 && (
-                        <EffectTag $positive={choice.effects.money > 0}>
-                          {choice.effects.money > 0 ? "+$" : "-$"}{Math.abs(choice.effects.money)}
-                        </EffectTag>
-                      )}
-                      {choice.effects.health !== undefined && choice.effects.health !== 0 && (
-                        <EffectTag $positive={choice.effects.health > 0}>
-                          {choice.effects.health > 0 ? "+" : "-"}{Math.abs(choice.effects.health)}hp
-                        </EffectTag>
-                      )}
-                      <ChevronRight size={16} style={{ color: "#64748b", marginLeft: "0.25rem" }} />
-                    </ChoiceEffects>
-                  )}
-                  {!choice.effects && <ChevronRight size={16} style={{ color: "#64748b" }} />}
+                  <ChoiceEffects>
+                    {choice.effects?.money !== undefined && renderEffectTag('money', choice.effects.money)}
+                    {choice.effects?.health !== undefined && renderEffectTag('health', choice.effects.health)}
+                    {choice.effects?.time !== undefined && renderEffectTag('time', choice.effects.time)}
+                    {(!choice.effects || (
+                      !choice.effects.money && !choice.effects.health && !choice.effects.time
+                    )) && <ChevronRight size={16} style={{ color: "#64748b" }} />}
+                  </ChoiceEffects>
                 </ChoiceButton>
               ))}
             </ChoicesGrid>
