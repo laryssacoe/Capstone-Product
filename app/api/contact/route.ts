@@ -16,7 +16,11 @@ export async function POST(req: NextRequest) {
 
     const response = await fetch("https://api.web3forms.com/submit", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        "Accept": "application/json",
+        "User-Agent": "LoopContact/1.0 (+https://loop-capstone.up.railway.app)",
+      },
       body: JSON.stringify({
         access_key: accessKey,
         subject: "Loop Contact Form Submission",
@@ -27,26 +31,16 @@ export async function POST(req: NextRequest) {
     })
 
     const contentType = response.headers.get("content-type") || ""
-    let payload: any = null
-    if (contentType.includes("application/json")) {
-      payload = await response.json()
-    } else {
-      payload = { success: false, error: await response.text() }
+    if (response.ok && contentType.includes("application/json")) {
+      const payload = await response.json()
+      if (payload?.success) {
+        return NextResponse.json({ success: true })
+      }
     }
-
-    if (response.ok && payload?.success) {
-      return NextResponse.json({ success: true })
-    }
-
-    const errorMessage =
-      payload?.error ||
-      payload?.message ||
-      response.statusText ||
-      "Failed to send"
 
     return NextResponse.json(
-      { success: false, error: errorMessage },
-      { status: 500 },
+      { success: false, error: "Contact service is unavailable right now. Please try again soon." },
+      { status: 502 },
     )
   } catch (error) {
     const message = error instanceof Error ? error.message : "Unexpected error"

@@ -488,7 +488,7 @@ export default function HomePage() {
   const [errorMessage, setErrorMessage] = useState("");
   const [sending, setSending] = useState(false);
   const [isLoaded, setIsLoaded] = useState(false);
-
+  
   useEffect(() => {
     // Small delay to let styles and canvas initialize
     const timer = setTimeout(() => setIsLoaded(true), 100);
@@ -505,42 +505,71 @@ export default function HomePage() {
     document.querySelector("#features-section")?.scrollIntoView({ behavior: "smooth" });
   };
 
-  const handleContactSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setSending(true);
-    try {
-      if (!message) {
-        setErrorMessage("Please enter your message.");
-        setShowErrorMessage(true);
-        setTimeout(() => setShowErrorMessage(false), 4000);
-        setSending(false);
-        return;
-      }
-      const senderName = user?.profile?.displayName || user?.email || "Anonymous visitor";
-      const senderEmail = user?.email ?? null;
-      // Send to API
-      const res = await fetch("/api/contact", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: senderName, email: senderEmail, message, anonymous: !user }),
-      });
-      const data = await res.json();
-      if (data.success) {
-        setShowSuccessMessage(true);
-        setMessage(""); setShowContactForm(false);
-        setTimeout(() => setShowSuccessMessage(false), 4000);
-      } else {
-        setErrorMessage(data.error || "Something went wrong. Please try again.");
-        setShowErrorMessage(true);
-        setTimeout(() => setShowErrorMessage(false), 4000);
-      }
-    } catch {
-      setErrorMessage("Something went wrong. Please try again.");
+const handleContactSubmit = async (e: React.FormEvent) => {
+  e.preventDefault();
+  setSending(true);
+  
+  try {
+    if (!message.trim()) {
+      setErrorMessage("Please enter your message.");
+      setShowErrorMessage(true);
+      setTimeout(() => setShowErrorMessage(false), 4000);
+      setSending(false);
+      return;
+    }
+
+    const senderName = user?.profile?.displayName || user?.email || "Anonymous visitor";
+    const senderEmail = user?.email || "anonymous@loop.app";
+
+    // Submit email directly to Web3Forms from client 
+    const accessKey = process.env.NEXT_PUBLIC_WEB3FORMS_KEY;
+    
+    if (!accessKey) {
+      setErrorMessage("Contact form is not configured.");
+      setShowErrorMessage(true);
+      setTimeout(() => setShowErrorMessage(false), 4000);
+      setSending(false);
+      return;
+    }
+
+    const res = await fetch("https://api.web3forms.com/submit", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Accept": "application/json",
+      },
+      body: JSON.stringify({
+        access_key: accessKey,
+        subject: "Loop Contact Form Submission",
+        from_name: senderName,
+        email: senderEmail,
+        message: message.trim(),
+        source: "Loop Moderation",
+        user_authenticated: !!user,
+      }),
+    });
+
+    const data = await res.json();
+    
+    if (data.success) {
+      setShowSuccessMessage(true);
+      setMessage("");
+      setShowContactForm(false);
+      setTimeout(() => setShowSuccessMessage(false), 4000);
+    } else {
+      setErrorMessage(data.message || "Failed to send message. Please try again.");
       setShowErrorMessage(true);
       setTimeout(() => setShowErrorMessage(false), 4000);
     }
-    setSending(false);
-  };
+  } catch (err) {
+    console.error("Contact form error:", err);
+    setErrorMessage("Something went wrong. Please try again.");
+    setShowErrorMessage(true);
+    setTimeout(() => setShowErrorMessage(false), 4000);
+  }
+  
+  setSending(false);
+};
 
   return (
     <Page>
