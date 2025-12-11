@@ -85,6 +85,8 @@ model User {
   journeys                JourneyProgress[]
   achievements            UserAchievement[]
   storyPlays              StoryPlaySession[]
+  storySaves              StorySave[]
+  storyCompletions        StoryCompletion[]
   stories                 TwineStory[]       @relation("StoryOwner")
   authoredVersions        StoryVersion[]     @relation("VersionAuthor")
   reviewedVersions        StoryVersion[]     @relation("VersionReviewer")
@@ -168,6 +170,8 @@ model UserSession {
   storyPlays        StoryPlaySession[]
   achievements      UserAchievement[]
   storyInteractions StoryInteraction[]
+  storySaves        StorySave[]
+  storyCompletions  StoryCompletion[]
 }
 
 model Scenario {
@@ -439,4 +443,66 @@ model StoryInteraction {
   @@index([avatarId, kind, createdAt])
   @@index([sessionId])
   @@index([userId])
+}
+
+// Saves / completions / analytics for interactive stories
+model StorySave {
+  id               String   @id @default(cuid())
+  storySlug        String
+  storyVersion     String?
+  userId           String?
+  sessionId        String?
+  saveName         String?
+  isAutoSave       Boolean  @default(false)
+  currentPassageId String
+  resources        Json?
+  hiddenState      Json?
+  visitedPassages  Json?
+  choicesMade      Json?
+  pathTaken        Json?
+  completed        Boolean  @default(false)
+  endingId         String?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  user    User?        @relation(fields: [userId], references: [id], onDelete: SetNull)
+  session UserSession? @relation(fields: [sessionId], references: [id], onDelete: SetNull)
+
+  @@index([storySlug])
+  @@index([sessionId])
+  @@index([userId])
+}
+
+model StoryCompletion {
+  id                  String   @id @default(cuid())
+  storySlug           String
+  storyVersion        String?
+  userId              String?
+  sessionId           String?
+  endingId            String
+  endingType          String?
+  finalResources      Json?
+  finalHiddenState    Json?
+  totalChoices        Int      @default(0)
+  totalTime           Int      @default(0)
+  pathTaken           Json?
+  choicesMade         Json?
+  reflectionResponses Json?
+  createdAt           DateTime @default(now())
+
+  user    User?        @relation(fields: [userId], references: [id], onDelete: SetNull)
+  session UserSession? @relation(fields: [sessionId], references: [id], onDelete: SetNull)
+
+  @@index([storySlug])
+  @@index([sessionId])
+  @@index([userId])
+}
+
+model StoryAnalytics {
+  storySlug        String   @id
+  totalStarts      Int      @default(0)
+  totalCompletions Int      @default(0)
+  endingCounts     Json?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
 }

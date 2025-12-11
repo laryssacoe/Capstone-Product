@@ -103,6 +103,21 @@ export type AvatarProfile = $Result.DefaultSelection<Prisma.$AvatarProfilePayloa
  * 
  */
 export type StoryInteraction = $Result.DefaultSelection<Prisma.$StoryInteractionPayload>
+/**
+ * Model StorySave
+ * 
+ */
+export type StorySave = $Result.DefaultSelection<Prisma.$StorySavePayload>
+/**
+ * Model StoryCompletion
+ * 
+ */
+export type StoryCompletion = $Result.DefaultSelection<Prisma.$StoryCompletionPayload>
+/**
+ * Model StoryAnalytics
+ * 
+ */
+export type StoryAnalytics = $Result.DefaultSelection<Prisma.$StoryAnalyticsPayload>
 
 /**
  * Enums
@@ -528,6 +543,36 @@ export class PrismaClient<
     * ```
     */
   get storyInteraction(): Prisma.StoryInteractionDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.storySave`: CRUD operations for the **StorySave** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more StorySaves
+    * const storySaves = await prisma.storySave.findMany()
+    * ```
+    */
+  get storySave(): Prisma.StorySaveDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.storyCompletion`: Exposes CRUD operations for the **StoryCompletion** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more StoryCompletions
+    * const storyCompletions = await prisma.storyCompletion.findMany()
+    * ```
+    */
+  get storyCompletion(): Prisma.StoryCompletionDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.storyAnalytics`: Exposes CRUD operations for the **StoryAnalytics** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more StoryAnalytics
+    * const storyAnalytics = await prisma.storyAnalytics.findMany()
+    * ```
+    */
+  get storyAnalytics(): Prisma.StoryAnalyticsDelegate<ExtArgs, ClientOptions>;
 }
 
 export namespace Prisma {
@@ -986,7 +1031,10 @@ export namespace Prisma {
     StoryPath: 'StoryPath',
     StoryTransition: 'StoryTransition',
     AvatarProfile: 'AvatarProfile',
-    StoryInteraction: 'StoryInteraction'
+    StoryInteraction: 'StoryInteraction',
+    StorySave: 'StorySave',
+    StoryCompletion: 'StoryCompletion',
+    StoryAnalytics: 'StoryAnalytics'
   };
 
   export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -1005,7 +1053,7 @@ export namespace Prisma {
       omit: GlobalOmitOptions
     }
     meta: {
-      modelProps: "user" | "userProfile" | "creatorProfile" | "userSession" | "scenario" | "journeyProgress" | "achievement" | "userAchievement" | "twineStory" | "storyVersion" | "storyAuditLog" | "storyReview" | "storyPlaySession" | "storyNode" | "storyPath" | "storyTransition" | "avatarProfile" | "storyInteraction"
+      modelProps: "user" | "userProfile" | "creatorProfile" | "userSession" | "scenario" | "journeyProgress" | "achievement" | "userAchievement" | "twineStory" | "storyVersion" | "storyAuditLog" | "storyReview" | "storyPlaySession" | "storyNode" | "storyPath" | "storyTransition" | "avatarProfile" | "storyInteraction" | "storySave" | "storyCompletion" | "storyAnalytics"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -2341,6 +2389,228 @@ export namespace Prisma {
           }
         }
       }
+      StorySave: {
+        payload: Prisma.$StorySavePayload<ExtArgs>
+        fields: Prisma.StorySaveFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.StorySaveFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$StorySavePayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.StorySaveFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$StorySavePayload>
+          }
+          findFirst: {
+            args: Prisma.StorySaveFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$StorySavePayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.StorySaveFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$StorySavePayload>
+          }
+          findMany: {
+            args: Prisma.StorySaveFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$StorySavePayload>[]
+          }
+          create: {
+            args: Prisma.StorySaveCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$StorySavePayload>
+          }
+          createMany: {
+            args: Prisma.StorySaveCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.StorySaveCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$StorySavePayload>[]
+          }
+          delete: {
+            args: Prisma.StorySaveDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$StorySavePayload>
+          }
+          update: {
+            args: Prisma.StorySaveUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$StorySavePayload>
+          }
+          deleteMany: {
+            args: Prisma.StorySaveDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.StorySaveUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.StorySaveUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$StorySavePayload>[]
+          }
+          upsert: {
+            args: Prisma.StorySaveUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$StorySavePayload>
+          }
+          aggregate: {
+            args: Prisma.StorySaveAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateStorySave>
+          }
+          groupBy: {
+            args: Prisma.StorySaveGroupByArgs<ExtArgs>
+            result: $Utils.Optional<StorySaveGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.StorySaveCountArgs<ExtArgs>
+            result: $Utils.Optional<StorySaveCountAggregateOutputType> | number
+          }
+        }
+      }
+      StoryCompletion: {
+        payload: Prisma.$StoryCompletionPayload<ExtArgs>
+        fields: Prisma.StoryCompletionFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.StoryCompletionFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$StoryCompletionPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.StoryCompletionFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$StoryCompletionPayload>
+          }
+          findFirst: {
+            args: Prisma.StoryCompletionFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$StoryCompletionPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.StoryCompletionFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$StoryCompletionPayload>
+          }
+          findMany: {
+            args: Prisma.StoryCompletionFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$StoryCompletionPayload>[]
+          }
+          create: {
+            args: Prisma.StoryCompletionCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$StoryCompletionPayload>
+          }
+          createMany: {
+            args: Prisma.StoryCompletionCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.StoryCompletionCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$StoryCompletionPayload>[]
+          }
+          delete: {
+            args: Prisma.StoryCompletionDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$StoryCompletionPayload>
+          }
+          update: {
+            args: Prisma.StoryCompletionUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$StoryCompletionPayload>
+          }
+          deleteMany: {
+            args: Prisma.StoryCompletionDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.StoryCompletionUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.StoryCompletionUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$StoryCompletionPayload>[]
+          }
+          upsert: {
+            args: Prisma.StoryCompletionUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$StoryCompletionPayload>
+          }
+          aggregate: {
+            args: Prisma.StoryCompletionAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateStoryCompletion>
+          }
+          groupBy: {
+            args: Prisma.StoryCompletionGroupByArgs<ExtArgs>
+            result: $Utils.Optional<StoryCompletionGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.StoryCompletionCountArgs<ExtArgs>
+            result: $Utils.Optional<StoryCompletionCountAggregateOutputType> | number
+          }
+        }
+      }
+      StoryAnalytics: {
+        payload: Prisma.$StoryAnalyticsPayload<ExtArgs>
+        fields: Prisma.StoryAnalyticsFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.StoryAnalyticsFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$StoryAnalyticsPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.StoryAnalyticsFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$StoryAnalyticsPayload>
+          }
+          findFirst: {
+            args: Prisma.StoryAnalyticsFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$StoryAnalyticsPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.StoryAnalyticsFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$StoryAnalyticsPayload>
+          }
+          findMany: {
+            args: Prisma.StoryAnalyticsFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$StoryAnalyticsPayload>[]
+          }
+          create: {
+            args: Prisma.StoryAnalyticsCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$StoryAnalyticsPayload>
+          }
+          createMany: {
+            args: Prisma.StoryAnalyticsCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.StoryAnalyticsCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$StoryAnalyticsPayload>[]
+          }
+          delete: {
+            args: Prisma.StoryAnalyticsDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$StoryAnalyticsPayload>
+          }
+          update: {
+            args: Prisma.StoryAnalyticsUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$StoryAnalyticsPayload>
+          }
+          deleteMany: {
+            args: Prisma.StoryAnalyticsDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.StoryAnalyticsUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.StoryAnalyticsUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$StoryAnalyticsPayload>[]
+          }
+          upsert: {
+            args: Prisma.StoryAnalyticsUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$StoryAnalyticsPayload>
+          }
+          aggregate: {
+            args: Prisma.StoryAnalyticsAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateStoryAnalytics>
+          }
+          groupBy: {
+            args: Prisma.StoryAnalyticsGroupByArgs<ExtArgs>
+            result: $Utils.Optional<StoryAnalyticsGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.StoryAnalyticsCountArgs<ExtArgs>
+            result: $Utils.Optional<StoryAnalyticsCountAggregateOutputType> | number
+          }
+        }
+      }
     }
   } & {
     other: {
@@ -2455,6 +2725,9 @@ export namespace Prisma {
     storyTransition?: StoryTransitionOmit
     avatarProfile?: AvatarProfileOmit
     storyInteraction?: StoryInteractionOmit
+    storySave?: StorySaveOmit
+    storyCompletion?: StoryCompletionOmit
+    storyAnalytics?: StoryAnalyticsOmit
   }
 
   /* Types for Logging */
@@ -2539,6 +2812,8 @@ export namespace Prisma {
     journeys: number
     achievements: number
     storyPlays: number
+    storySaves: number
+    storyCompletions: number
     stories: number
     authoredVersions: number
     reviewedVersions: number
@@ -2555,6 +2830,8 @@ export namespace Prisma {
     journeys?: boolean | UserCountOutputTypeCountJourneysArgs
     achievements?: boolean | UserCountOutputTypeCountAchievementsArgs
     storyPlays?: boolean | UserCountOutputTypeCountStoryPlaysArgs
+    storySaves?: boolean | UserCountOutputTypeCountStorySavesArgs
+    storyCompletions?: boolean | UserCountOutputTypeCountStoryCompletionsArgs
     stories?: boolean | UserCountOutputTypeCountStoriesArgs
     authoredVersions?: boolean | UserCountOutputTypeCountAuthoredVersionsArgs
     reviewedVersions?: boolean | UserCountOutputTypeCountReviewedVersionsArgs
@@ -2603,6 +2880,20 @@ export namespace Prisma {
    */
   export type UserCountOutputTypeCountStoryPlaysArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: StoryPlaySessionWhereInput
+  }
+
+  /**
+   * UserCountOutputType without action
+   */
+  export type UserCountOutputTypeCountStorySavesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: StorySaveWhereInput
+  }
+
+  /**
+   * UserCountOutputType without action
+   */
+  export type UserCountOutputTypeCountStoryCompletionsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: StoryCompletionWhereInput
   }
 
   /**
@@ -2709,6 +3000,8 @@ export namespace Prisma {
     storyPlays: number
     achievements: number
     storyInteractions: number
+    storySaves: number
+    storyCompletions: number
   }
 
   export type UserSessionCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -2716,6 +3009,8 @@ export namespace Prisma {
     storyPlays?: boolean | UserSessionCountOutputTypeCountStoryPlaysArgs
     achievements?: boolean | UserSessionCountOutputTypeCountAchievementsArgs
     storyInteractions?: boolean | UserSessionCountOutputTypeCountStoryInteractionsArgs
+    storySaves?: boolean | UserSessionCountOutputTypeCountStorySavesArgs
+    storyCompletions?: boolean | UserSessionCountOutputTypeCountStoryCompletionsArgs
   }
 
   // Custom InputTypes
@@ -2755,6 +3050,20 @@ export namespace Prisma {
    */
   export type UserSessionCountOutputTypeCountStoryInteractionsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: StoryInteractionWhereInput
+  }
+
+  /**
+   * UserSessionCountOutputType without action
+   */
+  export type UserSessionCountOutputTypeCountStorySavesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: StorySaveWhereInput
+  }
+
+  /**
+   * UserSessionCountOutputType without action
+   */
+  export type UserSessionCountOutputTypeCountStoryCompletionsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: StoryCompletionWhereInput
   }
 
 
@@ -3292,6 +3601,8 @@ export namespace Prisma {
     journeys?: boolean | User$journeysArgs<ExtArgs>
     achievements?: boolean | User$achievementsArgs<ExtArgs>
     storyPlays?: boolean | User$storyPlaysArgs<ExtArgs>
+    storySaves?: boolean | User$storySavesArgs<ExtArgs>
+    storyCompletions?: boolean | User$storyCompletionsArgs<ExtArgs>
     stories?: boolean | User$storiesArgs<ExtArgs>
     authoredVersions?: boolean | User$authoredVersionsArgs<ExtArgs>
     reviewedVersions?: boolean | User$reviewedVersionsArgs<ExtArgs>
@@ -3348,6 +3659,8 @@ export namespace Prisma {
     journeys?: boolean | User$journeysArgs<ExtArgs>
     achievements?: boolean | User$achievementsArgs<ExtArgs>
     storyPlays?: boolean | User$storyPlaysArgs<ExtArgs>
+    storySaves?: boolean | User$storySavesArgs<ExtArgs>
+    storyCompletions?: boolean | User$storyCompletionsArgs<ExtArgs>
     stories?: boolean | User$storiesArgs<ExtArgs>
     authoredVersions?: boolean | User$authoredVersionsArgs<ExtArgs>
     reviewedVersions?: boolean | User$reviewedVersionsArgs<ExtArgs>
@@ -3371,6 +3684,8 @@ export namespace Prisma {
       journeys: Prisma.$JourneyProgressPayload<ExtArgs>[]
       achievements: Prisma.$UserAchievementPayload<ExtArgs>[]
       storyPlays: Prisma.$StoryPlaySessionPayload<ExtArgs>[]
+      storySaves: Prisma.$StorySavePayload<ExtArgs>[]
+      storyCompletions: Prisma.$StoryCompletionPayload<ExtArgs>[]
       stories: Prisma.$TwineStoryPayload<ExtArgs>[]
       authoredVersions: Prisma.$StoryVersionPayload<ExtArgs>[]
       reviewedVersions: Prisma.$StoryVersionPayload<ExtArgs>[]
@@ -3791,6 +4106,8 @@ export namespace Prisma {
     journeys<T extends User$journeysArgs<ExtArgs> = {}>(args?: Subset<T, User$journeysArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$JourneyProgressPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     achievements<T extends User$achievementsArgs<ExtArgs> = {}>(args?: Subset<T, User$achievementsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$UserAchievementPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     storyPlays<T extends User$storyPlaysArgs<ExtArgs> = {}>(args?: Subset<T, User$storyPlaysArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$StoryPlaySessionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    storySaves<T extends User$storySavesArgs<ExtArgs> = {}>(args?: Subset<T, User$storySavesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$StorySavePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    storyCompletions<T extends User$storyCompletionsArgs<ExtArgs> = {}>(args?: Subset<T, User$storyCompletionsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$StoryCompletionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     stories<T extends User$storiesArgs<ExtArgs> = {}>(args?: Subset<T, User$storiesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$TwineStoryPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     authoredVersions<T extends User$authoredVersionsArgs<ExtArgs> = {}>(args?: Subset<T, User$authoredVersionsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$StoryVersionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     reviewedVersions<T extends User$reviewedVersionsArgs<ExtArgs> = {}>(args?: Subset<T, User$reviewedVersionsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$StoryVersionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
@@ -4339,6 +4656,54 @@ export namespace Prisma {
     take?: number
     skip?: number
     distinct?: StoryPlaySessionScalarFieldEnum | StoryPlaySessionScalarFieldEnum[]
+  }
+
+  /**
+   * User.storySaves
+   */
+  export type User$storySavesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the StorySave
+     */
+    select?: StorySaveSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the StorySave
+     */
+    omit?: StorySaveOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: StorySaveInclude<ExtArgs> | null
+    where?: StorySaveWhereInput
+    orderBy?: StorySaveOrderByWithRelationInput | StorySaveOrderByWithRelationInput[]
+    cursor?: StorySaveWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: StorySaveScalarFieldEnum | StorySaveScalarFieldEnum[]
+  }
+
+  /**
+   * User.storyCompletions
+   */
+  export type User$storyCompletionsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the StoryCompletion
+     */
+    select?: StoryCompletionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the StoryCompletion
+     */
+    omit?: StoryCompletionOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: StoryCompletionInclude<ExtArgs> | null
+    where?: StoryCompletionWhereInput
+    orderBy?: StoryCompletionOrderByWithRelationInput | StoryCompletionOrderByWithRelationInput[]
+    cursor?: StoryCompletionWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: StoryCompletionScalarFieldEnum | StoryCompletionScalarFieldEnum[]
   }
 
   /**
@@ -7376,6 +7741,8 @@ export namespace Prisma {
     storyPlays?: boolean | UserSession$storyPlaysArgs<ExtArgs>
     achievements?: boolean | UserSession$achievementsArgs<ExtArgs>
     storyInteractions?: boolean | UserSession$storyInteractionsArgs<ExtArgs>
+    storySaves?: boolean | UserSession$storySavesArgs<ExtArgs>
+    storyCompletions?: boolean | UserSession$storyCompletionsArgs<ExtArgs>
     _count?: boolean | UserSessionCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["userSession"]>
 
@@ -7418,6 +7785,8 @@ export namespace Prisma {
     storyPlays?: boolean | UserSession$storyPlaysArgs<ExtArgs>
     achievements?: boolean | UserSession$achievementsArgs<ExtArgs>
     storyInteractions?: boolean | UserSession$storyInteractionsArgs<ExtArgs>
+    storySaves?: boolean | UserSession$storySavesArgs<ExtArgs>
+    storyCompletions?: boolean | UserSession$storyCompletionsArgs<ExtArgs>
     _count?: boolean | UserSessionCountOutputTypeDefaultArgs<ExtArgs>
   }
   export type UserSessionIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -7435,6 +7804,8 @@ export namespace Prisma {
       storyPlays: Prisma.$StoryPlaySessionPayload<ExtArgs>[]
       achievements: Prisma.$UserAchievementPayload<ExtArgs>[]
       storyInteractions: Prisma.$StoryInteractionPayload<ExtArgs>[]
+      storySaves: Prisma.$StorySavePayload<ExtArgs>[]
+      storyCompletions: Prisma.$StoryCompletionPayload<ExtArgs>[]
     }
     scalars: $Extensions.GetPayloadResult<{
       id: string
@@ -7843,6 +8214,8 @@ export namespace Prisma {
     storyPlays<T extends UserSession$storyPlaysArgs<ExtArgs> = {}>(args?: Subset<T, UserSession$storyPlaysArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$StoryPlaySessionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     achievements<T extends UserSession$achievementsArgs<ExtArgs> = {}>(args?: Subset<T, UserSession$achievementsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$UserAchievementPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     storyInteractions<T extends UserSession$storyInteractionsArgs<ExtArgs> = {}>(args?: Subset<T, UserSession$storyInteractionsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$StoryInteractionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    storySaves<T extends UserSession$storySavesArgs<ExtArgs> = {}>(args?: Subset<T, UserSession$storySavesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$StorySavePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    storyCompletions<T extends UserSession$storyCompletionsArgs<ExtArgs> = {}>(args?: Subset<T, UserSession$storyCompletionsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$StoryCompletionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -8387,6 +8760,54 @@ export namespace Prisma {
     take?: number
     skip?: number
     distinct?: StoryInteractionScalarFieldEnum | StoryInteractionScalarFieldEnum[]
+  }
+
+  /**
+   * UserSession.storySaves
+   */
+  export type UserSession$storySavesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the StorySave
+     */
+    select?: StorySaveSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the StorySave
+     */
+    omit?: StorySaveOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: StorySaveInclude<ExtArgs> | null
+    where?: StorySaveWhereInput
+    orderBy?: StorySaveOrderByWithRelationInput | StorySaveOrderByWithRelationInput[]
+    cursor?: StorySaveWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: StorySaveScalarFieldEnum | StorySaveScalarFieldEnum[]
+  }
+
+  /**
+   * UserSession.storyCompletions
+   */
+  export type UserSession$storyCompletionsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the StoryCompletion
+     */
+    select?: StoryCompletionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the StoryCompletion
+     */
+    omit?: StoryCompletionOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: StoryCompletionInclude<ExtArgs> | null
+    where?: StoryCompletionWhereInput
+    orderBy?: StoryCompletionOrderByWithRelationInput | StoryCompletionOrderByWithRelationInput[]
+    cursor?: StoryCompletionWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: StoryCompletionScalarFieldEnum | StoryCompletionScalarFieldEnum[]
   }
 
   /**
@@ -25434,6 +25855,3540 @@ export namespace Prisma {
 
 
   /**
+   * Model StorySave
+   */
+
+  export type AggregateStorySave = {
+    _count: StorySaveCountAggregateOutputType | null
+    _min: StorySaveMinAggregateOutputType | null
+    _max: StorySaveMaxAggregateOutputType | null
+  }
+
+  export type StorySaveMinAggregateOutputType = {
+    id: string | null
+    storySlug: string | null
+    storyVersion: string | null
+    userId: string | null
+    sessionId: string | null
+    saveName: string | null
+    isAutoSave: boolean | null
+    currentPassageId: string | null
+    completed: boolean | null
+    endingId: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type StorySaveMaxAggregateOutputType = {
+    id: string | null
+    storySlug: string | null
+    storyVersion: string | null
+    userId: string | null
+    sessionId: string | null
+    saveName: string | null
+    isAutoSave: boolean | null
+    currentPassageId: string | null
+    completed: boolean | null
+    endingId: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type StorySaveCountAggregateOutputType = {
+    id: number
+    storySlug: number
+    storyVersion: number
+    userId: number
+    sessionId: number
+    saveName: number
+    isAutoSave: number
+    currentPassageId: number
+    resources: number
+    hiddenState: number
+    visitedPassages: number
+    choicesMade: number
+    pathTaken: number
+    completed: number
+    endingId: number
+    createdAt: number
+    updatedAt: number
+    _all: number
+  }
+
+
+  export type StorySaveMinAggregateInputType = {
+    id?: true
+    storySlug?: true
+    storyVersion?: true
+    userId?: true
+    sessionId?: true
+    saveName?: true
+    isAutoSave?: true
+    currentPassageId?: true
+    completed?: true
+    endingId?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type StorySaveMaxAggregateInputType = {
+    id?: true
+    storySlug?: true
+    storyVersion?: true
+    userId?: true
+    sessionId?: true
+    saveName?: true
+    isAutoSave?: true
+    currentPassageId?: true
+    completed?: true
+    endingId?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type StorySaveCountAggregateInputType = {
+    id?: true
+    storySlug?: true
+    storyVersion?: true
+    userId?: true
+    sessionId?: true
+    saveName?: true
+    isAutoSave?: true
+    currentPassageId?: true
+    resources?: true
+    hiddenState?: true
+    visitedPassages?: true
+    choicesMade?: true
+    pathTaken?: true
+    completed?: true
+    endingId?: true
+    createdAt?: true
+    updatedAt?: true
+    _all?: true
+  }
+
+  export type StorySaveAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which StorySave to aggregate.
+     */
+    where?: StorySaveWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of StorySaves to fetch.
+     */
+    orderBy?: StorySaveOrderByWithRelationInput | StorySaveOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: StorySaveWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` StorySaves from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` StorySaves.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned StorySaves
+    **/
+    _count?: true | StorySaveCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: StorySaveMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: StorySaveMaxAggregateInputType
+  }
+
+  export type GetStorySaveAggregateType<T extends StorySaveAggregateArgs> = {
+        [P in keyof T & keyof AggregateStorySave]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateStorySave[P]>
+      : GetScalarType<T[P], AggregateStorySave[P]>
+  }
+
+
+
+
+  export type StorySaveGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: StorySaveWhereInput
+    orderBy?: StorySaveOrderByWithAggregationInput | StorySaveOrderByWithAggregationInput[]
+    by: StorySaveScalarFieldEnum[] | StorySaveScalarFieldEnum
+    having?: StorySaveScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: StorySaveCountAggregateInputType | true
+    _min?: StorySaveMinAggregateInputType
+    _max?: StorySaveMaxAggregateInputType
+  }
+
+  export type StorySaveGroupByOutputType = {
+    id: string
+    storySlug: string
+    storyVersion: string | null
+    userId: string | null
+    sessionId: string | null
+    saveName: string | null
+    isAutoSave: boolean
+    currentPassageId: string
+    resources: JsonValue | null
+    hiddenState: JsonValue | null
+    visitedPassages: JsonValue | null
+    choicesMade: JsonValue | null
+    pathTaken: JsonValue | null
+    completed: boolean
+    endingId: string | null
+    createdAt: Date
+    updatedAt: Date
+    _count: StorySaveCountAggregateOutputType | null
+    _min: StorySaveMinAggregateOutputType | null
+    _max: StorySaveMaxAggregateOutputType | null
+  }
+
+  type GetStorySaveGroupByPayload<T extends StorySaveGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<StorySaveGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof StorySaveGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], StorySaveGroupByOutputType[P]>
+            : GetScalarType<T[P], StorySaveGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type StorySaveSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    storySlug?: boolean
+    storyVersion?: boolean
+    userId?: boolean
+    sessionId?: boolean
+    saveName?: boolean
+    isAutoSave?: boolean
+    currentPassageId?: boolean
+    resources?: boolean
+    hiddenState?: boolean
+    visitedPassages?: boolean
+    choicesMade?: boolean
+    pathTaken?: boolean
+    completed?: boolean
+    endingId?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    user?: boolean | StorySave$userArgs<ExtArgs>
+    session?: boolean | StorySave$sessionArgs<ExtArgs>
+  }, ExtArgs["result"]["storySave"]>
+
+  export type StorySaveSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    storySlug?: boolean
+    storyVersion?: boolean
+    userId?: boolean
+    sessionId?: boolean
+    saveName?: boolean
+    isAutoSave?: boolean
+    currentPassageId?: boolean
+    resources?: boolean
+    hiddenState?: boolean
+    visitedPassages?: boolean
+    choicesMade?: boolean
+    pathTaken?: boolean
+    completed?: boolean
+    endingId?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    user?: boolean | StorySave$userArgs<ExtArgs>
+    session?: boolean | StorySave$sessionArgs<ExtArgs>
+  }, ExtArgs["result"]["storySave"]>
+
+  export type StorySaveSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    storySlug?: boolean
+    storyVersion?: boolean
+    userId?: boolean
+    sessionId?: boolean
+    saveName?: boolean
+    isAutoSave?: boolean
+    currentPassageId?: boolean
+    resources?: boolean
+    hiddenState?: boolean
+    visitedPassages?: boolean
+    choicesMade?: boolean
+    pathTaken?: boolean
+    completed?: boolean
+    endingId?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    user?: boolean | StorySave$userArgs<ExtArgs>
+    session?: boolean | StorySave$sessionArgs<ExtArgs>
+  }, ExtArgs["result"]["storySave"]>
+
+  export type StorySaveSelectScalar = {
+    id?: boolean
+    storySlug?: boolean
+    storyVersion?: boolean
+    userId?: boolean
+    sessionId?: boolean
+    saveName?: boolean
+    isAutoSave?: boolean
+    currentPassageId?: boolean
+    resources?: boolean
+    hiddenState?: boolean
+    visitedPassages?: boolean
+    choicesMade?: boolean
+    pathTaken?: boolean
+    completed?: boolean
+    endingId?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }
+
+  export type StorySaveOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "storySlug" | "storyVersion" | "userId" | "sessionId" | "saveName" | "isAutoSave" | "currentPassageId" | "resources" | "hiddenState" | "visitedPassages" | "choicesMade" | "pathTaken" | "completed" | "endingId" | "createdAt" | "updatedAt", ExtArgs["result"]["storySave"]>
+  export type StorySaveInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    user?: boolean | StorySave$userArgs<ExtArgs>
+    session?: boolean | StorySave$sessionArgs<ExtArgs>
+  }
+  export type StorySaveIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    user?: boolean | StorySave$userArgs<ExtArgs>
+    session?: boolean | StorySave$sessionArgs<ExtArgs>
+  }
+  export type StorySaveIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    user?: boolean | StorySave$userArgs<ExtArgs>
+    session?: boolean | StorySave$sessionArgs<ExtArgs>
+  }
+
+  export type $StorySavePayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "StorySave"
+    objects: {
+      user: Prisma.$UserPayload<ExtArgs> | null
+      session: Prisma.$UserSessionPayload<ExtArgs> | null
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      storySlug: string
+      storyVersion: string | null
+      userId: string | null
+      sessionId: string | null
+      saveName: string | null
+      isAutoSave: boolean
+      currentPassageId: string
+      resources: Prisma.JsonValue | null
+      hiddenState: Prisma.JsonValue | null
+      visitedPassages: Prisma.JsonValue | null
+      choicesMade: Prisma.JsonValue | null
+      pathTaken: Prisma.JsonValue | null
+      completed: boolean
+      endingId: string | null
+      createdAt: Date
+      updatedAt: Date
+    }, ExtArgs["result"]["storySave"]>
+    composites: {}
+  }
+
+  type StorySaveGetPayload<S extends boolean | null | undefined | StorySaveDefaultArgs> = $Result.GetResult<Prisma.$StorySavePayload, S>
+
+  type StorySaveCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<StorySaveFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: StorySaveCountAggregateInputType | true
+    }
+
+  export interface StorySaveDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['StorySave'], meta: { name: 'StorySave' } }
+    /**
+     * Find zero or one StorySave that matches the filter.
+     * @param {StorySaveFindUniqueArgs} args - Arguments to find a StorySave
+     * @example
+     * // Get one StorySave
+     * const storySave = await prisma.storySave.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends StorySaveFindUniqueArgs>(args: SelectSubset<T, StorySaveFindUniqueArgs<ExtArgs>>): Prisma__StorySaveClient<$Result.GetResult<Prisma.$StorySavePayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one StorySave that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {StorySaveFindUniqueOrThrowArgs} args - Arguments to find a StorySave
+     * @example
+     * // Get one StorySave
+     * const storySave = await prisma.storySave.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends StorySaveFindUniqueOrThrowArgs>(args: SelectSubset<T, StorySaveFindUniqueOrThrowArgs<ExtArgs>>): Prisma__StorySaveClient<$Result.GetResult<Prisma.$StorySavePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first StorySave that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {StorySaveFindFirstArgs} args - Arguments to find a StorySave
+     * @example
+     * // Get one StorySave
+     * const storySave = await prisma.storySave.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends StorySaveFindFirstArgs>(args?: SelectSubset<T, StorySaveFindFirstArgs<ExtArgs>>): Prisma__StorySaveClient<$Result.GetResult<Prisma.$StorySavePayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first StorySave that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {StorySaveFindFirstOrThrowArgs} args - Arguments to find a StorySave
+     * @example
+     * // Get one StorySave
+     * const storySave = await prisma.storySave.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends StorySaveFindFirstOrThrowArgs>(args?: SelectSubset<T, StorySaveFindFirstOrThrowArgs<ExtArgs>>): Prisma__StorySaveClient<$Result.GetResult<Prisma.$StorySavePayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more StorySaves that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {StorySaveFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all StorySaves
+     * const storySaves = await prisma.storySave.findMany()
+     * 
+     * // Get first 10 StorySaves
+     * const storySaves = await prisma.storySave.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const storySaveWithIdOnly = await prisma.storySave.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends StorySaveFindManyArgs>(args?: SelectSubset<T, StorySaveFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$StorySavePayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a StorySave.
+     * @param {StorySaveCreateArgs} args - Arguments to create a StorySave.
+     * @example
+     * // Create one StorySave
+     * const StorySave = await prisma.storySave.create({
+     *   data: {
+     *     // ... data to create a StorySave
+     *   }
+     * })
+     * 
+     */
+    create<T extends StorySaveCreateArgs>(args: SelectSubset<T, StorySaveCreateArgs<ExtArgs>>): Prisma__StorySaveClient<$Result.GetResult<Prisma.$StorySavePayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many StorySaves.
+     * @param {StorySaveCreateManyArgs} args - Arguments to create many StorySaves.
+     * @example
+     * // Create many StorySaves
+     * const storySave = await prisma.storySave.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends StorySaveCreateManyArgs>(args?: SelectSubset<T, StorySaveCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many StorySaves and returns the data saved in the database.
+     * @param {StorySaveCreateManyAndReturnArgs} args - Arguments to create many StorySaves.
+     * @example
+     * // Create many StorySaves
+     * const storySave = await prisma.storySave.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many StorySaves and only return the `id`
+     * const storySaveWithIdOnly = await prisma.storySave.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends StorySaveCreateManyAndReturnArgs>(args?: SelectSubset<T, StorySaveCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$StorySavePayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a StorySave.
+     * @param {StorySaveDeleteArgs} args - Arguments to delete one StorySave.
+     * @example
+     * // Delete one StorySave
+     * const StorySave = await prisma.storySave.delete({
+     *   where: {
+     *     // ... filter to delete one StorySave
+     *   }
+     * })
+     * 
+     */
+    delete<T extends StorySaveDeleteArgs>(args: SelectSubset<T, StorySaveDeleteArgs<ExtArgs>>): Prisma__StorySaveClient<$Result.GetResult<Prisma.$StorySavePayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one StorySave.
+     * @param {StorySaveUpdateArgs} args - Arguments to update one StorySave.
+     * @example
+     * // Update one StorySave
+     * const storySave = await prisma.storySave.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends StorySaveUpdateArgs>(args: SelectSubset<T, StorySaveUpdateArgs<ExtArgs>>): Prisma__StorySaveClient<$Result.GetResult<Prisma.$StorySavePayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more StorySaves.
+     * @param {StorySaveDeleteManyArgs} args - Arguments to filter StorySaves to delete.
+     * @example
+     * // Delete a few StorySaves
+     * const { count } = await prisma.storySave.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends StorySaveDeleteManyArgs>(args?: SelectSubset<T, StorySaveDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more StorySaves.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {StorySaveUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many StorySaves
+     * const storySave = await prisma.storySave.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends StorySaveUpdateManyArgs>(args: SelectSubset<T, StorySaveUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more StorySaves and returns the data updated in the database.
+     * @param {StorySaveUpdateManyAndReturnArgs} args - Arguments to update many StorySaves.
+     * @example
+     * // Update many StorySaves
+     * const storySave = await prisma.storySave.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more StorySaves and only return the `id`
+     * const storySaveWithIdOnly = await prisma.storySave.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends StorySaveUpdateManyAndReturnArgs>(args: SelectSubset<T, StorySaveUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$StorySavePayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one StorySave.
+     * @param {StorySaveUpsertArgs} args - Arguments to update or create a StorySave.
+     * @example
+     * // Update or create a StorySave
+     * const storySave = await prisma.storySave.upsert({
+     *   create: {
+     *     // ... data to create a StorySave
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the StorySave we want to update
+     *   }
+     * })
+     */
+    upsert<T extends StorySaveUpsertArgs>(args: SelectSubset<T, StorySaveUpsertArgs<ExtArgs>>): Prisma__StorySaveClient<$Result.GetResult<Prisma.$StorySavePayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of StorySaves.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {StorySaveCountArgs} args - Arguments to filter StorySaves to count.
+     * @example
+     * // Count the number of StorySaves
+     * const count = await prisma.storySave.count({
+     *   where: {
+     *     // ... the filter for the StorySaves we want to count
+     *   }
+     * })
+    **/
+    count<T extends StorySaveCountArgs>(
+      args?: Subset<T, StorySaveCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], StorySaveCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a StorySave.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {StorySaveAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends StorySaveAggregateArgs>(args: Subset<T, StorySaveAggregateArgs>): Prisma.PrismaPromise<GetStorySaveAggregateType<T>>
+
+    /**
+     * Group by StorySave.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {StorySaveGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends StorySaveGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: StorySaveGroupByArgs['orderBy'] }
+        : { orderBy?: StorySaveGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, StorySaveGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetStorySaveGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the StorySave model
+   */
+  readonly fields: StorySaveFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for StorySave.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__StorySaveClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    user<T extends StorySave$userArgs<ExtArgs> = {}>(args?: Subset<T, StorySave$userArgs<ExtArgs>>): Prisma__UserClient<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+    session<T extends StorySave$sessionArgs<ExtArgs> = {}>(args?: Subset<T, StorySave$sessionArgs<ExtArgs>>): Prisma__UserSessionClient<$Result.GetResult<Prisma.$UserSessionPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the StorySave model
+   */
+  interface StorySaveFieldRefs {
+    readonly id: FieldRef<"StorySave", 'String'>
+    readonly storySlug: FieldRef<"StorySave", 'String'>
+    readonly storyVersion: FieldRef<"StorySave", 'String'>
+    readonly userId: FieldRef<"StorySave", 'String'>
+    readonly sessionId: FieldRef<"StorySave", 'String'>
+    readonly saveName: FieldRef<"StorySave", 'String'>
+    readonly isAutoSave: FieldRef<"StorySave", 'Boolean'>
+    readonly currentPassageId: FieldRef<"StorySave", 'String'>
+    readonly resources: FieldRef<"StorySave", 'Json'>
+    readonly hiddenState: FieldRef<"StorySave", 'Json'>
+    readonly visitedPassages: FieldRef<"StorySave", 'Json'>
+    readonly choicesMade: FieldRef<"StorySave", 'Json'>
+    readonly pathTaken: FieldRef<"StorySave", 'Json'>
+    readonly completed: FieldRef<"StorySave", 'Boolean'>
+    readonly endingId: FieldRef<"StorySave", 'String'>
+    readonly createdAt: FieldRef<"StorySave", 'DateTime'>
+    readonly updatedAt: FieldRef<"StorySave", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * StorySave findUnique
+   */
+  export type StorySaveFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the StorySave
+     */
+    select?: StorySaveSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the StorySave
+     */
+    omit?: StorySaveOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: StorySaveInclude<ExtArgs> | null
+    /**
+     * Filter, which StorySave to fetch.
+     */
+    where: StorySaveWhereUniqueInput
+  }
+
+  /**
+   * StorySave findUniqueOrThrow
+   */
+  export type StorySaveFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the StorySave
+     */
+    select?: StorySaveSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the StorySave
+     */
+    omit?: StorySaveOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: StorySaveInclude<ExtArgs> | null
+    /**
+     * Filter, which StorySave to fetch.
+     */
+    where: StorySaveWhereUniqueInput
+  }
+
+  /**
+   * StorySave findFirst
+   */
+  export type StorySaveFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the StorySave
+     */
+    select?: StorySaveSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the StorySave
+     */
+    omit?: StorySaveOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: StorySaveInclude<ExtArgs> | null
+    /**
+     * Filter, which StorySave to fetch.
+     */
+    where?: StorySaveWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of StorySaves to fetch.
+     */
+    orderBy?: StorySaveOrderByWithRelationInput | StorySaveOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for StorySaves.
+     */
+    cursor?: StorySaveWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` StorySaves from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` StorySaves.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of StorySaves.
+     */
+    distinct?: StorySaveScalarFieldEnum | StorySaveScalarFieldEnum[]
+  }
+
+  /**
+   * StorySave findFirstOrThrow
+   */
+  export type StorySaveFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the StorySave
+     */
+    select?: StorySaveSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the StorySave
+     */
+    omit?: StorySaveOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: StorySaveInclude<ExtArgs> | null
+    /**
+     * Filter, which StorySave to fetch.
+     */
+    where?: StorySaveWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of StorySaves to fetch.
+     */
+    orderBy?: StorySaveOrderByWithRelationInput | StorySaveOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for StorySaves.
+     */
+    cursor?: StorySaveWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` StorySaves from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` StorySaves.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of StorySaves.
+     */
+    distinct?: StorySaveScalarFieldEnum | StorySaveScalarFieldEnum[]
+  }
+
+  /**
+   * StorySave findMany
+   */
+  export type StorySaveFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the StorySave
+     */
+    select?: StorySaveSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the StorySave
+     */
+    omit?: StorySaveOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: StorySaveInclude<ExtArgs> | null
+    /**
+     * Filter, which StorySaves to fetch.
+     */
+    where?: StorySaveWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of StorySaves to fetch.
+     */
+    orderBy?: StorySaveOrderByWithRelationInput | StorySaveOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing StorySaves.
+     */
+    cursor?: StorySaveWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` StorySaves from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` StorySaves.
+     */
+    skip?: number
+    distinct?: StorySaveScalarFieldEnum | StorySaveScalarFieldEnum[]
+  }
+
+  /**
+   * StorySave create
+   */
+  export type StorySaveCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the StorySave
+     */
+    select?: StorySaveSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the StorySave
+     */
+    omit?: StorySaveOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: StorySaveInclude<ExtArgs> | null
+    /**
+     * The data needed to create a StorySave.
+     */
+    data: XOR<StorySaveCreateInput, StorySaveUncheckedCreateInput>
+  }
+
+  /**
+   * StorySave createMany
+   */
+  export type StorySaveCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many StorySaves.
+     */
+    data: StorySaveCreateManyInput | StorySaveCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * StorySave createManyAndReturn
+   */
+  export type StorySaveCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the StorySave
+     */
+    select?: StorySaveSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the StorySave
+     */
+    omit?: StorySaveOmit<ExtArgs> | null
+    /**
+     * The data used to create many StorySaves.
+     */
+    data: StorySaveCreateManyInput | StorySaveCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: StorySaveIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * StorySave update
+   */
+  export type StorySaveUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the StorySave
+     */
+    select?: StorySaveSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the StorySave
+     */
+    omit?: StorySaveOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: StorySaveInclude<ExtArgs> | null
+    /**
+     * The data needed to update a StorySave.
+     */
+    data: XOR<StorySaveUpdateInput, StorySaveUncheckedUpdateInput>
+    /**
+     * Choose, which StorySave to update.
+     */
+    where: StorySaveWhereUniqueInput
+  }
+
+  /**
+   * StorySave updateMany
+   */
+  export type StorySaveUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update StorySaves.
+     */
+    data: XOR<StorySaveUpdateManyMutationInput, StorySaveUncheckedUpdateManyInput>
+    /**
+     * Filter which StorySaves to update
+     */
+    where?: StorySaveWhereInput
+    /**
+     * Limit how many StorySaves to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * StorySave updateManyAndReturn
+   */
+  export type StorySaveUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the StorySave
+     */
+    select?: StorySaveSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the StorySave
+     */
+    omit?: StorySaveOmit<ExtArgs> | null
+    /**
+     * The data used to update StorySaves.
+     */
+    data: XOR<StorySaveUpdateManyMutationInput, StorySaveUncheckedUpdateManyInput>
+    /**
+     * Filter which StorySaves to update
+     */
+    where?: StorySaveWhereInput
+    /**
+     * Limit how many StorySaves to update.
+     */
+    limit?: number
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: StorySaveIncludeUpdateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * StorySave upsert
+   */
+  export type StorySaveUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the StorySave
+     */
+    select?: StorySaveSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the StorySave
+     */
+    omit?: StorySaveOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: StorySaveInclude<ExtArgs> | null
+    /**
+     * The filter to search for the StorySave to update in case it exists.
+     */
+    where: StorySaveWhereUniqueInput
+    /**
+     * In case the StorySave found by the `where` argument doesn't exist, create a new StorySave with this data.
+     */
+    create: XOR<StorySaveCreateInput, StorySaveUncheckedCreateInput>
+    /**
+     * In case the StorySave was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<StorySaveUpdateInput, StorySaveUncheckedUpdateInput>
+  }
+
+  /**
+   * StorySave delete
+   */
+  export type StorySaveDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the StorySave
+     */
+    select?: StorySaveSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the StorySave
+     */
+    omit?: StorySaveOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: StorySaveInclude<ExtArgs> | null
+    /**
+     * Filter which StorySave to delete.
+     */
+    where: StorySaveWhereUniqueInput
+  }
+
+  /**
+   * StorySave deleteMany
+   */
+  export type StorySaveDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which StorySaves to delete
+     */
+    where?: StorySaveWhereInput
+    /**
+     * Limit how many StorySaves to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * StorySave.user
+   */
+  export type StorySave$userArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the User
+     */
+    select?: UserSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the User
+     */
+    omit?: UserOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UserInclude<ExtArgs> | null
+    where?: UserWhereInput
+  }
+
+  /**
+   * StorySave.session
+   */
+  export type StorySave$sessionArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the UserSession
+     */
+    select?: UserSessionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the UserSession
+     */
+    omit?: UserSessionOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UserSessionInclude<ExtArgs> | null
+    where?: UserSessionWhereInput
+  }
+
+  /**
+   * StorySave without action
+   */
+  export type StorySaveDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the StorySave
+     */
+    select?: StorySaveSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the StorySave
+     */
+    omit?: StorySaveOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: StorySaveInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model StoryCompletion
+   */
+
+  export type AggregateStoryCompletion = {
+    _count: StoryCompletionCountAggregateOutputType | null
+    _avg: StoryCompletionAvgAggregateOutputType | null
+    _sum: StoryCompletionSumAggregateOutputType | null
+    _min: StoryCompletionMinAggregateOutputType | null
+    _max: StoryCompletionMaxAggregateOutputType | null
+  }
+
+  export type StoryCompletionAvgAggregateOutputType = {
+    totalChoices: number | null
+    totalTime: number | null
+  }
+
+  export type StoryCompletionSumAggregateOutputType = {
+    totalChoices: number | null
+    totalTime: number | null
+  }
+
+  export type StoryCompletionMinAggregateOutputType = {
+    id: string | null
+    storySlug: string | null
+    storyVersion: string | null
+    userId: string | null
+    sessionId: string | null
+    endingId: string | null
+    endingType: string | null
+    totalChoices: number | null
+    totalTime: number | null
+    createdAt: Date | null
+  }
+
+  export type StoryCompletionMaxAggregateOutputType = {
+    id: string | null
+    storySlug: string | null
+    storyVersion: string | null
+    userId: string | null
+    sessionId: string | null
+    endingId: string | null
+    endingType: string | null
+    totalChoices: number | null
+    totalTime: number | null
+    createdAt: Date | null
+  }
+
+  export type StoryCompletionCountAggregateOutputType = {
+    id: number
+    storySlug: number
+    storyVersion: number
+    userId: number
+    sessionId: number
+    endingId: number
+    endingType: number
+    finalResources: number
+    finalHiddenState: number
+    totalChoices: number
+    totalTime: number
+    pathTaken: number
+    choicesMade: number
+    reflectionResponses: number
+    createdAt: number
+    _all: number
+  }
+
+
+  export type StoryCompletionAvgAggregateInputType = {
+    totalChoices?: true
+    totalTime?: true
+  }
+
+  export type StoryCompletionSumAggregateInputType = {
+    totalChoices?: true
+    totalTime?: true
+  }
+
+  export type StoryCompletionMinAggregateInputType = {
+    id?: true
+    storySlug?: true
+    storyVersion?: true
+    userId?: true
+    sessionId?: true
+    endingId?: true
+    endingType?: true
+    totalChoices?: true
+    totalTime?: true
+    createdAt?: true
+  }
+
+  export type StoryCompletionMaxAggregateInputType = {
+    id?: true
+    storySlug?: true
+    storyVersion?: true
+    userId?: true
+    sessionId?: true
+    endingId?: true
+    endingType?: true
+    totalChoices?: true
+    totalTime?: true
+    createdAt?: true
+  }
+
+  export type StoryCompletionCountAggregateInputType = {
+    id?: true
+    storySlug?: true
+    storyVersion?: true
+    userId?: true
+    sessionId?: true
+    endingId?: true
+    endingType?: true
+    finalResources?: true
+    finalHiddenState?: true
+    totalChoices?: true
+    totalTime?: true
+    pathTaken?: true
+    choicesMade?: true
+    reflectionResponses?: true
+    createdAt?: true
+    _all?: true
+  }
+
+  export type StoryCompletionAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which StoryCompletion to aggregate.
+     */
+    where?: StoryCompletionWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of StoryCompletions to fetch.
+     */
+    orderBy?: StoryCompletionOrderByWithRelationInput | StoryCompletionOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: StoryCompletionWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` StoryCompletions from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` StoryCompletions.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned StoryCompletions
+    **/
+    _count?: true | StoryCompletionCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: StoryCompletionAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: StoryCompletionSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: StoryCompletionMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: StoryCompletionMaxAggregateInputType
+  }
+
+  export type GetStoryCompletionAggregateType<T extends StoryCompletionAggregateArgs> = {
+        [P in keyof T & keyof AggregateStoryCompletion]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateStoryCompletion[P]>
+      : GetScalarType<T[P], AggregateStoryCompletion[P]>
+  }
+
+
+
+
+  export type StoryCompletionGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: StoryCompletionWhereInput
+    orderBy?: StoryCompletionOrderByWithAggregationInput | StoryCompletionOrderByWithAggregationInput[]
+    by: StoryCompletionScalarFieldEnum[] | StoryCompletionScalarFieldEnum
+    having?: StoryCompletionScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: StoryCompletionCountAggregateInputType | true
+    _avg?: StoryCompletionAvgAggregateInputType
+    _sum?: StoryCompletionSumAggregateInputType
+    _min?: StoryCompletionMinAggregateInputType
+    _max?: StoryCompletionMaxAggregateInputType
+  }
+
+  export type StoryCompletionGroupByOutputType = {
+    id: string
+    storySlug: string
+    storyVersion: string | null
+    userId: string | null
+    sessionId: string | null
+    endingId: string
+    endingType: string | null
+    finalResources: JsonValue | null
+    finalHiddenState: JsonValue | null
+    totalChoices: number
+    totalTime: number
+    pathTaken: JsonValue | null
+    choicesMade: JsonValue | null
+    reflectionResponses: JsonValue | null
+    createdAt: Date
+    _count: StoryCompletionCountAggregateOutputType | null
+    _avg: StoryCompletionAvgAggregateOutputType | null
+    _sum: StoryCompletionSumAggregateOutputType | null
+    _min: StoryCompletionMinAggregateOutputType | null
+    _max: StoryCompletionMaxAggregateOutputType | null
+  }
+
+  type GetStoryCompletionGroupByPayload<T extends StoryCompletionGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<StoryCompletionGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof StoryCompletionGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], StoryCompletionGroupByOutputType[P]>
+            : GetScalarType<T[P], StoryCompletionGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type StoryCompletionSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    storySlug?: boolean
+    storyVersion?: boolean
+    userId?: boolean
+    sessionId?: boolean
+    endingId?: boolean
+    endingType?: boolean
+    finalResources?: boolean
+    finalHiddenState?: boolean
+    totalChoices?: boolean
+    totalTime?: boolean
+    pathTaken?: boolean
+    choicesMade?: boolean
+    reflectionResponses?: boolean
+    createdAt?: boolean
+    user?: boolean | StoryCompletion$userArgs<ExtArgs>
+    session?: boolean | StoryCompletion$sessionArgs<ExtArgs>
+  }, ExtArgs["result"]["storyCompletion"]>
+
+  export type StoryCompletionSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    storySlug?: boolean
+    storyVersion?: boolean
+    userId?: boolean
+    sessionId?: boolean
+    endingId?: boolean
+    endingType?: boolean
+    finalResources?: boolean
+    finalHiddenState?: boolean
+    totalChoices?: boolean
+    totalTime?: boolean
+    pathTaken?: boolean
+    choicesMade?: boolean
+    reflectionResponses?: boolean
+    createdAt?: boolean
+    user?: boolean | StoryCompletion$userArgs<ExtArgs>
+    session?: boolean | StoryCompletion$sessionArgs<ExtArgs>
+  }, ExtArgs["result"]["storyCompletion"]>
+
+  export type StoryCompletionSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    storySlug?: boolean
+    storyVersion?: boolean
+    userId?: boolean
+    sessionId?: boolean
+    endingId?: boolean
+    endingType?: boolean
+    finalResources?: boolean
+    finalHiddenState?: boolean
+    totalChoices?: boolean
+    totalTime?: boolean
+    pathTaken?: boolean
+    choicesMade?: boolean
+    reflectionResponses?: boolean
+    createdAt?: boolean
+    user?: boolean | StoryCompletion$userArgs<ExtArgs>
+    session?: boolean | StoryCompletion$sessionArgs<ExtArgs>
+  }, ExtArgs["result"]["storyCompletion"]>
+
+  export type StoryCompletionSelectScalar = {
+    id?: boolean
+    storySlug?: boolean
+    storyVersion?: boolean
+    userId?: boolean
+    sessionId?: boolean
+    endingId?: boolean
+    endingType?: boolean
+    finalResources?: boolean
+    finalHiddenState?: boolean
+    totalChoices?: boolean
+    totalTime?: boolean
+    pathTaken?: boolean
+    choicesMade?: boolean
+    reflectionResponses?: boolean
+    createdAt?: boolean
+  }
+
+  export type StoryCompletionOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "storySlug" | "storyVersion" | "userId" | "sessionId" | "endingId" | "endingType" | "finalResources" | "finalHiddenState" | "totalChoices" | "totalTime" | "pathTaken" | "choicesMade" | "reflectionResponses" | "createdAt", ExtArgs["result"]["storyCompletion"]>
+  export type StoryCompletionInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    user?: boolean | StoryCompletion$userArgs<ExtArgs>
+    session?: boolean | StoryCompletion$sessionArgs<ExtArgs>
+  }
+  export type StoryCompletionIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    user?: boolean | StoryCompletion$userArgs<ExtArgs>
+    session?: boolean | StoryCompletion$sessionArgs<ExtArgs>
+  }
+  export type StoryCompletionIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    user?: boolean | StoryCompletion$userArgs<ExtArgs>
+    session?: boolean | StoryCompletion$sessionArgs<ExtArgs>
+  }
+
+  export type $StoryCompletionPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "StoryCompletion"
+    objects: {
+      user: Prisma.$UserPayload<ExtArgs> | null
+      session: Prisma.$UserSessionPayload<ExtArgs> | null
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      storySlug: string
+      storyVersion: string | null
+      userId: string | null
+      sessionId: string | null
+      endingId: string
+      endingType: string | null
+      finalResources: Prisma.JsonValue | null
+      finalHiddenState: Prisma.JsonValue | null
+      totalChoices: number
+      totalTime: number
+      pathTaken: Prisma.JsonValue | null
+      choicesMade: Prisma.JsonValue | null
+      reflectionResponses: Prisma.JsonValue | null
+      createdAt: Date
+    }, ExtArgs["result"]["storyCompletion"]>
+    composites: {}
+  }
+
+  type StoryCompletionGetPayload<S extends boolean | null | undefined | StoryCompletionDefaultArgs> = $Result.GetResult<Prisma.$StoryCompletionPayload, S>
+
+  type StoryCompletionCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<StoryCompletionFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: StoryCompletionCountAggregateInputType | true
+    }
+
+  export interface StoryCompletionDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['StoryCompletion'], meta: { name: 'StoryCompletion' } }
+    /**
+     * Find zero or one StoryCompletion that matches the filter.
+     * @param {StoryCompletionFindUniqueArgs} args - Arguments to find a StoryCompletion
+     * @example
+     * // Get one StoryCompletion
+     * const storyCompletion = await prisma.storyCompletion.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends StoryCompletionFindUniqueArgs>(args: SelectSubset<T, StoryCompletionFindUniqueArgs<ExtArgs>>): Prisma__StoryCompletionClient<$Result.GetResult<Prisma.$StoryCompletionPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one StoryCompletion that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {StoryCompletionFindUniqueOrThrowArgs} args - Arguments to find a StoryCompletion
+     * @example
+     * // Get one StoryCompletion
+     * const storyCompletion = await prisma.storyCompletion.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends StoryCompletionFindUniqueOrThrowArgs>(args: SelectSubset<T, StoryCompletionFindUniqueOrThrowArgs<ExtArgs>>): Prisma__StoryCompletionClient<$Result.GetResult<Prisma.$StoryCompletionPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first StoryCompletion that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {StoryCompletionFindFirstArgs} args - Arguments to find a StoryCompletion
+     * @example
+     * // Get one StoryCompletion
+     * const storyCompletion = await prisma.storyCompletion.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends StoryCompletionFindFirstArgs>(args?: SelectSubset<T, StoryCompletionFindFirstArgs<ExtArgs>>): Prisma__StoryCompletionClient<$Result.GetResult<Prisma.$StoryCompletionPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first StoryCompletion that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {StoryCompletionFindFirstOrThrowArgs} args - Arguments to find a StoryCompletion
+     * @example
+     * // Get one StoryCompletion
+     * const storyCompletion = await prisma.storyCompletion.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends StoryCompletionFindFirstOrThrowArgs>(args?: SelectSubset<T, StoryCompletionFindFirstOrThrowArgs<ExtArgs>>): Prisma__StoryCompletionClient<$Result.GetResult<Prisma.$StoryCompletionPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more StoryCompletions that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {StoryCompletionFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all StoryCompletions
+     * const storyCompletions = await prisma.storyCompletion.findMany()
+     * 
+     * // Get first 10 StoryCompletions
+     * const storyCompletions = await prisma.storyCompletion.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const storyCompletionWithIdOnly = await prisma.storyCompletion.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends StoryCompletionFindManyArgs>(args?: SelectSubset<T, StoryCompletionFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$StoryCompletionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a StoryCompletion.
+     * @param {StoryCompletionCreateArgs} args - Arguments to create a StoryCompletion.
+     * @example
+     * // Create one StoryCompletion
+     * const StoryCompletion = await prisma.storyCompletion.create({
+     *   data: {
+     *     // ... data to create a StoryCompletion
+     *   }
+     * })
+     * 
+     */
+    create<T extends StoryCompletionCreateArgs>(args: SelectSubset<T, StoryCompletionCreateArgs<ExtArgs>>): Prisma__StoryCompletionClient<$Result.GetResult<Prisma.$StoryCompletionPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many StoryCompletions.
+     * @param {StoryCompletionCreateManyArgs} args - Arguments to create many StoryCompletions.
+     * @example
+     * // Create many StoryCompletions
+     * const storyCompletion = await prisma.storyCompletion.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends StoryCompletionCreateManyArgs>(args?: SelectSubset<T, StoryCompletionCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many StoryCompletions and returns the data saved in the database.
+     * @param {StoryCompletionCreateManyAndReturnArgs} args - Arguments to create many StoryCompletions.
+     * @example
+     * // Create many StoryCompletions
+     * const storyCompletion = await prisma.storyCompletion.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many StoryCompletions and only return the `id`
+     * const storyCompletionWithIdOnly = await prisma.storyCompletion.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends StoryCompletionCreateManyAndReturnArgs>(args?: SelectSubset<T, StoryCompletionCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$StoryCompletionPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a StoryCompletion.
+     * @param {StoryCompletionDeleteArgs} args - Arguments to delete one StoryCompletion.
+     * @example
+     * // Delete one StoryCompletion
+     * const StoryCompletion = await prisma.storyCompletion.delete({
+     *   where: {
+     *     // ... filter to delete one StoryCompletion
+     *   }
+     * })
+     * 
+     */
+    delete<T extends StoryCompletionDeleteArgs>(args: SelectSubset<T, StoryCompletionDeleteArgs<ExtArgs>>): Prisma__StoryCompletionClient<$Result.GetResult<Prisma.$StoryCompletionPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one StoryCompletion.
+     * @param {StoryCompletionUpdateArgs} args - Arguments to update one StoryCompletion.
+     * @example
+     * // Update one StoryCompletion
+     * const storyCompletion = await prisma.storyCompletion.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends StoryCompletionUpdateArgs>(args: SelectSubset<T, StoryCompletionUpdateArgs<ExtArgs>>): Prisma__StoryCompletionClient<$Result.GetResult<Prisma.$StoryCompletionPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more StoryCompletions.
+     * @param {StoryCompletionDeleteManyArgs} args - Arguments to filter StoryCompletions to delete.
+     * @example
+     * // Delete a few StoryCompletions
+     * const { count } = await prisma.storyCompletion.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends StoryCompletionDeleteManyArgs>(args?: SelectSubset<T, StoryCompletionDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more StoryCompletions.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {StoryCompletionUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many StoryCompletions
+     * const storyCompletion = await prisma.storyCompletion.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends StoryCompletionUpdateManyArgs>(args: SelectSubset<T, StoryCompletionUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more StoryCompletions and returns the data updated in the database.
+     * @param {StoryCompletionUpdateManyAndReturnArgs} args - Arguments to update many StoryCompletions.
+     * @example
+     * // Update many StoryCompletions
+     * const storyCompletion = await prisma.storyCompletion.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more StoryCompletions and only return the `id`
+     * const storyCompletionWithIdOnly = await prisma.storyCompletion.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends StoryCompletionUpdateManyAndReturnArgs>(args: SelectSubset<T, StoryCompletionUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$StoryCompletionPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one StoryCompletion.
+     * @param {StoryCompletionUpsertArgs} args - Arguments to update or create a StoryCompletion.
+     * @example
+     * // Update or create a StoryCompletion
+     * const storyCompletion = await prisma.storyCompletion.upsert({
+     *   create: {
+     *     // ... data to create a StoryCompletion
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the StoryCompletion we want to update
+     *   }
+     * })
+     */
+    upsert<T extends StoryCompletionUpsertArgs>(args: SelectSubset<T, StoryCompletionUpsertArgs<ExtArgs>>): Prisma__StoryCompletionClient<$Result.GetResult<Prisma.$StoryCompletionPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of StoryCompletions.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {StoryCompletionCountArgs} args - Arguments to filter StoryCompletions to count.
+     * @example
+     * // Count the number of StoryCompletions
+     * const count = await prisma.storyCompletion.count({
+     *   where: {
+     *     // ... the filter for the StoryCompletions we want to count
+     *   }
+     * })
+    **/
+    count<T extends StoryCompletionCountArgs>(
+      args?: Subset<T, StoryCompletionCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], StoryCompletionCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a StoryCompletion.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {StoryCompletionAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends StoryCompletionAggregateArgs>(args: Subset<T, StoryCompletionAggregateArgs>): Prisma.PrismaPromise<GetStoryCompletionAggregateType<T>>
+
+    /**
+     * Group by StoryCompletion.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {StoryCompletionGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends StoryCompletionGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: StoryCompletionGroupByArgs['orderBy'] }
+        : { orderBy?: StoryCompletionGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, StoryCompletionGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetStoryCompletionGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the StoryCompletion model
+   */
+  readonly fields: StoryCompletionFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for StoryCompletion.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__StoryCompletionClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    user<T extends StoryCompletion$userArgs<ExtArgs> = {}>(args?: Subset<T, StoryCompletion$userArgs<ExtArgs>>): Prisma__UserClient<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+    session<T extends StoryCompletion$sessionArgs<ExtArgs> = {}>(args?: Subset<T, StoryCompletion$sessionArgs<ExtArgs>>): Prisma__UserSessionClient<$Result.GetResult<Prisma.$UserSessionPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the StoryCompletion model
+   */
+  interface StoryCompletionFieldRefs {
+    readonly id: FieldRef<"StoryCompletion", 'String'>
+    readonly storySlug: FieldRef<"StoryCompletion", 'String'>
+    readonly storyVersion: FieldRef<"StoryCompletion", 'String'>
+    readonly userId: FieldRef<"StoryCompletion", 'String'>
+    readonly sessionId: FieldRef<"StoryCompletion", 'String'>
+    readonly endingId: FieldRef<"StoryCompletion", 'String'>
+    readonly endingType: FieldRef<"StoryCompletion", 'String'>
+    readonly finalResources: FieldRef<"StoryCompletion", 'Json'>
+    readonly finalHiddenState: FieldRef<"StoryCompletion", 'Json'>
+    readonly totalChoices: FieldRef<"StoryCompletion", 'Int'>
+    readonly totalTime: FieldRef<"StoryCompletion", 'Int'>
+    readonly pathTaken: FieldRef<"StoryCompletion", 'Json'>
+    readonly choicesMade: FieldRef<"StoryCompletion", 'Json'>
+    readonly reflectionResponses: FieldRef<"StoryCompletion", 'Json'>
+    readonly createdAt: FieldRef<"StoryCompletion", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * StoryCompletion findUnique
+   */
+  export type StoryCompletionFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the StoryCompletion
+     */
+    select?: StoryCompletionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the StoryCompletion
+     */
+    omit?: StoryCompletionOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: StoryCompletionInclude<ExtArgs> | null
+    /**
+     * Filter, which StoryCompletion to fetch.
+     */
+    where: StoryCompletionWhereUniqueInput
+  }
+
+  /**
+   * StoryCompletion findUniqueOrThrow
+   */
+  export type StoryCompletionFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the StoryCompletion
+     */
+    select?: StoryCompletionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the StoryCompletion
+     */
+    omit?: StoryCompletionOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: StoryCompletionInclude<ExtArgs> | null
+    /**
+     * Filter, which StoryCompletion to fetch.
+     */
+    where: StoryCompletionWhereUniqueInput
+  }
+
+  /**
+   * StoryCompletion findFirst
+   */
+  export type StoryCompletionFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the StoryCompletion
+     */
+    select?: StoryCompletionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the StoryCompletion
+     */
+    omit?: StoryCompletionOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: StoryCompletionInclude<ExtArgs> | null
+    /**
+     * Filter, which StoryCompletion to fetch.
+     */
+    where?: StoryCompletionWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of StoryCompletions to fetch.
+     */
+    orderBy?: StoryCompletionOrderByWithRelationInput | StoryCompletionOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for StoryCompletions.
+     */
+    cursor?: StoryCompletionWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` StoryCompletions from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` StoryCompletions.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of StoryCompletions.
+     */
+    distinct?: StoryCompletionScalarFieldEnum | StoryCompletionScalarFieldEnum[]
+  }
+
+  /**
+   * StoryCompletion findFirstOrThrow
+   */
+  export type StoryCompletionFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the StoryCompletion
+     */
+    select?: StoryCompletionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the StoryCompletion
+     */
+    omit?: StoryCompletionOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: StoryCompletionInclude<ExtArgs> | null
+    /**
+     * Filter, which StoryCompletion to fetch.
+     */
+    where?: StoryCompletionWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of StoryCompletions to fetch.
+     */
+    orderBy?: StoryCompletionOrderByWithRelationInput | StoryCompletionOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for StoryCompletions.
+     */
+    cursor?: StoryCompletionWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` StoryCompletions from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` StoryCompletions.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of StoryCompletions.
+     */
+    distinct?: StoryCompletionScalarFieldEnum | StoryCompletionScalarFieldEnum[]
+  }
+
+  /**
+   * StoryCompletion findMany
+   */
+  export type StoryCompletionFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the StoryCompletion
+     */
+    select?: StoryCompletionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the StoryCompletion
+     */
+    omit?: StoryCompletionOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: StoryCompletionInclude<ExtArgs> | null
+    /**
+     * Filter, which StoryCompletions to fetch.
+     */
+    where?: StoryCompletionWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of StoryCompletions to fetch.
+     */
+    orderBy?: StoryCompletionOrderByWithRelationInput | StoryCompletionOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing StoryCompletions.
+     */
+    cursor?: StoryCompletionWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` StoryCompletions from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` StoryCompletions.
+     */
+    skip?: number
+    distinct?: StoryCompletionScalarFieldEnum | StoryCompletionScalarFieldEnum[]
+  }
+
+  /**
+   * StoryCompletion create
+   */
+  export type StoryCompletionCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the StoryCompletion
+     */
+    select?: StoryCompletionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the StoryCompletion
+     */
+    omit?: StoryCompletionOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: StoryCompletionInclude<ExtArgs> | null
+    /**
+     * The data needed to create a StoryCompletion.
+     */
+    data: XOR<StoryCompletionCreateInput, StoryCompletionUncheckedCreateInput>
+  }
+
+  /**
+   * StoryCompletion createMany
+   */
+  export type StoryCompletionCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many StoryCompletions.
+     */
+    data: StoryCompletionCreateManyInput | StoryCompletionCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * StoryCompletion createManyAndReturn
+   */
+  export type StoryCompletionCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the StoryCompletion
+     */
+    select?: StoryCompletionSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the StoryCompletion
+     */
+    omit?: StoryCompletionOmit<ExtArgs> | null
+    /**
+     * The data used to create many StoryCompletions.
+     */
+    data: StoryCompletionCreateManyInput | StoryCompletionCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: StoryCompletionIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * StoryCompletion update
+   */
+  export type StoryCompletionUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the StoryCompletion
+     */
+    select?: StoryCompletionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the StoryCompletion
+     */
+    omit?: StoryCompletionOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: StoryCompletionInclude<ExtArgs> | null
+    /**
+     * The data needed to update a StoryCompletion.
+     */
+    data: XOR<StoryCompletionUpdateInput, StoryCompletionUncheckedUpdateInput>
+    /**
+     * Choose, which StoryCompletion to update.
+     */
+    where: StoryCompletionWhereUniqueInput
+  }
+
+  /**
+   * StoryCompletion updateMany
+   */
+  export type StoryCompletionUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update StoryCompletions.
+     */
+    data: XOR<StoryCompletionUpdateManyMutationInput, StoryCompletionUncheckedUpdateManyInput>
+    /**
+     * Filter which StoryCompletions to update
+     */
+    where?: StoryCompletionWhereInput
+    /**
+     * Limit how many StoryCompletions to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * StoryCompletion updateManyAndReturn
+   */
+  export type StoryCompletionUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the StoryCompletion
+     */
+    select?: StoryCompletionSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the StoryCompletion
+     */
+    omit?: StoryCompletionOmit<ExtArgs> | null
+    /**
+     * The data used to update StoryCompletions.
+     */
+    data: XOR<StoryCompletionUpdateManyMutationInput, StoryCompletionUncheckedUpdateManyInput>
+    /**
+     * Filter which StoryCompletions to update
+     */
+    where?: StoryCompletionWhereInput
+    /**
+     * Limit how many StoryCompletions to update.
+     */
+    limit?: number
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: StoryCompletionIncludeUpdateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * StoryCompletion upsert
+   */
+  export type StoryCompletionUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the StoryCompletion
+     */
+    select?: StoryCompletionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the StoryCompletion
+     */
+    omit?: StoryCompletionOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: StoryCompletionInclude<ExtArgs> | null
+    /**
+     * The filter to search for the StoryCompletion to update in case it exists.
+     */
+    where: StoryCompletionWhereUniqueInput
+    /**
+     * In case the StoryCompletion found by the `where` argument doesn't exist, create a new StoryCompletion with this data.
+     */
+    create: XOR<StoryCompletionCreateInput, StoryCompletionUncheckedCreateInput>
+    /**
+     * In case the StoryCompletion was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<StoryCompletionUpdateInput, StoryCompletionUncheckedUpdateInput>
+  }
+
+  /**
+   * StoryCompletion delete
+   */
+  export type StoryCompletionDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the StoryCompletion
+     */
+    select?: StoryCompletionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the StoryCompletion
+     */
+    omit?: StoryCompletionOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: StoryCompletionInclude<ExtArgs> | null
+    /**
+     * Filter which StoryCompletion to delete.
+     */
+    where: StoryCompletionWhereUniqueInput
+  }
+
+  /**
+   * StoryCompletion deleteMany
+   */
+  export type StoryCompletionDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which StoryCompletions to delete
+     */
+    where?: StoryCompletionWhereInput
+    /**
+     * Limit how many StoryCompletions to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * StoryCompletion.user
+   */
+  export type StoryCompletion$userArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the User
+     */
+    select?: UserSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the User
+     */
+    omit?: UserOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UserInclude<ExtArgs> | null
+    where?: UserWhereInput
+  }
+
+  /**
+   * StoryCompletion.session
+   */
+  export type StoryCompletion$sessionArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the UserSession
+     */
+    select?: UserSessionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the UserSession
+     */
+    omit?: UserSessionOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UserSessionInclude<ExtArgs> | null
+    where?: UserSessionWhereInput
+  }
+
+  /**
+   * StoryCompletion without action
+   */
+  export type StoryCompletionDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the StoryCompletion
+     */
+    select?: StoryCompletionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the StoryCompletion
+     */
+    omit?: StoryCompletionOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: StoryCompletionInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model StoryAnalytics
+   */
+
+  export type AggregateStoryAnalytics = {
+    _count: StoryAnalyticsCountAggregateOutputType | null
+    _avg: StoryAnalyticsAvgAggregateOutputType | null
+    _sum: StoryAnalyticsSumAggregateOutputType | null
+    _min: StoryAnalyticsMinAggregateOutputType | null
+    _max: StoryAnalyticsMaxAggregateOutputType | null
+  }
+
+  export type StoryAnalyticsAvgAggregateOutputType = {
+    totalStarts: number | null
+    totalCompletions: number | null
+  }
+
+  export type StoryAnalyticsSumAggregateOutputType = {
+    totalStarts: number | null
+    totalCompletions: number | null
+  }
+
+  export type StoryAnalyticsMinAggregateOutputType = {
+    storySlug: string | null
+    totalStarts: number | null
+    totalCompletions: number | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type StoryAnalyticsMaxAggregateOutputType = {
+    storySlug: string | null
+    totalStarts: number | null
+    totalCompletions: number | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type StoryAnalyticsCountAggregateOutputType = {
+    storySlug: number
+    totalStarts: number
+    totalCompletions: number
+    endingCounts: number
+    createdAt: number
+    updatedAt: number
+    _all: number
+  }
+
+
+  export type StoryAnalyticsAvgAggregateInputType = {
+    totalStarts?: true
+    totalCompletions?: true
+  }
+
+  export type StoryAnalyticsSumAggregateInputType = {
+    totalStarts?: true
+    totalCompletions?: true
+  }
+
+  export type StoryAnalyticsMinAggregateInputType = {
+    storySlug?: true
+    totalStarts?: true
+    totalCompletions?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type StoryAnalyticsMaxAggregateInputType = {
+    storySlug?: true
+    totalStarts?: true
+    totalCompletions?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type StoryAnalyticsCountAggregateInputType = {
+    storySlug?: true
+    totalStarts?: true
+    totalCompletions?: true
+    endingCounts?: true
+    createdAt?: true
+    updatedAt?: true
+    _all?: true
+  }
+
+  export type StoryAnalyticsAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which StoryAnalytics to aggregate.
+     */
+    where?: StoryAnalyticsWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of StoryAnalytics to fetch.
+     */
+    orderBy?: StoryAnalyticsOrderByWithRelationInput | StoryAnalyticsOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: StoryAnalyticsWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` StoryAnalytics from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` StoryAnalytics.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned StoryAnalytics
+    **/
+    _count?: true | StoryAnalyticsCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: StoryAnalyticsAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: StoryAnalyticsSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: StoryAnalyticsMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: StoryAnalyticsMaxAggregateInputType
+  }
+
+  export type GetStoryAnalyticsAggregateType<T extends StoryAnalyticsAggregateArgs> = {
+        [P in keyof T & keyof AggregateStoryAnalytics]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateStoryAnalytics[P]>
+      : GetScalarType<T[P], AggregateStoryAnalytics[P]>
+  }
+
+
+
+
+  export type StoryAnalyticsGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: StoryAnalyticsWhereInput
+    orderBy?: StoryAnalyticsOrderByWithAggregationInput | StoryAnalyticsOrderByWithAggregationInput[]
+    by: StoryAnalyticsScalarFieldEnum[] | StoryAnalyticsScalarFieldEnum
+    having?: StoryAnalyticsScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: StoryAnalyticsCountAggregateInputType | true
+    _avg?: StoryAnalyticsAvgAggregateInputType
+    _sum?: StoryAnalyticsSumAggregateInputType
+    _min?: StoryAnalyticsMinAggregateInputType
+    _max?: StoryAnalyticsMaxAggregateInputType
+  }
+
+  export type StoryAnalyticsGroupByOutputType = {
+    storySlug: string
+    totalStarts: number
+    totalCompletions: number
+    endingCounts: JsonValue | null
+    createdAt: Date
+    updatedAt: Date
+    _count: StoryAnalyticsCountAggregateOutputType | null
+    _avg: StoryAnalyticsAvgAggregateOutputType | null
+    _sum: StoryAnalyticsSumAggregateOutputType | null
+    _min: StoryAnalyticsMinAggregateOutputType | null
+    _max: StoryAnalyticsMaxAggregateOutputType | null
+  }
+
+  type GetStoryAnalyticsGroupByPayload<T extends StoryAnalyticsGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<StoryAnalyticsGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof StoryAnalyticsGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], StoryAnalyticsGroupByOutputType[P]>
+            : GetScalarType<T[P], StoryAnalyticsGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type StoryAnalyticsSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    storySlug?: boolean
+    totalStarts?: boolean
+    totalCompletions?: boolean
+    endingCounts?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }, ExtArgs["result"]["storyAnalytics"]>
+
+  export type StoryAnalyticsSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    storySlug?: boolean
+    totalStarts?: boolean
+    totalCompletions?: boolean
+    endingCounts?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }, ExtArgs["result"]["storyAnalytics"]>
+
+  export type StoryAnalyticsSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    storySlug?: boolean
+    totalStarts?: boolean
+    totalCompletions?: boolean
+    endingCounts?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }, ExtArgs["result"]["storyAnalytics"]>
+
+  export type StoryAnalyticsSelectScalar = {
+    storySlug?: boolean
+    totalStarts?: boolean
+    totalCompletions?: boolean
+    endingCounts?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }
+
+  export type StoryAnalyticsOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"storySlug" | "totalStarts" | "totalCompletions" | "endingCounts" | "createdAt" | "updatedAt", ExtArgs["result"]["storyAnalytics"]>
+
+  export type $StoryAnalyticsPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "StoryAnalytics"
+    objects: {}
+    scalars: $Extensions.GetPayloadResult<{
+      storySlug: string
+      totalStarts: number
+      totalCompletions: number
+      endingCounts: Prisma.JsonValue | null
+      createdAt: Date
+      updatedAt: Date
+    }, ExtArgs["result"]["storyAnalytics"]>
+    composites: {}
+  }
+
+  type StoryAnalyticsGetPayload<S extends boolean | null | undefined | StoryAnalyticsDefaultArgs> = $Result.GetResult<Prisma.$StoryAnalyticsPayload, S>
+
+  type StoryAnalyticsCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<StoryAnalyticsFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: StoryAnalyticsCountAggregateInputType | true
+    }
+
+  export interface StoryAnalyticsDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['StoryAnalytics'], meta: { name: 'StoryAnalytics' } }
+    /**
+     * Find zero or one StoryAnalytics that matches the filter.
+     * @param {StoryAnalyticsFindUniqueArgs} args - Arguments to find a StoryAnalytics
+     * @example
+     * // Get one StoryAnalytics
+     * const storyAnalytics = await prisma.storyAnalytics.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends StoryAnalyticsFindUniqueArgs>(args: SelectSubset<T, StoryAnalyticsFindUniqueArgs<ExtArgs>>): Prisma__StoryAnalyticsClient<$Result.GetResult<Prisma.$StoryAnalyticsPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one StoryAnalytics that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {StoryAnalyticsFindUniqueOrThrowArgs} args - Arguments to find a StoryAnalytics
+     * @example
+     * // Get one StoryAnalytics
+     * const storyAnalytics = await prisma.storyAnalytics.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends StoryAnalyticsFindUniqueOrThrowArgs>(args: SelectSubset<T, StoryAnalyticsFindUniqueOrThrowArgs<ExtArgs>>): Prisma__StoryAnalyticsClient<$Result.GetResult<Prisma.$StoryAnalyticsPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first StoryAnalytics that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {StoryAnalyticsFindFirstArgs} args - Arguments to find a StoryAnalytics
+     * @example
+     * // Get one StoryAnalytics
+     * const storyAnalytics = await prisma.storyAnalytics.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends StoryAnalyticsFindFirstArgs>(args?: SelectSubset<T, StoryAnalyticsFindFirstArgs<ExtArgs>>): Prisma__StoryAnalyticsClient<$Result.GetResult<Prisma.$StoryAnalyticsPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first StoryAnalytics that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {StoryAnalyticsFindFirstOrThrowArgs} args - Arguments to find a StoryAnalytics
+     * @example
+     * // Get one StoryAnalytics
+     * const storyAnalytics = await prisma.storyAnalytics.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends StoryAnalyticsFindFirstOrThrowArgs>(args?: SelectSubset<T, StoryAnalyticsFindFirstOrThrowArgs<ExtArgs>>): Prisma__StoryAnalyticsClient<$Result.GetResult<Prisma.$StoryAnalyticsPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more StoryAnalytics that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {StoryAnalyticsFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all StoryAnalytics
+     * const storyAnalytics = await prisma.storyAnalytics.findMany()
+     * 
+     * // Get first 10 StoryAnalytics
+     * const storyAnalytics = await prisma.storyAnalytics.findMany({ take: 10 })
+     * 
+     * // Only select the `storySlug`
+     * const storyAnalyticsWithStorySlugOnly = await prisma.storyAnalytics.findMany({ select: { storySlug: true } })
+     * 
+     */
+    findMany<T extends StoryAnalyticsFindManyArgs>(args?: SelectSubset<T, StoryAnalyticsFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$StoryAnalyticsPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a StoryAnalytics.
+     * @param {StoryAnalyticsCreateArgs} args - Arguments to create a StoryAnalytics.
+     * @example
+     * // Create one StoryAnalytics
+     * const StoryAnalytics = await prisma.storyAnalytics.create({
+     *   data: {
+     *     // ... data to create a StoryAnalytics
+     *   }
+     * })
+     * 
+     */
+    create<T extends StoryAnalyticsCreateArgs>(args: SelectSubset<T, StoryAnalyticsCreateArgs<ExtArgs>>): Prisma__StoryAnalyticsClient<$Result.GetResult<Prisma.$StoryAnalyticsPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many StoryAnalytics.
+     * @param {StoryAnalyticsCreateManyArgs} args - Arguments to create many StoryAnalytics.
+     * @example
+     * // Create many StoryAnalytics
+     * const storyAnalytics = await prisma.storyAnalytics.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends StoryAnalyticsCreateManyArgs>(args?: SelectSubset<T, StoryAnalyticsCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many StoryAnalytics and returns the data saved in the database.
+     * @param {StoryAnalyticsCreateManyAndReturnArgs} args - Arguments to create many StoryAnalytics.
+     * @example
+     * // Create many StoryAnalytics
+     * const storyAnalytics = await prisma.storyAnalytics.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many StoryAnalytics and only return the `storySlug`
+     * const storyAnalyticsWithStorySlugOnly = await prisma.storyAnalytics.createManyAndReturn({
+     *   select: { storySlug: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends StoryAnalyticsCreateManyAndReturnArgs>(args?: SelectSubset<T, StoryAnalyticsCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$StoryAnalyticsPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a StoryAnalytics.
+     * @param {StoryAnalyticsDeleteArgs} args - Arguments to delete one StoryAnalytics.
+     * @example
+     * // Delete one StoryAnalytics
+     * const StoryAnalytics = await prisma.storyAnalytics.delete({
+     *   where: {
+     *     // ... filter to delete one StoryAnalytics
+     *   }
+     * })
+     * 
+     */
+    delete<T extends StoryAnalyticsDeleteArgs>(args: SelectSubset<T, StoryAnalyticsDeleteArgs<ExtArgs>>): Prisma__StoryAnalyticsClient<$Result.GetResult<Prisma.$StoryAnalyticsPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one StoryAnalytics.
+     * @param {StoryAnalyticsUpdateArgs} args - Arguments to update one StoryAnalytics.
+     * @example
+     * // Update one StoryAnalytics
+     * const storyAnalytics = await prisma.storyAnalytics.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends StoryAnalyticsUpdateArgs>(args: SelectSubset<T, StoryAnalyticsUpdateArgs<ExtArgs>>): Prisma__StoryAnalyticsClient<$Result.GetResult<Prisma.$StoryAnalyticsPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more StoryAnalytics.
+     * @param {StoryAnalyticsDeleteManyArgs} args - Arguments to filter StoryAnalytics to delete.
+     * @example
+     * // Delete a few StoryAnalytics
+     * const { count } = await prisma.storyAnalytics.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends StoryAnalyticsDeleteManyArgs>(args?: SelectSubset<T, StoryAnalyticsDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more StoryAnalytics.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {StoryAnalyticsUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many StoryAnalytics
+     * const storyAnalytics = await prisma.storyAnalytics.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends StoryAnalyticsUpdateManyArgs>(args: SelectSubset<T, StoryAnalyticsUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more StoryAnalytics and returns the data updated in the database.
+     * @param {StoryAnalyticsUpdateManyAndReturnArgs} args - Arguments to update many StoryAnalytics.
+     * @example
+     * // Update many StoryAnalytics
+     * const storyAnalytics = await prisma.storyAnalytics.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more StoryAnalytics and only return the `storySlug`
+     * const storyAnalyticsWithStorySlugOnly = await prisma.storyAnalytics.updateManyAndReturn({
+     *   select: { storySlug: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends StoryAnalyticsUpdateManyAndReturnArgs>(args: SelectSubset<T, StoryAnalyticsUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$StoryAnalyticsPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one StoryAnalytics.
+     * @param {StoryAnalyticsUpsertArgs} args - Arguments to update or create a StoryAnalytics.
+     * @example
+     * // Update or create a StoryAnalytics
+     * const storyAnalytics = await prisma.storyAnalytics.upsert({
+     *   create: {
+     *     // ... data to create a StoryAnalytics
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the StoryAnalytics we want to update
+     *   }
+     * })
+     */
+    upsert<T extends StoryAnalyticsUpsertArgs>(args: SelectSubset<T, StoryAnalyticsUpsertArgs<ExtArgs>>): Prisma__StoryAnalyticsClient<$Result.GetResult<Prisma.$StoryAnalyticsPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of StoryAnalytics.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {StoryAnalyticsCountArgs} args - Arguments to filter StoryAnalytics to count.
+     * @example
+     * // Count the number of StoryAnalytics
+     * const count = await prisma.storyAnalytics.count({
+     *   where: {
+     *     // ... the filter for the StoryAnalytics we want to count
+     *   }
+     * })
+    **/
+    count<T extends StoryAnalyticsCountArgs>(
+      args?: Subset<T, StoryAnalyticsCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], StoryAnalyticsCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a StoryAnalytics.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {StoryAnalyticsAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends StoryAnalyticsAggregateArgs>(args: Subset<T, StoryAnalyticsAggregateArgs>): Prisma.PrismaPromise<GetStoryAnalyticsAggregateType<T>>
+
+    /**
+     * Group by StoryAnalytics.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {StoryAnalyticsGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends StoryAnalyticsGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: StoryAnalyticsGroupByArgs['orderBy'] }
+        : { orderBy?: StoryAnalyticsGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, StoryAnalyticsGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetStoryAnalyticsGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the StoryAnalytics model
+   */
+  readonly fields: StoryAnalyticsFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for StoryAnalytics.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__StoryAnalyticsClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the StoryAnalytics model
+   */
+  interface StoryAnalyticsFieldRefs {
+    readonly storySlug: FieldRef<"StoryAnalytics", 'String'>
+    readonly totalStarts: FieldRef<"StoryAnalytics", 'Int'>
+    readonly totalCompletions: FieldRef<"StoryAnalytics", 'Int'>
+    readonly endingCounts: FieldRef<"StoryAnalytics", 'Json'>
+    readonly createdAt: FieldRef<"StoryAnalytics", 'DateTime'>
+    readonly updatedAt: FieldRef<"StoryAnalytics", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * StoryAnalytics findUnique
+   */
+  export type StoryAnalyticsFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the StoryAnalytics
+     */
+    select?: StoryAnalyticsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the StoryAnalytics
+     */
+    omit?: StoryAnalyticsOmit<ExtArgs> | null
+    /**
+     * Filter, which StoryAnalytics to fetch.
+     */
+    where: StoryAnalyticsWhereUniqueInput
+  }
+
+  /**
+   * StoryAnalytics findUniqueOrThrow
+   */
+  export type StoryAnalyticsFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the StoryAnalytics
+     */
+    select?: StoryAnalyticsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the StoryAnalytics
+     */
+    omit?: StoryAnalyticsOmit<ExtArgs> | null
+    /**
+     * Filter, which StoryAnalytics to fetch.
+     */
+    where: StoryAnalyticsWhereUniqueInput
+  }
+
+  /**
+   * StoryAnalytics findFirst
+   */
+  export type StoryAnalyticsFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the StoryAnalytics
+     */
+    select?: StoryAnalyticsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the StoryAnalytics
+     */
+    omit?: StoryAnalyticsOmit<ExtArgs> | null
+    /**
+     * Filter, which StoryAnalytics to fetch.
+     */
+    where?: StoryAnalyticsWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of StoryAnalytics to fetch.
+     */
+    orderBy?: StoryAnalyticsOrderByWithRelationInput | StoryAnalyticsOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for StoryAnalytics.
+     */
+    cursor?: StoryAnalyticsWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` StoryAnalytics from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` StoryAnalytics.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of StoryAnalytics.
+     */
+    distinct?: StoryAnalyticsScalarFieldEnum | StoryAnalyticsScalarFieldEnum[]
+  }
+
+  /**
+   * StoryAnalytics findFirstOrThrow
+   */
+  export type StoryAnalyticsFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the StoryAnalytics
+     */
+    select?: StoryAnalyticsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the StoryAnalytics
+     */
+    omit?: StoryAnalyticsOmit<ExtArgs> | null
+    /**
+     * Filter, which StoryAnalytics to fetch.
+     */
+    where?: StoryAnalyticsWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of StoryAnalytics to fetch.
+     */
+    orderBy?: StoryAnalyticsOrderByWithRelationInput | StoryAnalyticsOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for StoryAnalytics.
+     */
+    cursor?: StoryAnalyticsWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` StoryAnalytics from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` StoryAnalytics.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of StoryAnalytics.
+     */
+    distinct?: StoryAnalyticsScalarFieldEnum | StoryAnalyticsScalarFieldEnum[]
+  }
+
+  /**
+   * StoryAnalytics findMany
+   */
+  export type StoryAnalyticsFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the StoryAnalytics
+     */
+    select?: StoryAnalyticsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the StoryAnalytics
+     */
+    omit?: StoryAnalyticsOmit<ExtArgs> | null
+    /**
+     * Filter, which StoryAnalytics to fetch.
+     */
+    where?: StoryAnalyticsWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of StoryAnalytics to fetch.
+     */
+    orderBy?: StoryAnalyticsOrderByWithRelationInput | StoryAnalyticsOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing StoryAnalytics.
+     */
+    cursor?: StoryAnalyticsWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` StoryAnalytics from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` StoryAnalytics.
+     */
+    skip?: number
+    distinct?: StoryAnalyticsScalarFieldEnum | StoryAnalyticsScalarFieldEnum[]
+  }
+
+  /**
+   * StoryAnalytics create
+   */
+  export type StoryAnalyticsCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the StoryAnalytics
+     */
+    select?: StoryAnalyticsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the StoryAnalytics
+     */
+    omit?: StoryAnalyticsOmit<ExtArgs> | null
+    /**
+     * The data needed to create a StoryAnalytics.
+     */
+    data: XOR<StoryAnalyticsCreateInput, StoryAnalyticsUncheckedCreateInput>
+  }
+
+  /**
+   * StoryAnalytics createMany
+   */
+  export type StoryAnalyticsCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many StoryAnalytics.
+     */
+    data: StoryAnalyticsCreateManyInput | StoryAnalyticsCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * StoryAnalytics createManyAndReturn
+   */
+  export type StoryAnalyticsCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the StoryAnalytics
+     */
+    select?: StoryAnalyticsSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the StoryAnalytics
+     */
+    omit?: StoryAnalyticsOmit<ExtArgs> | null
+    /**
+     * The data used to create many StoryAnalytics.
+     */
+    data: StoryAnalyticsCreateManyInput | StoryAnalyticsCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * StoryAnalytics update
+   */
+  export type StoryAnalyticsUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the StoryAnalytics
+     */
+    select?: StoryAnalyticsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the StoryAnalytics
+     */
+    omit?: StoryAnalyticsOmit<ExtArgs> | null
+    /**
+     * The data needed to update a StoryAnalytics.
+     */
+    data: XOR<StoryAnalyticsUpdateInput, StoryAnalyticsUncheckedUpdateInput>
+    /**
+     * Choose, which StoryAnalytics to update.
+     */
+    where: StoryAnalyticsWhereUniqueInput
+  }
+
+  /**
+   * StoryAnalytics updateMany
+   */
+  export type StoryAnalyticsUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update StoryAnalytics.
+     */
+    data: XOR<StoryAnalyticsUpdateManyMutationInput, StoryAnalyticsUncheckedUpdateManyInput>
+    /**
+     * Filter which StoryAnalytics to update
+     */
+    where?: StoryAnalyticsWhereInput
+    /**
+     * Limit how many StoryAnalytics to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * StoryAnalytics updateManyAndReturn
+   */
+  export type StoryAnalyticsUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the StoryAnalytics
+     */
+    select?: StoryAnalyticsSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the StoryAnalytics
+     */
+    omit?: StoryAnalyticsOmit<ExtArgs> | null
+    /**
+     * The data used to update StoryAnalytics.
+     */
+    data: XOR<StoryAnalyticsUpdateManyMutationInput, StoryAnalyticsUncheckedUpdateManyInput>
+    /**
+     * Filter which StoryAnalytics to update
+     */
+    where?: StoryAnalyticsWhereInput
+    /**
+     * Limit how many StoryAnalytics to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * StoryAnalytics upsert
+   */
+  export type StoryAnalyticsUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the StoryAnalytics
+     */
+    select?: StoryAnalyticsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the StoryAnalytics
+     */
+    omit?: StoryAnalyticsOmit<ExtArgs> | null
+    /**
+     * The filter to search for the StoryAnalytics to update in case it exists.
+     */
+    where: StoryAnalyticsWhereUniqueInput
+    /**
+     * In case the StoryAnalytics found by the `where` argument doesn't exist, create a new StoryAnalytics with this data.
+     */
+    create: XOR<StoryAnalyticsCreateInput, StoryAnalyticsUncheckedCreateInput>
+    /**
+     * In case the StoryAnalytics was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<StoryAnalyticsUpdateInput, StoryAnalyticsUncheckedUpdateInput>
+  }
+
+  /**
+   * StoryAnalytics delete
+   */
+  export type StoryAnalyticsDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the StoryAnalytics
+     */
+    select?: StoryAnalyticsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the StoryAnalytics
+     */
+    omit?: StoryAnalyticsOmit<ExtArgs> | null
+    /**
+     * Filter which StoryAnalytics to delete.
+     */
+    where: StoryAnalyticsWhereUniqueInput
+  }
+
+  /**
+   * StoryAnalytics deleteMany
+   */
+  export type StoryAnalyticsDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which StoryAnalytics to delete
+     */
+    where?: StoryAnalyticsWhereInput
+    /**
+     * Limit how many StoryAnalytics to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * StoryAnalytics without action
+   */
+  export type StoryAnalyticsDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the StoryAnalytics
+     */
+    select?: StoryAnalyticsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the StoryAnalytics
+     */
+    omit?: StoryAnalyticsOmit<ExtArgs> | null
+  }
+
+
+  /**
    * Enums
    */
 
@@ -25765,6 +29720,62 @@ export namespace Prisma {
   export type StoryInteractionScalarFieldEnum = (typeof StoryInteractionScalarFieldEnum)[keyof typeof StoryInteractionScalarFieldEnum]
 
 
+  export const StorySaveScalarFieldEnum: {
+    id: 'id',
+    storySlug: 'storySlug',
+    storyVersion: 'storyVersion',
+    userId: 'userId',
+    sessionId: 'sessionId',
+    saveName: 'saveName',
+    isAutoSave: 'isAutoSave',
+    currentPassageId: 'currentPassageId',
+    resources: 'resources',
+    hiddenState: 'hiddenState',
+    visitedPassages: 'visitedPassages',
+    choicesMade: 'choicesMade',
+    pathTaken: 'pathTaken',
+    completed: 'completed',
+    endingId: 'endingId',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+  };
+
+  export type StorySaveScalarFieldEnum = (typeof StorySaveScalarFieldEnum)[keyof typeof StorySaveScalarFieldEnum]
+
+
+  export const StoryCompletionScalarFieldEnum: {
+    id: 'id',
+    storySlug: 'storySlug',
+    storyVersion: 'storyVersion',
+    userId: 'userId',
+    sessionId: 'sessionId',
+    endingId: 'endingId',
+    endingType: 'endingType',
+    finalResources: 'finalResources',
+    finalHiddenState: 'finalHiddenState',
+    totalChoices: 'totalChoices',
+    totalTime: 'totalTime',
+    pathTaken: 'pathTaken',
+    choicesMade: 'choicesMade',
+    reflectionResponses: 'reflectionResponses',
+    createdAt: 'createdAt'
+  };
+
+  export type StoryCompletionScalarFieldEnum = (typeof StoryCompletionScalarFieldEnum)[keyof typeof StoryCompletionScalarFieldEnum]
+
+
+  export const StoryAnalyticsScalarFieldEnum: {
+    storySlug: 'storySlug',
+    totalStarts: 'totalStarts',
+    totalCompletions: 'totalCompletions',
+    endingCounts: 'endingCounts',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+  };
+
+  export type StoryAnalyticsScalarFieldEnum = (typeof StoryAnalyticsScalarFieldEnum)[keyof typeof StoryAnalyticsScalarFieldEnum]
+
+
   export const SortOrder: {
     asc: 'asc',
     desc: 'desc'
@@ -26042,6 +30053,8 @@ export namespace Prisma {
     journeys?: JourneyProgressListRelationFilter
     achievements?: UserAchievementListRelationFilter
     storyPlays?: StoryPlaySessionListRelationFilter
+    storySaves?: StorySaveListRelationFilter
+    storyCompletions?: StoryCompletionListRelationFilter
     stories?: TwineStoryListRelationFilter
     authoredVersions?: StoryVersionListRelationFilter
     reviewedVersions?: StoryVersionListRelationFilter
@@ -26069,6 +30082,8 @@ export namespace Prisma {
     journeys?: JourneyProgressOrderByRelationAggregateInput
     achievements?: UserAchievementOrderByRelationAggregateInput
     storyPlays?: StoryPlaySessionOrderByRelationAggregateInput
+    storySaves?: StorySaveOrderByRelationAggregateInput
+    storyCompletions?: StoryCompletionOrderByRelationAggregateInput
     stories?: TwineStoryOrderByRelationAggregateInput
     authoredVersions?: StoryVersionOrderByRelationAggregateInput
     reviewedVersions?: StoryVersionOrderByRelationAggregateInput
@@ -26099,6 +30114,8 @@ export namespace Prisma {
     journeys?: JourneyProgressListRelationFilter
     achievements?: UserAchievementListRelationFilter
     storyPlays?: StoryPlaySessionListRelationFilter
+    storySaves?: StorySaveListRelationFilter
+    storyCompletions?: StoryCompletionListRelationFilter
     stories?: TwineStoryListRelationFilter
     authoredVersions?: StoryVersionListRelationFilter
     reviewedVersions?: StoryVersionListRelationFilter
@@ -26448,6 +30465,8 @@ export namespace Prisma {
     storyPlays?: StoryPlaySessionListRelationFilter
     achievements?: UserAchievementListRelationFilter
     storyInteractions?: StoryInteractionListRelationFilter
+    storySaves?: StorySaveListRelationFilter
+    storyCompletions?: StoryCompletionListRelationFilter
   }
 
   export type UserSessionOrderByWithRelationInput = {
@@ -26463,6 +30482,8 @@ export namespace Prisma {
     storyPlays?: StoryPlaySessionOrderByRelationAggregateInput
     achievements?: UserAchievementOrderByRelationAggregateInput
     storyInteractions?: StoryInteractionOrderByRelationAggregateInput
+    storySaves?: StorySaveOrderByRelationAggregateInput
+    storyCompletions?: StoryCompletionOrderByRelationAggregateInput
   }
 
   export type UserSessionWhereUniqueInput = Prisma.AtLeast<{
@@ -26481,6 +30502,8 @@ export namespace Prisma {
     storyPlays?: StoryPlaySessionListRelationFilter
     achievements?: UserAchievementListRelationFilter
     storyInteractions?: StoryInteractionListRelationFilter
+    storySaves?: StorySaveListRelationFilter
+    storyCompletions?: StoryCompletionListRelationFilter
   }, "id" | "token">
 
   export type UserSessionOrderByWithAggregationInput = {
@@ -27804,6 +31827,293 @@ export namespace Prisma {
     createdAt?: DateTimeWithAggregatesFilter<"StoryInteraction"> | Date | string
   }
 
+  export type StorySaveWhereInput = {
+    AND?: StorySaveWhereInput | StorySaveWhereInput[]
+    OR?: StorySaveWhereInput[]
+    NOT?: StorySaveWhereInput | StorySaveWhereInput[]
+    id?: StringFilter<"StorySave"> | string
+    storySlug?: StringFilter<"StorySave"> | string
+    storyVersion?: StringNullableFilter<"StorySave"> | string | null
+    userId?: StringNullableFilter<"StorySave"> | string | null
+    sessionId?: StringNullableFilter<"StorySave"> | string | null
+    saveName?: StringNullableFilter<"StorySave"> | string | null
+    isAutoSave?: BoolFilter<"StorySave"> | boolean
+    currentPassageId?: StringFilter<"StorySave"> | string
+    resources?: JsonNullableFilter<"StorySave">
+    hiddenState?: JsonNullableFilter<"StorySave">
+    visitedPassages?: JsonNullableFilter<"StorySave">
+    choicesMade?: JsonNullableFilter<"StorySave">
+    pathTaken?: JsonNullableFilter<"StorySave">
+    completed?: BoolFilter<"StorySave"> | boolean
+    endingId?: StringNullableFilter<"StorySave"> | string | null
+    createdAt?: DateTimeFilter<"StorySave"> | Date | string
+    updatedAt?: DateTimeFilter<"StorySave"> | Date | string
+    user?: XOR<UserNullableScalarRelationFilter, UserWhereInput> | null
+    session?: XOR<UserSessionNullableScalarRelationFilter, UserSessionWhereInput> | null
+  }
+
+  export type StorySaveOrderByWithRelationInput = {
+    id?: SortOrder
+    storySlug?: SortOrder
+    storyVersion?: SortOrderInput | SortOrder
+    userId?: SortOrderInput | SortOrder
+    sessionId?: SortOrderInput | SortOrder
+    saveName?: SortOrderInput | SortOrder
+    isAutoSave?: SortOrder
+    currentPassageId?: SortOrder
+    resources?: SortOrderInput | SortOrder
+    hiddenState?: SortOrderInput | SortOrder
+    visitedPassages?: SortOrderInput | SortOrder
+    choicesMade?: SortOrderInput | SortOrder
+    pathTaken?: SortOrderInput | SortOrder
+    completed?: SortOrder
+    endingId?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    user?: UserOrderByWithRelationInput
+    session?: UserSessionOrderByWithRelationInput
+  }
+
+  export type StorySaveWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    AND?: StorySaveWhereInput | StorySaveWhereInput[]
+    OR?: StorySaveWhereInput[]
+    NOT?: StorySaveWhereInput | StorySaveWhereInput[]
+    storySlug?: StringFilter<"StorySave"> | string
+    storyVersion?: StringNullableFilter<"StorySave"> | string | null
+    userId?: StringNullableFilter<"StorySave"> | string | null
+    sessionId?: StringNullableFilter<"StorySave"> | string | null
+    saveName?: StringNullableFilter<"StorySave"> | string | null
+    isAutoSave?: BoolFilter<"StorySave"> | boolean
+    currentPassageId?: StringFilter<"StorySave"> | string
+    resources?: JsonNullableFilter<"StorySave">
+    hiddenState?: JsonNullableFilter<"StorySave">
+    visitedPassages?: JsonNullableFilter<"StorySave">
+    choicesMade?: JsonNullableFilter<"StorySave">
+    pathTaken?: JsonNullableFilter<"StorySave">
+    completed?: BoolFilter<"StorySave"> | boolean
+    endingId?: StringNullableFilter<"StorySave"> | string | null
+    createdAt?: DateTimeFilter<"StorySave"> | Date | string
+    updatedAt?: DateTimeFilter<"StorySave"> | Date | string
+    user?: XOR<UserNullableScalarRelationFilter, UserWhereInput> | null
+    session?: XOR<UserSessionNullableScalarRelationFilter, UserSessionWhereInput> | null
+  }, "id">
+
+  export type StorySaveOrderByWithAggregationInput = {
+    id?: SortOrder
+    storySlug?: SortOrder
+    storyVersion?: SortOrderInput | SortOrder
+    userId?: SortOrderInput | SortOrder
+    sessionId?: SortOrderInput | SortOrder
+    saveName?: SortOrderInput | SortOrder
+    isAutoSave?: SortOrder
+    currentPassageId?: SortOrder
+    resources?: SortOrderInput | SortOrder
+    hiddenState?: SortOrderInput | SortOrder
+    visitedPassages?: SortOrderInput | SortOrder
+    choicesMade?: SortOrderInput | SortOrder
+    pathTaken?: SortOrderInput | SortOrder
+    completed?: SortOrder
+    endingId?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    _count?: StorySaveCountOrderByAggregateInput
+    _max?: StorySaveMaxOrderByAggregateInput
+    _min?: StorySaveMinOrderByAggregateInput
+  }
+
+  export type StorySaveScalarWhereWithAggregatesInput = {
+    AND?: StorySaveScalarWhereWithAggregatesInput | StorySaveScalarWhereWithAggregatesInput[]
+    OR?: StorySaveScalarWhereWithAggregatesInput[]
+    NOT?: StorySaveScalarWhereWithAggregatesInput | StorySaveScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"StorySave"> | string
+    storySlug?: StringWithAggregatesFilter<"StorySave"> | string
+    storyVersion?: StringNullableWithAggregatesFilter<"StorySave"> | string | null
+    userId?: StringNullableWithAggregatesFilter<"StorySave"> | string | null
+    sessionId?: StringNullableWithAggregatesFilter<"StorySave"> | string | null
+    saveName?: StringNullableWithAggregatesFilter<"StorySave"> | string | null
+    isAutoSave?: BoolWithAggregatesFilter<"StorySave"> | boolean
+    currentPassageId?: StringWithAggregatesFilter<"StorySave"> | string
+    resources?: JsonNullableWithAggregatesFilter<"StorySave">
+    hiddenState?: JsonNullableWithAggregatesFilter<"StorySave">
+    visitedPassages?: JsonNullableWithAggregatesFilter<"StorySave">
+    choicesMade?: JsonNullableWithAggregatesFilter<"StorySave">
+    pathTaken?: JsonNullableWithAggregatesFilter<"StorySave">
+    completed?: BoolWithAggregatesFilter<"StorySave"> | boolean
+    endingId?: StringNullableWithAggregatesFilter<"StorySave"> | string | null
+    createdAt?: DateTimeWithAggregatesFilter<"StorySave"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"StorySave"> | Date | string
+  }
+
+  export type StoryCompletionWhereInput = {
+    AND?: StoryCompletionWhereInput | StoryCompletionWhereInput[]
+    OR?: StoryCompletionWhereInput[]
+    NOT?: StoryCompletionWhereInput | StoryCompletionWhereInput[]
+    id?: StringFilter<"StoryCompletion"> | string
+    storySlug?: StringFilter<"StoryCompletion"> | string
+    storyVersion?: StringNullableFilter<"StoryCompletion"> | string | null
+    userId?: StringNullableFilter<"StoryCompletion"> | string | null
+    sessionId?: StringNullableFilter<"StoryCompletion"> | string | null
+    endingId?: StringFilter<"StoryCompletion"> | string
+    endingType?: StringNullableFilter<"StoryCompletion"> | string | null
+    finalResources?: JsonNullableFilter<"StoryCompletion">
+    finalHiddenState?: JsonNullableFilter<"StoryCompletion">
+    totalChoices?: IntFilter<"StoryCompletion"> | number
+    totalTime?: IntFilter<"StoryCompletion"> | number
+    pathTaken?: JsonNullableFilter<"StoryCompletion">
+    choicesMade?: JsonNullableFilter<"StoryCompletion">
+    reflectionResponses?: JsonNullableFilter<"StoryCompletion">
+    createdAt?: DateTimeFilter<"StoryCompletion"> | Date | string
+    user?: XOR<UserNullableScalarRelationFilter, UserWhereInput> | null
+    session?: XOR<UserSessionNullableScalarRelationFilter, UserSessionWhereInput> | null
+  }
+
+  export type StoryCompletionOrderByWithRelationInput = {
+    id?: SortOrder
+    storySlug?: SortOrder
+    storyVersion?: SortOrderInput | SortOrder
+    userId?: SortOrderInput | SortOrder
+    sessionId?: SortOrderInput | SortOrder
+    endingId?: SortOrder
+    endingType?: SortOrderInput | SortOrder
+    finalResources?: SortOrderInput | SortOrder
+    finalHiddenState?: SortOrderInput | SortOrder
+    totalChoices?: SortOrder
+    totalTime?: SortOrder
+    pathTaken?: SortOrderInput | SortOrder
+    choicesMade?: SortOrderInput | SortOrder
+    reflectionResponses?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    user?: UserOrderByWithRelationInput
+    session?: UserSessionOrderByWithRelationInput
+  }
+
+  export type StoryCompletionWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    AND?: StoryCompletionWhereInput | StoryCompletionWhereInput[]
+    OR?: StoryCompletionWhereInput[]
+    NOT?: StoryCompletionWhereInput | StoryCompletionWhereInput[]
+    storySlug?: StringFilter<"StoryCompletion"> | string
+    storyVersion?: StringNullableFilter<"StoryCompletion"> | string | null
+    userId?: StringNullableFilter<"StoryCompletion"> | string | null
+    sessionId?: StringNullableFilter<"StoryCompletion"> | string | null
+    endingId?: StringFilter<"StoryCompletion"> | string
+    endingType?: StringNullableFilter<"StoryCompletion"> | string | null
+    finalResources?: JsonNullableFilter<"StoryCompletion">
+    finalHiddenState?: JsonNullableFilter<"StoryCompletion">
+    totalChoices?: IntFilter<"StoryCompletion"> | number
+    totalTime?: IntFilter<"StoryCompletion"> | number
+    pathTaken?: JsonNullableFilter<"StoryCompletion">
+    choicesMade?: JsonNullableFilter<"StoryCompletion">
+    reflectionResponses?: JsonNullableFilter<"StoryCompletion">
+    createdAt?: DateTimeFilter<"StoryCompletion"> | Date | string
+    user?: XOR<UserNullableScalarRelationFilter, UserWhereInput> | null
+    session?: XOR<UserSessionNullableScalarRelationFilter, UserSessionWhereInput> | null
+  }, "id">
+
+  export type StoryCompletionOrderByWithAggregationInput = {
+    id?: SortOrder
+    storySlug?: SortOrder
+    storyVersion?: SortOrderInput | SortOrder
+    userId?: SortOrderInput | SortOrder
+    sessionId?: SortOrderInput | SortOrder
+    endingId?: SortOrder
+    endingType?: SortOrderInput | SortOrder
+    finalResources?: SortOrderInput | SortOrder
+    finalHiddenState?: SortOrderInput | SortOrder
+    totalChoices?: SortOrder
+    totalTime?: SortOrder
+    pathTaken?: SortOrderInput | SortOrder
+    choicesMade?: SortOrderInput | SortOrder
+    reflectionResponses?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    _count?: StoryCompletionCountOrderByAggregateInput
+    _avg?: StoryCompletionAvgOrderByAggregateInput
+    _max?: StoryCompletionMaxOrderByAggregateInput
+    _min?: StoryCompletionMinOrderByAggregateInput
+    _sum?: StoryCompletionSumOrderByAggregateInput
+  }
+
+  export type StoryCompletionScalarWhereWithAggregatesInput = {
+    AND?: StoryCompletionScalarWhereWithAggregatesInput | StoryCompletionScalarWhereWithAggregatesInput[]
+    OR?: StoryCompletionScalarWhereWithAggregatesInput[]
+    NOT?: StoryCompletionScalarWhereWithAggregatesInput | StoryCompletionScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"StoryCompletion"> | string
+    storySlug?: StringWithAggregatesFilter<"StoryCompletion"> | string
+    storyVersion?: StringNullableWithAggregatesFilter<"StoryCompletion"> | string | null
+    userId?: StringNullableWithAggregatesFilter<"StoryCompletion"> | string | null
+    sessionId?: StringNullableWithAggregatesFilter<"StoryCompletion"> | string | null
+    endingId?: StringWithAggregatesFilter<"StoryCompletion"> | string
+    endingType?: StringNullableWithAggregatesFilter<"StoryCompletion"> | string | null
+    finalResources?: JsonNullableWithAggregatesFilter<"StoryCompletion">
+    finalHiddenState?: JsonNullableWithAggregatesFilter<"StoryCompletion">
+    totalChoices?: IntWithAggregatesFilter<"StoryCompletion"> | number
+    totalTime?: IntWithAggregatesFilter<"StoryCompletion"> | number
+    pathTaken?: JsonNullableWithAggregatesFilter<"StoryCompletion">
+    choicesMade?: JsonNullableWithAggregatesFilter<"StoryCompletion">
+    reflectionResponses?: JsonNullableWithAggregatesFilter<"StoryCompletion">
+    createdAt?: DateTimeWithAggregatesFilter<"StoryCompletion"> | Date | string
+  }
+
+  export type StoryAnalyticsWhereInput = {
+    AND?: StoryAnalyticsWhereInput | StoryAnalyticsWhereInput[]
+    OR?: StoryAnalyticsWhereInput[]
+    NOT?: StoryAnalyticsWhereInput | StoryAnalyticsWhereInput[]
+    storySlug?: StringFilter<"StoryAnalytics"> | string
+    totalStarts?: IntFilter<"StoryAnalytics"> | number
+    totalCompletions?: IntFilter<"StoryAnalytics"> | number
+    endingCounts?: JsonNullableFilter<"StoryAnalytics">
+    createdAt?: DateTimeFilter<"StoryAnalytics"> | Date | string
+    updatedAt?: DateTimeFilter<"StoryAnalytics"> | Date | string
+  }
+
+  export type StoryAnalyticsOrderByWithRelationInput = {
+    storySlug?: SortOrder
+    totalStarts?: SortOrder
+    totalCompletions?: SortOrder
+    endingCounts?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type StoryAnalyticsWhereUniqueInput = Prisma.AtLeast<{
+    storySlug?: string
+    AND?: StoryAnalyticsWhereInput | StoryAnalyticsWhereInput[]
+    OR?: StoryAnalyticsWhereInput[]
+    NOT?: StoryAnalyticsWhereInput | StoryAnalyticsWhereInput[]
+    totalStarts?: IntFilter<"StoryAnalytics"> | number
+    totalCompletions?: IntFilter<"StoryAnalytics"> | number
+    endingCounts?: JsonNullableFilter<"StoryAnalytics">
+    createdAt?: DateTimeFilter<"StoryAnalytics"> | Date | string
+    updatedAt?: DateTimeFilter<"StoryAnalytics"> | Date | string
+  }, "storySlug">
+
+  export type StoryAnalyticsOrderByWithAggregationInput = {
+    storySlug?: SortOrder
+    totalStarts?: SortOrder
+    totalCompletions?: SortOrder
+    endingCounts?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    _count?: StoryAnalyticsCountOrderByAggregateInput
+    _avg?: StoryAnalyticsAvgOrderByAggregateInput
+    _max?: StoryAnalyticsMaxOrderByAggregateInput
+    _min?: StoryAnalyticsMinOrderByAggregateInput
+    _sum?: StoryAnalyticsSumOrderByAggregateInput
+  }
+
+  export type StoryAnalyticsScalarWhereWithAggregatesInput = {
+    AND?: StoryAnalyticsScalarWhereWithAggregatesInput | StoryAnalyticsScalarWhereWithAggregatesInput[]
+    OR?: StoryAnalyticsScalarWhereWithAggregatesInput[]
+    NOT?: StoryAnalyticsScalarWhereWithAggregatesInput | StoryAnalyticsScalarWhereWithAggregatesInput[]
+    storySlug?: StringWithAggregatesFilter<"StoryAnalytics"> | string
+    totalStarts?: IntWithAggregatesFilter<"StoryAnalytics"> | number
+    totalCompletions?: IntWithAggregatesFilter<"StoryAnalytics"> | number
+    endingCounts?: JsonNullableWithAggregatesFilter<"StoryAnalytics">
+    createdAt?: DateTimeWithAggregatesFilter<"StoryAnalytics"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"StoryAnalytics"> | Date | string
+  }
+
   export type UserCreateInput = {
     id?: string
     email?: string | null
@@ -27819,6 +32129,8 @@ export namespace Prisma {
     journeys?: JourneyProgressCreateNestedManyWithoutUserInput
     achievements?: UserAchievementCreateNestedManyWithoutUserInput
     storyPlays?: StoryPlaySessionCreateNestedManyWithoutUserInput
+    storySaves?: StorySaveCreateNestedManyWithoutUserInput
+    storyCompletions?: StoryCompletionCreateNestedManyWithoutUserInput
     stories?: TwineStoryCreateNestedManyWithoutOwnerInput
     authoredVersions?: StoryVersionCreateNestedManyWithoutAuthorInput
     reviewedVersions?: StoryVersionCreateNestedManyWithoutReviewerInput
@@ -27846,6 +32158,8 @@ export namespace Prisma {
     journeys?: JourneyProgressUncheckedCreateNestedManyWithoutUserInput
     achievements?: UserAchievementUncheckedCreateNestedManyWithoutUserInput
     storyPlays?: StoryPlaySessionUncheckedCreateNestedManyWithoutUserInput
+    storySaves?: StorySaveUncheckedCreateNestedManyWithoutUserInput
+    storyCompletions?: StoryCompletionUncheckedCreateNestedManyWithoutUserInput
     stories?: TwineStoryUncheckedCreateNestedManyWithoutOwnerInput
     authoredVersions?: StoryVersionUncheckedCreateNestedManyWithoutAuthorInput
     reviewedVersions?: StoryVersionUncheckedCreateNestedManyWithoutReviewerInput
@@ -27873,6 +32187,8 @@ export namespace Prisma {
     journeys?: JourneyProgressUpdateManyWithoutUserNestedInput
     achievements?: UserAchievementUpdateManyWithoutUserNestedInput
     storyPlays?: StoryPlaySessionUpdateManyWithoutUserNestedInput
+    storySaves?: StorySaveUpdateManyWithoutUserNestedInput
+    storyCompletions?: StoryCompletionUpdateManyWithoutUserNestedInput
     stories?: TwineStoryUpdateManyWithoutOwnerNestedInput
     authoredVersions?: StoryVersionUpdateManyWithoutAuthorNestedInput
     reviewedVersions?: StoryVersionUpdateManyWithoutReviewerNestedInput
@@ -27900,6 +32216,8 @@ export namespace Prisma {
     journeys?: JourneyProgressUncheckedUpdateManyWithoutUserNestedInput
     achievements?: UserAchievementUncheckedUpdateManyWithoutUserNestedInput
     storyPlays?: StoryPlaySessionUncheckedUpdateManyWithoutUserNestedInput
+    storySaves?: StorySaveUncheckedUpdateManyWithoutUserNestedInput
+    storyCompletions?: StoryCompletionUncheckedUpdateManyWithoutUserNestedInput
     stories?: TwineStoryUncheckedUpdateManyWithoutOwnerNestedInput
     authoredVersions?: StoryVersionUncheckedUpdateManyWithoutAuthorNestedInput
     reviewedVersions?: StoryVersionUncheckedUpdateManyWithoutReviewerNestedInput
@@ -28318,6 +32636,8 @@ export namespace Prisma {
     storyPlays?: StoryPlaySessionCreateNestedManyWithoutSessionInput
     achievements?: UserAchievementCreateNestedManyWithoutSessionInput
     storyInteractions?: StoryInteractionCreateNestedManyWithoutSessionInput
+    storySaves?: StorySaveCreateNestedManyWithoutSessionInput
+    storyCompletions?: StoryCompletionCreateNestedManyWithoutSessionInput
   }
 
   export type UserSessionUncheckedCreateInput = {
@@ -28332,6 +32652,8 @@ export namespace Prisma {
     storyPlays?: StoryPlaySessionUncheckedCreateNestedManyWithoutSessionInput
     achievements?: UserAchievementUncheckedCreateNestedManyWithoutSessionInput
     storyInteractions?: StoryInteractionUncheckedCreateNestedManyWithoutSessionInput
+    storySaves?: StorySaveUncheckedCreateNestedManyWithoutSessionInput
+    storyCompletions?: StoryCompletionUncheckedCreateNestedManyWithoutSessionInput
   }
 
   export type UserSessionUpdateInput = {
@@ -28346,6 +32668,8 @@ export namespace Prisma {
     storyPlays?: StoryPlaySessionUpdateManyWithoutSessionNestedInput
     achievements?: UserAchievementUpdateManyWithoutSessionNestedInput
     storyInteractions?: StoryInteractionUpdateManyWithoutSessionNestedInput
+    storySaves?: StorySaveUpdateManyWithoutSessionNestedInput
+    storyCompletions?: StoryCompletionUpdateManyWithoutSessionNestedInput
   }
 
   export type UserSessionUncheckedUpdateInput = {
@@ -28360,6 +32684,8 @@ export namespace Prisma {
     storyPlays?: StoryPlaySessionUncheckedUpdateManyWithoutSessionNestedInput
     achievements?: UserAchievementUncheckedUpdateManyWithoutSessionNestedInput
     storyInteractions?: StoryInteractionUncheckedUpdateManyWithoutSessionNestedInput
+    storySaves?: StorySaveUncheckedUpdateManyWithoutSessionNestedInput
+    storyCompletions?: StoryCompletionUncheckedUpdateManyWithoutSessionNestedInput
   }
 
   export type UserSessionCreateManyInput = {
@@ -29766,6 +34092,331 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
+  export type StorySaveCreateInput = {
+    id?: string
+    storySlug: string
+    storyVersion?: string | null
+    saveName?: string | null
+    isAutoSave?: boolean
+    currentPassageId: string
+    resources?: NullableJsonNullValueInput | InputJsonValue
+    hiddenState?: NullableJsonNullValueInput | InputJsonValue
+    visitedPassages?: NullableJsonNullValueInput | InputJsonValue
+    choicesMade?: NullableJsonNullValueInput | InputJsonValue
+    pathTaken?: NullableJsonNullValueInput | InputJsonValue
+    completed?: boolean
+    endingId?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    user?: UserCreateNestedOneWithoutStorySavesInput
+    session?: UserSessionCreateNestedOneWithoutStorySavesInput
+  }
+
+  export type StorySaveUncheckedCreateInput = {
+    id?: string
+    storySlug: string
+    storyVersion?: string | null
+    userId?: string | null
+    sessionId?: string | null
+    saveName?: string | null
+    isAutoSave?: boolean
+    currentPassageId: string
+    resources?: NullableJsonNullValueInput | InputJsonValue
+    hiddenState?: NullableJsonNullValueInput | InputJsonValue
+    visitedPassages?: NullableJsonNullValueInput | InputJsonValue
+    choicesMade?: NullableJsonNullValueInput | InputJsonValue
+    pathTaken?: NullableJsonNullValueInput | InputJsonValue
+    completed?: boolean
+    endingId?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type StorySaveUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    storySlug?: StringFieldUpdateOperationsInput | string
+    storyVersion?: NullableStringFieldUpdateOperationsInput | string | null
+    saveName?: NullableStringFieldUpdateOperationsInput | string | null
+    isAutoSave?: BoolFieldUpdateOperationsInput | boolean
+    currentPassageId?: StringFieldUpdateOperationsInput | string
+    resources?: NullableJsonNullValueInput | InputJsonValue
+    hiddenState?: NullableJsonNullValueInput | InputJsonValue
+    visitedPassages?: NullableJsonNullValueInput | InputJsonValue
+    choicesMade?: NullableJsonNullValueInput | InputJsonValue
+    pathTaken?: NullableJsonNullValueInput | InputJsonValue
+    completed?: BoolFieldUpdateOperationsInput | boolean
+    endingId?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    user?: UserUpdateOneWithoutStorySavesNestedInput
+    session?: UserSessionUpdateOneWithoutStorySavesNestedInput
+  }
+
+  export type StorySaveUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    storySlug?: StringFieldUpdateOperationsInput | string
+    storyVersion?: NullableStringFieldUpdateOperationsInput | string | null
+    userId?: NullableStringFieldUpdateOperationsInput | string | null
+    sessionId?: NullableStringFieldUpdateOperationsInput | string | null
+    saveName?: NullableStringFieldUpdateOperationsInput | string | null
+    isAutoSave?: BoolFieldUpdateOperationsInput | boolean
+    currentPassageId?: StringFieldUpdateOperationsInput | string
+    resources?: NullableJsonNullValueInput | InputJsonValue
+    hiddenState?: NullableJsonNullValueInput | InputJsonValue
+    visitedPassages?: NullableJsonNullValueInput | InputJsonValue
+    choicesMade?: NullableJsonNullValueInput | InputJsonValue
+    pathTaken?: NullableJsonNullValueInput | InputJsonValue
+    completed?: BoolFieldUpdateOperationsInput | boolean
+    endingId?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type StorySaveCreateManyInput = {
+    id?: string
+    storySlug: string
+    storyVersion?: string | null
+    userId?: string | null
+    sessionId?: string | null
+    saveName?: string | null
+    isAutoSave?: boolean
+    currentPassageId: string
+    resources?: NullableJsonNullValueInput | InputJsonValue
+    hiddenState?: NullableJsonNullValueInput | InputJsonValue
+    visitedPassages?: NullableJsonNullValueInput | InputJsonValue
+    choicesMade?: NullableJsonNullValueInput | InputJsonValue
+    pathTaken?: NullableJsonNullValueInput | InputJsonValue
+    completed?: boolean
+    endingId?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type StorySaveUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    storySlug?: StringFieldUpdateOperationsInput | string
+    storyVersion?: NullableStringFieldUpdateOperationsInput | string | null
+    saveName?: NullableStringFieldUpdateOperationsInput | string | null
+    isAutoSave?: BoolFieldUpdateOperationsInput | boolean
+    currentPassageId?: StringFieldUpdateOperationsInput | string
+    resources?: NullableJsonNullValueInput | InputJsonValue
+    hiddenState?: NullableJsonNullValueInput | InputJsonValue
+    visitedPassages?: NullableJsonNullValueInput | InputJsonValue
+    choicesMade?: NullableJsonNullValueInput | InputJsonValue
+    pathTaken?: NullableJsonNullValueInput | InputJsonValue
+    completed?: BoolFieldUpdateOperationsInput | boolean
+    endingId?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type StorySaveUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    storySlug?: StringFieldUpdateOperationsInput | string
+    storyVersion?: NullableStringFieldUpdateOperationsInput | string | null
+    userId?: NullableStringFieldUpdateOperationsInput | string | null
+    sessionId?: NullableStringFieldUpdateOperationsInput | string | null
+    saveName?: NullableStringFieldUpdateOperationsInput | string | null
+    isAutoSave?: BoolFieldUpdateOperationsInput | boolean
+    currentPassageId?: StringFieldUpdateOperationsInput | string
+    resources?: NullableJsonNullValueInput | InputJsonValue
+    hiddenState?: NullableJsonNullValueInput | InputJsonValue
+    visitedPassages?: NullableJsonNullValueInput | InputJsonValue
+    choicesMade?: NullableJsonNullValueInput | InputJsonValue
+    pathTaken?: NullableJsonNullValueInput | InputJsonValue
+    completed?: BoolFieldUpdateOperationsInput | boolean
+    endingId?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type StoryCompletionCreateInput = {
+    id?: string
+    storySlug: string
+    storyVersion?: string | null
+    endingId: string
+    endingType?: string | null
+    finalResources?: NullableJsonNullValueInput | InputJsonValue
+    finalHiddenState?: NullableJsonNullValueInput | InputJsonValue
+    totalChoices?: number
+    totalTime?: number
+    pathTaken?: NullableJsonNullValueInput | InputJsonValue
+    choicesMade?: NullableJsonNullValueInput | InputJsonValue
+    reflectionResponses?: NullableJsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+    user?: UserCreateNestedOneWithoutStoryCompletionsInput
+    session?: UserSessionCreateNestedOneWithoutStoryCompletionsInput
+  }
+
+  export type StoryCompletionUncheckedCreateInput = {
+    id?: string
+    storySlug: string
+    storyVersion?: string | null
+    userId?: string | null
+    sessionId?: string | null
+    endingId: string
+    endingType?: string | null
+    finalResources?: NullableJsonNullValueInput | InputJsonValue
+    finalHiddenState?: NullableJsonNullValueInput | InputJsonValue
+    totalChoices?: number
+    totalTime?: number
+    pathTaken?: NullableJsonNullValueInput | InputJsonValue
+    choicesMade?: NullableJsonNullValueInput | InputJsonValue
+    reflectionResponses?: NullableJsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+  }
+
+  export type StoryCompletionUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    storySlug?: StringFieldUpdateOperationsInput | string
+    storyVersion?: NullableStringFieldUpdateOperationsInput | string | null
+    endingId?: StringFieldUpdateOperationsInput | string
+    endingType?: NullableStringFieldUpdateOperationsInput | string | null
+    finalResources?: NullableJsonNullValueInput | InputJsonValue
+    finalHiddenState?: NullableJsonNullValueInput | InputJsonValue
+    totalChoices?: IntFieldUpdateOperationsInput | number
+    totalTime?: IntFieldUpdateOperationsInput | number
+    pathTaken?: NullableJsonNullValueInput | InputJsonValue
+    choicesMade?: NullableJsonNullValueInput | InputJsonValue
+    reflectionResponses?: NullableJsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    user?: UserUpdateOneWithoutStoryCompletionsNestedInput
+    session?: UserSessionUpdateOneWithoutStoryCompletionsNestedInput
+  }
+
+  export type StoryCompletionUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    storySlug?: StringFieldUpdateOperationsInput | string
+    storyVersion?: NullableStringFieldUpdateOperationsInput | string | null
+    userId?: NullableStringFieldUpdateOperationsInput | string | null
+    sessionId?: NullableStringFieldUpdateOperationsInput | string | null
+    endingId?: StringFieldUpdateOperationsInput | string
+    endingType?: NullableStringFieldUpdateOperationsInput | string | null
+    finalResources?: NullableJsonNullValueInput | InputJsonValue
+    finalHiddenState?: NullableJsonNullValueInput | InputJsonValue
+    totalChoices?: IntFieldUpdateOperationsInput | number
+    totalTime?: IntFieldUpdateOperationsInput | number
+    pathTaken?: NullableJsonNullValueInput | InputJsonValue
+    choicesMade?: NullableJsonNullValueInput | InputJsonValue
+    reflectionResponses?: NullableJsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type StoryCompletionCreateManyInput = {
+    id?: string
+    storySlug: string
+    storyVersion?: string | null
+    userId?: string | null
+    sessionId?: string | null
+    endingId: string
+    endingType?: string | null
+    finalResources?: NullableJsonNullValueInput | InputJsonValue
+    finalHiddenState?: NullableJsonNullValueInput | InputJsonValue
+    totalChoices?: number
+    totalTime?: number
+    pathTaken?: NullableJsonNullValueInput | InputJsonValue
+    choicesMade?: NullableJsonNullValueInput | InputJsonValue
+    reflectionResponses?: NullableJsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+  }
+
+  export type StoryCompletionUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    storySlug?: StringFieldUpdateOperationsInput | string
+    storyVersion?: NullableStringFieldUpdateOperationsInput | string | null
+    endingId?: StringFieldUpdateOperationsInput | string
+    endingType?: NullableStringFieldUpdateOperationsInput | string | null
+    finalResources?: NullableJsonNullValueInput | InputJsonValue
+    finalHiddenState?: NullableJsonNullValueInput | InputJsonValue
+    totalChoices?: IntFieldUpdateOperationsInput | number
+    totalTime?: IntFieldUpdateOperationsInput | number
+    pathTaken?: NullableJsonNullValueInput | InputJsonValue
+    choicesMade?: NullableJsonNullValueInput | InputJsonValue
+    reflectionResponses?: NullableJsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type StoryCompletionUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    storySlug?: StringFieldUpdateOperationsInput | string
+    storyVersion?: NullableStringFieldUpdateOperationsInput | string | null
+    userId?: NullableStringFieldUpdateOperationsInput | string | null
+    sessionId?: NullableStringFieldUpdateOperationsInput | string | null
+    endingId?: StringFieldUpdateOperationsInput | string
+    endingType?: NullableStringFieldUpdateOperationsInput | string | null
+    finalResources?: NullableJsonNullValueInput | InputJsonValue
+    finalHiddenState?: NullableJsonNullValueInput | InputJsonValue
+    totalChoices?: IntFieldUpdateOperationsInput | number
+    totalTime?: IntFieldUpdateOperationsInput | number
+    pathTaken?: NullableJsonNullValueInput | InputJsonValue
+    choicesMade?: NullableJsonNullValueInput | InputJsonValue
+    reflectionResponses?: NullableJsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type StoryAnalyticsCreateInput = {
+    storySlug: string
+    totalStarts?: number
+    totalCompletions?: number
+    endingCounts?: NullableJsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type StoryAnalyticsUncheckedCreateInput = {
+    storySlug: string
+    totalStarts?: number
+    totalCompletions?: number
+    endingCounts?: NullableJsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type StoryAnalyticsUpdateInput = {
+    storySlug?: StringFieldUpdateOperationsInput | string
+    totalStarts?: IntFieldUpdateOperationsInput | number
+    totalCompletions?: IntFieldUpdateOperationsInput | number
+    endingCounts?: NullableJsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type StoryAnalyticsUncheckedUpdateInput = {
+    storySlug?: StringFieldUpdateOperationsInput | string
+    totalStarts?: IntFieldUpdateOperationsInput | number
+    totalCompletions?: IntFieldUpdateOperationsInput | number
+    endingCounts?: NullableJsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type StoryAnalyticsCreateManyInput = {
+    storySlug: string
+    totalStarts?: number
+    totalCompletions?: number
+    endingCounts?: NullableJsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type StoryAnalyticsUpdateManyMutationInput = {
+    storySlug?: StringFieldUpdateOperationsInput | string
+    totalStarts?: IntFieldUpdateOperationsInput | number
+    totalCompletions?: IntFieldUpdateOperationsInput | number
+    endingCounts?: NullableJsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type StoryAnalyticsUncheckedUpdateManyInput = {
+    storySlug?: StringFieldUpdateOperationsInput | string
+    totalStarts?: IntFieldUpdateOperationsInput | number
+    totalCompletions?: IntFieldUpdateOperationsInput | number
+    endingCounts?: NullableJsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
   export type StringFilter<$PrismaModel = never> = {
     equals?: string | StringFieldRefInput<$PrismaModel>
     in?: string[] | ListStringFieldRefInput<$PrismaModel>
@@ -29859,6 +34510,18 @@ export namespace Prisma {
     none?: StoryPlaySessionWhereInput
   }
 
+  export type StorySaveListRelationFilter = {
+    every?: StorySaveWhereInput
+    some?: StorySaveWhereInput
+    none?: StorySaveWhereInput
+  }
+
+  export type StoryCompletionListRelationFilter = {
+    every?: StoryCompletionWhereInput
+    some?: StoryCompletionWhereInput
+    none?: StoryCompletionWhereInput
+  }
+
   export type TwineStoryListRelationFilter = {
     every?: TwineStoryWhereInput
     some?: TwineStoryWhereInput
@@ -29918,6 +34581,14 @@ export namespace Prisma {
   }
 
   export type StoryPlaySessionOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type StorySaveOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type StoryCompletionOrderByRelationAggregateInput = {
     _count?: SortOrder
   }
 
@@ -31243,6 +35914,145 @@ export namespace Prisma {
     _max?: NestedEnumStoryInteractionKindFilter<$PrismaModel>
   }
 
+  export type StorySaveCountOrderByAggregateInput = {
+    id?: SortOrder
+    storySlug?: SortOrder
+    storyVersion?: SortOrder
+    userId?: SortOrder
+    sessionId?: SortOrder
+    saveName?: SortOrder
+    isAutoSave?: SortOrder
+    currentPassageId?: SortOrder
+    resources?: SortOrder
+    hiddenState?: SortOrder
+    visitedPassages?: SortOrder
+    choicesMade?: SortOrder
+    pathTaken?: SortOrder
+    completed?: SortOrder
+    endingId?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type StorySaveMaxOrderByAggregateInput = {
+    id?: SortOrder
+    storySlug?: SortOrder
+    storyVersion?: SortOrder
+    userId?: SortOrder
+    sessionId?: SortOrder
+    saveName?: SortOrder
+    isAutoSave?: SortOrder
+    currentPassageId?: SortOrder
+    completed?: SortOrder
+    endingId?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type StorySaveMinOrderByAggregateInput = {
+    id?: SortOrder
+    storySlug?: SortOrder
+    storyVersion?: SortOrder
+    userId?: SortOrder
+    sessionId?: SortOrder
+    saveName?: SortOrder
+    isAutoSave?: SortOrder
+    currentPassageId?: SortOrder
+    completed?: SortOrder
+    endingId?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type StoryCompletionCountOrderByAggregateInput = {
+    id?: SortOrder
+    storySlug?: SortOrder
+    storyVersion?: SortOrder
+    userId?: SortOrder
+    sessionId?: SortOrder
+    endingId?: SortOrder
+    endingType?: SortOrder
+    finalResources?: SortOrder
+    finalHiddenState?: SortOrder
+    totalChoices?: SortOrder
+    totalTime?: SortOrder
+    pathTaken?: SortOrder
+    choicesMade?: SortOrder
+    reflectionResponses?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type StoryCompletionAvgOrderByAggregateInput = {
+    totalChoices?: SortOrder
+    totalTime?: SortOrder
+  }
+
+  export type StoryCompletionMaxOrderByAggregateInput = {
+    id?: SortOrder
+    storySlug?: SortOrder
+    storyVersion?: SortOrder
+    userId?: SortOrder
+    sessionId?: SortOrder
+    endingId?: SortOrder
+    endingType?: SortOrder
+    totalChoices?: SortOrder
+    totalTime?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type StoryCompletionMinOrderByAggregateInput = {
+    id?: SortOrder
+    storySlug?: SortOrder
+    storyVersion?: SortOrder
+    userId?: SortOrder
+    sessionId?: SortOrder
+    endingId?: SortOrder
+    endingType?: SortOrder
+    totalChoices?: SortOrder
+    totalTime?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type StoryCompletionSumOrderByAggregateInput = {
+    totalChoices?: SortOrder
+    totalTime?: SortOrder
+  }
+
+  export type StoryAnalyticsCountOrderByAggregateInput = {
+    storySlug?: SortOrder
+    totalStarts?: SortOrder
+    totalCompletions?: SortOrder
+    endingCounts?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type StoryAnalyticsAvgOrderByAggregateInput = {
+    totalStarts?: SortOrder
+    totalCompletions?: SortOrder
+  }
+
+  export type StoryAnalyticsMaxOrderByAggregateInput = {
+    storySlug?: SortOrder
+    totalStarts?: SortOrder
+    totalCompletions?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type StoryAnalyticsMinOrderByAggregateInput = {
+    storySlug?: SortOrder
+    totalStarts?: SortOrder
+    totalCompletions?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type StoryAnalyticsSumOrderByAggregateInput = {
+    totalStarts?: SortOrder
+    totalCompletions?: SortOrder
+  }
+
   export type UserProfileCreateNestedOneWithoutUserInput = {
     create?: XOR<UserProfileCreateWithoutUserInput, UserProfileUncheckedCreateWithoutUserInput>
     connectOrCreate?: UserProfileCreateOrConnectWithoutUserInput
@@ -31275,6 +36085,20 @@ export namespace Prisma {
     connectOrCreate?: StoryPlaySessionCreateOrConnectWithoutUserInput | StoryPlaySessionCreateOrConnectWithoutUserInput[]
     createMany?: StoryPlaySessionCreateManyUserInputEnvelope
     connect?: StoryPlaySessionWhereUniqueInput | StoryPlaySessionWhereUniqueInput[]
+  }
+
+  export type StorySaveCreateNestedManyWithoutUserInput = {
+    create?: XOR<StorySaveCreateWithoutUserInput, StorySaveUncheckedCreateWithoutUserInput> | StorySaveCreateWithoutUserInput[] | StorySaveUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: StorySaveCreateOrConnectWithoutUserInput | StorySaveCreateOrConnectWithoutUserInput[]
+    createMany?: StorySaveCreateManyUserInputEnvelope
+    connect?: StorySaveWhereUniqueInput | StorySaveWhereUniqueInput[]
+  }
+
+  export type StoryCompletionCreateNestedManyWithoutUserInput = {
+    create?: XOR<StoryCompletionCreateWithoutUserInput, StoryCompletionUncheckedCreateWithoutUserInput> | StoryCompletionCreateWithoutUserInput[] | StoryCompletionUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: StoryCompletionCreateOrConnectWithoutUserInput | StoryCompletionCreateOrConnectWithoutUserInput[]
+    createMany?: StoryCompletionCreateManyUserInputEnvelope
+    connect?: StoryCompletionWhereUniqueInput | StoryCompletionWhereUniqueInput[]
   }
 
   export type TwineStoryCreateNestedManyWithoutOwnerInput = {
@@ -31378,6 +36202,20 @@ export namespace Prisma {
     connectOrCreate?: StoryPlaySessionCreateOrConnectWithoutUserInput | StoryPlaySessionCreateOrConnectWithoutUserInput[]
     createMany?: StoryPlaySessionCreateManyUserInputEnvelope
     connect?: StoryPlaySessionWhereUniqueInput | StoryPlaySessionWhereUniqueInput[]
+  }
+
+  export type StorySaveUncheckedCreateNestedManyWithoutUserInput = {
+    create?: XOR<StorySaveCreateWithoutUserInput, StorySaveUncheckedCreateWithoutUserInput> | StorySaveCreateWithoutUserInput[] | StorySaveUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: StorySaveCreateOrConnectWithoutUserInput | StorySaveCreateOrConnectWithoutUserInput[]
+    createMany?: StorySaveCreateManyUserInputEnvelope
+    connect?: StorySaveWhereUniqueInput | StorySaveWhereUniqueInput[]
+  }
+
+  export type StoryCompletionUncheckedCreateNestedManyWithoutUserInput = {
+    create?: XOR<StoryCompletionCreateWithoutUserInput, StoryCompletionUncheckedCreateWithoutUserInput> | StoryCompletionCreateWithoutUserInput[] | StoryCompletionUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: StoryCompletionCreateOrConnectWithoutUserInput | StoryCompletionCreateOrConnectWithoutUserInput[]
+    createMany?: StoryCompletionCreateManyUserInputEnvelope
+    connect?: StoryCompletionWhereUniqueInput | StoryCompletionWhereUniqueInput[]
   }
 
   export type TwineStoryUncheckedCreateNestedManyWithoutOwnerInput = {
@@ -31537,6 +36375,34 @@ export namespace Prisma {
     update?: StoryPlaySessionUpdateWithWhereUniqueWithoutUserInput | StoryPlaySessionUpdateWithWhereUniqueWithoutUserInput[]
     updateMany?: StoryPlaySessionUpdateManyWithWhereWithoutUserInput | StoryPlaySessionUpdateManyWithWhereWithoutUserInput[]
     deleteMany?: StoryPlaySessionScalarWhereInput | StoryPlaySessionScalarWhereInput[]
+  }
+
+  export type StorySaveUpdateManyWithoutUserNestedInput = {
+    create?: XOR<StorySaveCreateWithoutUserInput, StorySaveUncheckedCreateWithoutUserInput> | StorySaveCreateWithoutUserInput[] | StorySaveUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: StorySaveCreateOrConnectWithoutUserInput | StorySaveCreateOrConnectWithoutUserInput[]
+    upsert?: StorySaveUpsertWithWhereUniqueWithoutUserInput | StorySaveUpsertWithWhereUniqueWithoutUserInput[]
+    createMany?: StorySaveCreateManyUserInputEnvelope
+    set?: StorySaveWhereUniqueInput | StorySaveWhereUniqueInput[]
+    disconnect?: StorySaveWhereUniqueInput | StorySaveWhereUniqueInput[]
+    delete?: StorySaveWhereUniqueInput | StorySaveWhereUniqueInput[]
+    connect?: StorySaveWhereUniqueInput | StorySaveWhereUniqueInput[]
+    update?: StorySaveUpdateWithWhereUniqueWithoutUserInput | StorySaveUpdateWithWhereUniqueWithoutUserInput[]
+    updateMany?: StorySaveUpdateManyWithWhereWithoutUserInput | StorySaveUpdateManyWithWhereWithoutUserInput[]
+    deleteMany?: StorySaveScalarWhereInput | StorySaveScalarWhereInput[]
+  }
+
+  export type StoryCompletionUpdateManyWithoutUserNestedInput = {
+    create?: XOR<StoryCompletionCreateWithoutUserInput, StoryCompletionUncheckedCreateWithoutUserInput> | StoryCompletionCreateWithoutUserInput[] | StoryCompletionUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: StoryCompletionCreateOrConnectWithoutUserInput | StoryCompletionCreateOrConnectWithoutUserInput[]
+    upsert?: StoryCompletionUpsertWithWhereUniqueWithoutUserInput | StoryCompletionUpsertWithWhereUniqueWithoutUserInput[]
+    createMany?: StoryCompletionCreateManyUserInputEnvelope
+    set?: StoryCompletionWhereUniqueInput | StoryCompletionWhereUniqueInput[]
+    disconnect?: StoryCompletionWhereUniqueInput | StoryCompletionWhereUniqueInput[]
+    delete?: StoryCompletionWhereUniqueInput | StoryCompletionWhereUniqueInput[]
+    connect?: StoryCompletionWhereUniqueInput | StoryCompletionWhereUniqueInput[]
+    update?: StoryCompletionUpdateWithWhereUniqueWithoutUserInput | StoryCompletionUpdateWithWhereUniqueWithoutUserInput[]
+    updateMany?: StoryCompletionUpdateManyWithWhereWithoutUserInput | StoryCompletionUpdateManyWithWhereWithoutUserInput[]
+    deleteMany?: StoryCompletionScalarWhereInput | StoryCompletionScalarWhereInput[]
   }
 
   export type TwineStoryUpdateManyWithoutOwnerNestedInput = {
@@ -31739,6 +36605,34 @@ export namespace Prisma {
     update?: StoryPlaySessionUpdateWithWhereUniqueWithoutUserInput | StoryPlaySessionUpdateWithWhereUniqueWithoutUserInput[]
     updateMany?: StoryPlaySessionUpdateManyWithWhereWithoutUserInput | StoryPlaySessionUpdateManyWithWhereWithoutUserInput[]
     deleteMany?: StoryPlaySessionScalarWhereInput | StoryPlaySessionScalarWhereInput[]
+  }
+
+  export type StorySaveUncheckedUpdateManyWithoutUserNestedInput = {
+    create?: XOR<StorySaveCreateWithoutUserInput, StorySaveUncheckedCreateWithoutUserInput> | StorySaveCreateWithoutUserInput[] | StorySaveUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: StorySaveCreateOrConnectWithoutUserInput | StorySaveCreateOrConnectWithoutUserInput[]
+    upsert?: StorySaveUpsertWithWhereUniqueWithoutUserInput | StorySaveUpsertWithWhereUniqueWithoutUserInput[]
+    createMany?: StorySaveCreateManyUserInputEnvelope
+    set?: StorySaveWhereUniqueInput | StorySaveWhereUniqueInput[]
+    disconnect?: StorySaveWhereUniqueInput | StorySaveWhereUniqueInput[]
+    delete?: StorySaveWhereUniqueInput | StorySaveWhereUniqueInput[]
+    connect?: StorySaveWhereUniqueInput | StorySaveWhereUniqueInput[]
+    update?: StorySaveUpdateWithWhereUniqueWithoutUserInput | StorySaveUpdateWithWhereUniqueWithoutUserInput[]
+    updateMany?: StorySaveUpdateManyWithWhereWithoutUserInput | StorySaveUpdateManyWithWhereWithoutUserInput[]
+    deleteMany?: StorySaveScalarWhereInput | StorySaveScalarWhereInput[]
+  }
+
+  export type StoryCompletionUncheckedUpdateManyWithoutUserNestedInput = {
+    create?: XOR<StoryCompletionCreateWithoutUserInput, StoryCompletionUncheckedCreateWithoutUserInput> | StoryCompletionCreateWithoutUserInput[] | StoryCompletionUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: StoryCompletionCreateOrConnectWithoutUserInput | StoryCompletionCreateOrConnectWithoutUserInput[]
+    upsert?: StoryCompletionUpsertWithWhereUniqueWithoutUserInput | StoryCompletionUpsertWithWhereUniqueWithoutUserInput[]
+    createMany?: StoryCompletionCreateManyUserInputEnvelope
+    set?: StoryCompletionWhereUniqueInput | StoryCompletionWhereUniqueInput[]
+    disconnect?: StoryCompletionWhereUniqueInput | StoryCompletionWhereUniqueInput[]
+    delete?: StoryCompletionWhereUniqueInput | StoryCompletionWhereUniqueInput[]
+    connect?: StoryCompletionWhereUniqueInput | StoryCompletionWhereUniqueInput[]
+    update?: StoryCompletionUpdateWithWhereUniqueWithoutUserInput | StoryCompletionUpdateWithWhereUniqueWithoutUserInput[]
+    updateMany?: StoryCompletionUpdateManyWithWhereWithoutUserInput | StoryCompletionUpdateManyWithWhereWithoutUserInput[]
+    deleteMany?: StoryCompletionScalarWhereInput | StoryCompletionScalarWhereInput[]
   }
 
   export type TwineStoryUncheckedUpdateManyWithoutOwnerNestedInput = {
@@ -32037,6 +36931,20 @@ export namespace Prisma {
     connect?: StoryInteractionWhereUniqueInput | StoryInteractionWhereUniqueInput[]
   }
 
+  export type StorySaveCreateNestedManyWithoutSessionInput = {
+    create?: XOR<StorySaveCreateWithoutSessionInput, StorySaveUncheckedCreateWithoutSessionInput> | StorySaveCreateWithoutSessionInput[] | StorySaveUncheckedCreateWithoutSessionInput[]
+    connectOrCreate?: StorySaveCreateOrConnectWithoutSessionInput | StorySaveCreateOrConnectWithoutSessionInput[]
+    createMany?: StorySaveCreateManySessionInputEnvelope
+    connect?: StorySaveWhereUniqueInput | StorySaveWhereUniqueInput[]
+  }
+
+  export type StoryCompletionCreateNestedManyWithoutSessionInput = {
+    create?: XOR<StoryCompletionCreateWithoutSessionInput, StoryCompletionUncheckedCreateWithoutSessionInput> | StoryCompletionCreateWithoutSessionInput[] | StoryCompletionUncheckedCreateWithoutSessionInput[]
+    connectOrCreate?: StoryCompletionCreateOrConnectWithoutSessionInput | StoryCompletionCreateOrConnectWithoutSessionInput[]
+    createMany?: StoryCompletionCreateManySessionInputEnvelope
+    connect?: StoryCompletionWhereUniqueInput | StoryCompletionWhereUniqueInput[]
+  }
+
   export type JourneyProgressUncheckedCreateNestedManyWithoutSessionInput = {
     create?: XOR<JourneyProgressCreateWithoutSessionInput, JourneyProgressUncheckedCreateWithoutSessionInput> | JourneyProgressCreateWithoutSessionInput[] | JourneyProgressUncheckedCreateWithoutSessionInput[]
     connectOrCreate?: JourneyProgressCreateOrConnectWithoutSessionInput | JourneyProgressCreateOrConnectWithoutSessionInput[]
@@ -32063,6 +36971,20 @@ export namespace Prisma {
     connectOrCreate?: StoryInteractionCreateOrConnectWithoutSessionInput | StoryInteractionCreateOrConnectWithoutSessionInput[]
     createMany?: StoryInteractionCreateManySessionInputEnvelope
     connect?: StoryInteractionWhereUniqueInput | StoryInteractionWhereUniqueInput[]
+  }
+
+  export type StorySaveUncheckedCreateNestedManyWithoutSessionInput = {
+    create?: XOR<StorySaveCreateWithoutSessionInput, StorySaveUncheckedCreateWithoutSessionInput> | StorySaveCreateWithoutSessionInput[] | StorySaveUncheckedCreateWithoutSessionInput[]
+    connectOrCreate?: StorySaveCreateOrConnectWithoutSessionInput | StorySaveCreateOrConnectWithoutSessionInput[]
+    createMany?: StorySaveCreateManySessionInputEnvelope
+    connect?: StorySaveWhereUniqueInput | StorySaveWhereUniqueInput[]
+  }
+
+  export type StoryCompletionUncheckedCreateNestedManyWithoutSessionInput = {
+    create?: XOR<StoryCompletionCreateWithoutSessionInput, StoryCompletionUncheckedCreateWithoutSessionInput> | StoryCompletionCreateWithoutSessionInput[] | StoryCompletionUncheckedCreateWithoutSessionInput[]
+    connectOrCreate?: StoryCompletionCreateOrConnectWithoutSessionInput | StoryCompletionCreateOrConnectWithoutSessionInput[]
+    createMany?: StoryCompletionCreateManySessionInputEnvelope
+    connect?: StoryCompletionWhereUniqueInput | StoryCompletionWhereUniqueInput[]
   }
 
   export type EnumSessionKindFieldUpdateOperationsInput = {
@@ -32135,6 +37057,34 @@ export namespace Prisma {
     deleteMany?: StoryInteractionScalarWhereInput | StoryInteractionScalarWhereInput[]
   }
 
+  export type StorySaveUpdateManyWithoutSessionNestedInput = {
+    create?: XOR<StorySaveCreateWithoutSessionInput, StorySaveUncheckedCreateWithoutSessionInput> | StorySaveCreateWithoutSessionInput[] | StorySaveUncheckedCreateWithoutSessionInput[]
+    connectOrCreate?: StorySaveCreateOrConnectWithoutSessionInput | StorySaveCreateOrConnectWithoutSessionInput[]
+    upsert?: StorySaveUpsertWithWhereUniqueWithoutSessionInput | StorySaveUpsertWithWhereUniqueWithoutSessionInput[]
+    createMany?: StorySaveCreateManySessionInputEnvelope
+    set?: StorySaveWhereUniqueInput | StorySaveWhereUniqueInput[]
+    disconnect?: StorySaveWhereUniqueInput | StorySaveWhereUniqueInput[]
+    delete?: StorySaveWhereUniqueInput | StorySaveWhereUniqueInput[]
+    connect?: StorySaveWhereUniqueInput | StorySaveWhereUniqueInput[]
+    update?: StorySaveUpdateWithWhereUniqueWithoutSessionInput | StorySaveUpdateWithWhereUniqueWithoutSessionInput[]
+    updateMany?: StorySaveUpdateManyWithWhereWithoutSessionInput | StorySaveUpdateManyWithWhereWithoutSessionInput[]
+    deleteMany?: StorySaveScalarWhereInput | StorySaveScalarWhereInput[]
+  }
+
+  export type StoryCompletionUpdateManyWithoutSessionNestedInput = {
+    create?: XOR<StoryCompletionCreateWithoutSessionInput, StoryCompletionUncheckedCreateWithoutSessionInput> | StoryCompletionCreateWithoutSessionInput[] | StoryCompletionUncheckedCreateWithoutSessionInput[]
+    connectOrCreate?: StoryCompletionCreateOrConnectWithoutSessionInput | StoryCompletionCreateOrConnectWithoutSessionInput[]
+    upsert?: StoryCompletionUpsertWithWhereUniqueWithoutSessionInput | StoryCompletionUpsertWithWhereUniqueWithoutSessionInput[]
+    createMany?: StoryCompletionCreateManySessionInputEnvelope
+    set?: StoryCompletionWhereUniqueInput | StoryCompletionWhereUniqueInput[]
+    disconnect?: StoryCompletionWhereUniqueInput | StoryCompletionWhereUniqueInput[]
+    delete?: StoryCompletionWhereUniqueInput | StoryCompletionWhereUniqueInput[]
+    connect?: StoryCompletionWhereUniqueInput | StoryCompletionWhereUniqueInput[]
+    update?: StoryCompletionUpdateWithWhereUniqueWithoutSessionInput | StoryCompletionUpdateWithWhereUniqueWithoutSessionInput[]
+    updateMany?: StoryCompletionUpdateManyWithWhereWithoutSessionInput | StoryCompletionUpdateManyWithWhereWithoutSessionInput[]
+    deleteMany?: StoryCompletionScalarWhereInput | StoryCompletionScalarWhereInput[]
+  }
+
   export type JourneyProgressUncheckedUpdateManyWithoutSessionNestedInput = {
     create?: XOR<JourneyProgressCreateWithoutSessionInput, JourneyProgressUncheckedCreateWithoutSessionInput> | JourneyProgressCreateWithoutSessionInput[] | JourneyProgressUncheckedCreateWithoutSessionInput[]
     connectOrCreate?: JourneyProgressCreateOrConnectWithoutSessionInput | JourneyProgressCreateOrConnectWithoutSessionInput[]
@@ -32189,6 +37139,34 @@ export namespace Prisma {
     update?: StoryInteractionUpdateWithWhereUniqueWithoutSessionInput | StoryInteractionUpdateWithWhereUniqueWithoutSessionInput[]
     updateMany?: StoryInteractionUpdateManyWithWhereWithoutSessionInput | StoryInteractionUpdateManyWithWhereWithoutSessionInput[]
     deleteMany?: StoryInteractionScalarWhereInput | StoryInteractionScalarWhereInput[]
+  }
+
+  export type StorySaveUncheckedUpdateManyWithoutSessionNestedInput = {
+    create?: XOR<StorySaveCreateWithoutSessionInput, StorySaveUncheckedCreateWithoutSessionInput> | StorySaveCreateWithoutSessionInput[] | StorySaveUncheckedCreateWithoutSessionInput[]
+    connectOrCreate?: StorySaveCreateOrConnectWithoutSessionInput | StorySaveCreateOrConnectWithoutSessionInput[]
+    upsert?: StorySaveUpsertWithWhereUniqueWithoutSessionInput | StorySaveUpsertWithWhereUniqueWithoutSessionInput[]
+    createMany?: StorySaveCreateManySessionInputEnvelope
+    set?: StorySaveWhereUniqueInput | StorySaveWhereUniqueInput[]
+    disconnect?: StorySaveWhereUniqueInput | StorySaveWhereUniqueInput[]
+    delete?: StorySaveWhereUniqueInput | StorySaveWhereUniqueInput[]
+    connect?: StorySaveWhereUniqueInput | StorySaveWhereUniqueInput[]
+    update?: StorySaveUpdateWithWhereUniqueWithoutSessionInput | StorySaveUpdateWithWhereUniqueWithoutSessionInput[]
+    updateMany?: StorySaveUpdateManyWithWhereWithoutSessionInput | StorySaveUpdateManyWithWhereWithoutSessionInput[]
+    deleteMany?: StorySaveScalarWhereInput | StorySaveScalarWhereInput[]
+  }
+
+  export type StoryCompletionUncheckedUpdateManyWithoutSessionNestedInput = {
+    create?: XOR<StoryCompletionCreateWithoutSessionInput, StoryCompletionUncheckedCreateWithoutSessionInput> | StoryCompletionCreateWithoutSessionInput[] | StoryCompletionUncheckedCreateWithoutSessionInput[]
+    connectOrCreate?: StoryCompletionCreateOrConnectWithoutSessionInput | StoryCompletionCreateOrConnectWithoutSessionInput[]
+    upsert?: StoryCompletionUpsertWithWhereUniqueWithoutSessionInput | StoryCompletionUpsertWithWhereUniqueWithoutSessionInput[]
+    createMany?: StoryCompletionCreateManySessionInputEnvelope
+    set?: StoryCompletionWhereUniqueInput | StoryCompletionWhereUniqueInput[]
+    disconnect?: StoryCompletionWhereUniqueInput | StoryCompletionWhereUniqueInput[]
+    delete?: StoryCompletionWhereUniqueInput | StoryCompletionWhereUniqueInput[]
+    connect?: StoryCompletionWhereUniqueInput | StoryCompletionWhereUniqueInput[]
+    update?: StoryCompletionUpdateWithWhereUniqueWithoutSessionInput | StoryCompletionUpdateWithWhereUniqueWithoutSessionInput[]
+    updateMany?: StoryCompletionUpdateManyWithWhereWithoutSessionInput | StoryCompletionUpdateManyWithWhereWithoutSessionInput[]
+    deleteMany?: StoryCompletionScalarWhereInput | StoryCompletionScalarWhereInput[]
   }
 
   export type JourneyProgressCreateNestedManyWithoutScenarioInput = {
@@ -33504,6 +38482,70 @@ export namespace Prisma {
     update?: XOR<XOR<UserUpdateToOneWithWhereWithoutStoryInteractionsInput, UserUpdateWithoutStoryInteractionsInput>, UserUncheckedUpdateWithoutStoryInteractionsInput>
   }
 
+  export type UserCreateNestedOneWithoutStorySavesInput = {
+    create?: XOR<UserCreateWithoutStorySavesInput, UserUncheckedCreateWithoutStorySavesInput>
+    connectOrCreate?: UserCreateOrConnectWithoutStorySavesInput
+    connect?: UserWhereUniqueInput
+  }
+
+  export type UserSessionCreateNestedOneWithoutStorySavesInput = {
+    create?: XOR<UserSessionCreateWithoutStorySavesInput, UserSessionUncheckedCreateWithoutStorySavesInput>
+    connectOrCreate?: UserSessionCreateOrConnectWithoutStorySavesInput
+    connect?: UserSessionWhereUniqueInput
+  }
+
+  export type UserUpdateOneWithoutStorySavesNestedInput = {
+    create?: XOR<UserCreateWithoutStorySavesInput, UserUncheckedCreateWithoutStorySavesInput>
+    connectOrCreate?: UserCreateOrConnectWithoutStorySavesInput
+    upsert?: UserUpsertWithoutStorySavesInput
+    disconnect?: UserWhereInput | boolean
+    delete?: UserWhereInput | boolean
+    connect?: UserWhereUniqueInput
+    update?: XOR<XOR<UserUpdateToOneWithWhereWithoutStorySavesInput, UserUpdateWithoutStorySavesInput>, UserUncheckedUpdateWithoutStorySavesInput>
+  }
+
+  export type UserSessionUpdateOneWithoutStorySavesNestedInput = {
+    create?: XOR<UserSessionCreateWithoutStorySavesInput, UserSessionUncheckedCreateWithoutStorySavesInput>
+    connectOrCreate?: UserSessionCreateOrConnectWithoutStorySavesInput
+    upsert?: UserSessionUpsertWithoutStorySavesInput
+    disconnect?: UserSessionWhereInput | boolean
+    delete?: UserSessionWhereInput | boolean
+    connect?: UserSessionWhereUniqueInput
+    update?: XOR<XOR<UserSessionUpdateToOneWithWhereWithoutStorySavesInput, UserSessionUpdateWithoutStorySavesInput>, UserSessionUncheckedUpdateWithoutStorySavesInput>
+  }
+
+  export type UserCreateNestedOneWithoutStoryCompletionsInput = {
+    create?: XOR<UserCreateWithoutStoryCompletionsInput, UserUncheckedCreateWithoutStoryCompletionsInput>
+    connectOrCreate?: UserCreateOrConnectWithoutStoryCompletionsInput
+    connect?: UserWhereUniqueInput
+  }
+
+  export type UserSessionCreateNestedOneWithoutStoryCompletionsInput = {
+    create?: XOR<UserSessionCreateWithoutStoryCompletionsInput, UserSessionUncheckedCreateWithoutStoryCompletionsInput>
+    connectOrCreate?: UserSessionCreateOrConnectWithoutStoryCompletionsInput
+    connect?: UserSessionWhereUniqueInput
+  }
+
+  export type UserUpdateOneWithoutStoryCompletionsNestedInput = {
+    create?: XOR<UserCreateWithoutStoryCompletionsInput, UserUncheckedCreateWithoutStoryCompletionsInput>
+    connectOrCreate?: UserCreateOrConnectWithoutStoryCompletionsInput
+    upsert?: UserUpsertWithoutStoryCompletionsInput
+    disconnect?: UserWhereInput | boolean
+    delete?: UserWhereInput | boolean
+    connect?: UserWhereUniqueInput
+    update?: XOR<XOR<UserUpdateToOneWithWhereWithoutStoryCompletionsInput, UserUpdateWithoutStoryCompletionsInput>, UserUncheckedUpdateWithoutStoryCompletionsInput>
+  }
+
+  export type UserSessionUpdateOneWithoutStoryCompletionsNestedInput = {
+    create?: XOR<UserSessionCreateWithoutStoryCompletionsInput, UserSessionUncheckedCreateWithoutStoryCompletionsInput>
+    connectOrCreate?: UserSessionCreateOrConnectWithoutStoryCompletionsInput
+    upsert?: UserSessionUpsertWithoutStoryCompletionsInput
+    disconnect?: UserSessionWhereInput | boolean
+    delete?: UserSessionWhereInput | boolean
+    connect?: UserSessionWhereUniqueInput
+    update?: XOR<XOR<UserSessionUpdateToOneWithWhereWithoutStoryCompletionsInput, UserSessionUpdateWithoutStoryCompletionsInput>, UserSessionUncheckedUpdateWithoutStoryCompletionsInput>
+  }
+
   export type NestedStringFilter<$PrismaModel = never> = {
     equals?: string | StringFieldRefInput<$PrismaModel>
     in?: string[] | ListStringFieldRefInput<$PrismaModel>
@@ -33964,6 +39006,8 @@ export namespace Prisma {
     storyPlays?: StoryPlaySessionCreateNestedManyWithoutSessionInput
     achievements?: UserAchievementCreateNestedManyWithoutSessionInput
     storyInteractions?: StoryInteractionCreateNestedManyWithoutSessionInput
+    storySaves?: StorySaveCreateNestedManyWithoutSessionInput
+    storyCompletions?: StoryCompletionCreateNestedManyWithoutSessionInput
   }
 
   export type UserSessionUncheckedCreateWithoutUserInput = {
@@ -33977,6 +39021,8 @@ export namespace Prisma {
     storyPlays?: StoryPlaySessionUncheckedCreateNestedManyWithoutSessionInput
     achievements?: UserAchievementUncheckedCreateNestedManyWithoutSessionInput
     storyInteractions?: StoryInteractionUncheckedCreateNestedManyWithoutSessionInput
+    storySaves?: StorySaveUncheckedCreateNestedManyWithoutSessionInput
+    storyCompletions?: StoryCompletionUncheckedCreateNestedManyWithoutSessionInput
   }
 
   export type UserSessionCreateOrConnectWithoutUserInput = {
@@ -34086,6 +39132,98 @@ export namespace Prisma {
 
   export type StoryPlaySessionCreateManyUserInputEnvelope = {
     data: StoryPlaySessionCreateManyUserInput | StoryPlaySessionCreateManyUserInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type StorySaveCreateWithoutUserInput = {
+    id?: string
+    storySlug: string
+    storyVersion?: string | null
+    saveName?: string | null
+    isAutoSave?: boolean
+    currentPassageId: string
+    resources?: NullableJsonNullValueInput | InputJsonValue
+    hiddenState?: NullableJsonNullValueInput | InputJsonValue
+    visitedPassages?: NullableJsonNullValueInput | InputJsonValue
+    choicesMade?: NullableJsonNullValueInput | InputJsonValue
+    pathTaken?: NullableJsonNullValueInput | InputJsonValue
+    completed?: boolean
+    endingId?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    session?: UserSessionCreateNestedOneWithoutStorySavesInput
+  }
+
+  export type StorySaveUncheckedCreateWithoutUserInput = {
+    id?: string
+    storySlug: string
+    storyVersion?: string | null
+    sessionId?: string | null
+    saveName?: string | null
+    isAutoSave?: boolean
+    currentPassageId: string
+    resources?: NullableJsonNullValueInput | InputJsonValue
+    hiddenState?: NullableJsonNullValueInput | InputJsonValue
+    visitedPassages?: NullableJsonNullValueInput | InputJsonValue
+    choicesMade?: NullableJsonNullValueInput | InputJsonValue
+    pathTaken?: NullableJsonNullValueInput | InputJsonValue
+    completed?: boolean
+    endingId?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type StorySaveCreateOrConnectWithoutUserInput = {
+    where: StorySaveWhereUniqueInput
+    create: XOR<StorySaveCreateWithoutUserInput, StorySaveUncheckedCreateWithoutUserInput>
+  }
+
+  export type StorySaveCreateManyUserInputEnvelope = {
+    data: StorySaveCreateManyUserInput | StorySaveCreateManyUserInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type StoryCompletionCreateWithoutUserInput = {
+    id?: string
+    storySlug: string
+    storyVersion?: string | null
+    endingId: string
+    endingType?: string | null
+    finalResources?: NullableJsonNullValueInput | InputJsonValue
+    finalHiddenState?: NullableJsonNullValueInput | InputJsonValue
+    totalChoices?: number
+    totalTime?: number
+    pathTaken?: NullableJsonNullValueInput | InputJsonValue
+    choicesMade?: NullableJsonNullValueInput | InputJsonValue
+    reflectionResponses?: NullableJsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+    session?: UserSessionCreateNestedOneWithoutStoryCompletionsInput
+  }
+
+  export type StoryCompletionUncheckedCreateWithoutUserInput = {
+    id?: string
+    storySlug: string
+    storyVersion?: string | null
+    sessionId?: string | null
+    endingId: string
+    endingType?: string | null
+    finalResources?: NullableJsonNullValueInput | InputJsonValue
+    finalHiddenState?: NullableJsonNullValueInput | InputJsonValue
+    totalChoices?: number
+    totalTime?: number
+    pathTaken?: NullableJsonNullValueInput | InputJsonValue
+    choicesMade?: NullableJsonNullValueInput | InputJsonValue
+    reflectionResponses?: NullableJsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+  }
+
+  export type StoryCompletionCreateOrConnectWithoutUserInput = {
+    where: StoryCompletionWhereUniqueInput
+    create: XOR<StoryCompletionCreateWithoutUserInput, StoryCompletionUncheckedCreateWithoutUserInput>
+  }
+
+  export type StoryCompletionCreateManyUserInputEnvelope = {
+    data: StoryCompletionCreateManyUserInput | StoryCompletionCreateManyUserInput[]
     skipDuplicates?: boolean
   }
 
@@ -34814,6 +39952,82 @@ export namespace Prisma {
     feedback?: StringNullableFilter<"StoryPlaySession"> | string | null
   }
 
+  export type StorySaveUpsertWithWhereUniqueWithoutUserInput = {
+    where: StorySaveWhereUniqueInput
+    update: XOR<StorySaveUpdateWithoutUserInput, StorySaveUncheckedUpdateWithoutUserInput>
+    create: XOR<StorySaveCreateWithoutUserInput, StorySaveUncheckedCreateWithoutUserInput>
+  }
+
+  export type StorySaveUpdateWithWhereUniqueWithoutUserInput = {
+    where: StorySaveWhereUniqueInput
+    data: XOR<StorySaveUpdateWithoutUserInput, StorySaveUncheckedUpdateWithoutUserInput>
+  }
+
+  export type StorySaveUpdateManyWithWhereWithoutUserInput = {
+    where: StorySaveScalarWhereInput
+    data: XOR<StorySaveUpdateManyMutationInput, StorySaveUncheckedUpdateManyWithoutUserInput>
+  }
+
+  export type StorySaveScalarWhereInput = {
+    AND?: StorySaveScalarWhereInput | StorySaveScalarWhereInput[]
+    OR?: StorySaveScalarWhereInput[]
+    NOT?: StorySaveScalarWhereInput | StorySaveScalarWhereInput[]
+    id?: StringFilter<"StorySave"> | string
+    storySlug?: StringFilter<"StorySave"> | string
+    storyVersion?: StringNullableFilter<"StorySave"> | string | null
+    userId?: StringNullableFilter<"StorySave"> | string | null
+    sessionId?: StringNullableFilter<"StorySave"> | string | null
+    saveName?: StringNullableFilter<"StorySave"> | string | null
+    isAutoSave?: BoolFilter<"StorySave"> | boolean
+    currentPassageId?: StringFilter<"StorySave"> | string
+    resources?: JsonNullableFilter<"StorySave">
+    hiddenState?: JsonNullableFilter<"StorySave">
+    visitedPassages?: JsonNullableFilter<"StorySave">
+    choicesMade?: JsonNullableFilter<"StorySave">
+    pathTaken?: JsonNullableFilter<"StorySave">
+    completed?: BoolFilter<"StorySave"> | boolean
+    endingId?: StringNullableFilter<"StorySave"> | string | null
+    createdAt?: DateTimeFilter<"StorySave"> | Date | string
+    updatedAt?: DateTimeFilter<"StorySave"> | Date | string
+  }
+
+  export type StoryCompletionUpsertWithWhereUniqueWithoutUserInput = {
+    where: StoryCompletionWhereUniqueInput
+    update: XOR<StoryCompletionUpdateWithoutUserInput, StoryCompletionUncheckedUpdateWithoutUserInput>
+    create: XOR<StoryCompletionCreateWithoutUserInput, StoryCompletionUncheckedCreateWithoutUserInput>
+  }
+
+  export type StoryCompletionUpdateWithWhereUniqueWithoutUserInput = {
+    where: StoryCompletionWhereUniqueInput
+    data: XOR<StoryCompletionUpdateWithoutUserInput, StoryCompletionUncheckedUpdateWithoutUserInput>
+  }
+
+  export type StoryCompletionUpdateManyWithWhereWithoutUserInput = {
+    where: StoryCompletionScalarWhereInput
+    data: XOR<StoryCompletionUpdateManyMutationInput, StoryCompletionUncheckedUpdateManyWithoutUserInput>
+  }
+
+  export type StoryCompletionScalarWhereInput = {
+    AND?: StoryCompletionScalarWhereInput | StoryCompletionScalarWhereInput[]
+    OR?: StoryCompletionScalarWhereInput[]
+    NOT?: StoryCompletionScalarWhereInput | StoryCompletionScalarWhereInput[]
+    id?: StringFilter<"StoryCompletion"> | string
+    storySlug?: StringFilter<"StoryCompletion"> | string
+    storyVersion?: StringNullableFilter<"StoryCompletion"> | string | null
+    userId?: StringNullableFilter<"StoryCompletion"> | string | null
+    sessionId?: StringNullableFilter<"StoryCompletion"> | string | null
+    endingId?: StringFilter<"StoryCompletion"> | string
+    endingType?: StringNullableFilter<"StoryCompletion"> | string | null
+    finalResources?: JsonNullableFilter<"StoryCompletion">
+    finalHiddenState?: JsonNullableFilter<"StoryCompletion">
+    totalChoices?: IntFilter<"StoryCompletion"> | number
+    totalTime?: IntFilter<"StoryCompletion"> | number
+    pathTaken?: JsonNullableFilter<"StoryCompletion">
+    choicesMade?: JsonNullableFilter<"StoryCompletion">
+    reflectionResponses?: JsonNullableFilter<"StoryCompletion">
+    createdAt?: DateTimeFilter<"StoryCompletion"> | Date | string
+  }
+
   export type TwineStoryUpsertWithWhereUniqueWithoutOwnerInput = {
     where: TwineStoryWhereUniqueInput
     update: XOR<TwineStoryUpdateWithoutOwnerInput, TwineStoryUncheckedUpdateWithoutOwnerInput>
@@ -35161,6 +40375,8 @@ export namespace Prisma {
     journeys?: JourneyProgressCreateNestedManyWithoutUserInput
     achievements?: UserAchievementCreateNestedManyWithoutUserInput
     storyPlays?: StoryPlaySessionCreateNestedManyWithoutUserInput
+    storySaves?: StorySaveCreateNestedManyWithoutUserInput
+    storyCompletions?: StoryCompletionCreateNestedManyWithoutUserInput
     stories?: TwineStoryCreateNestedManyWithoutOwnerInput
     authoredVersions?: StoryVersionCreateNestedManyWithoutAuthorInput
     reviewedVersions?: StoryVersionCreateNestedManyWithoutReviewerInput
@@ -35187,6 +40403,8 @@ export namespace Prisma {
     journeys?: JourneyProgressUncheckedCreateNestedManyWithoutUserInput
     achievements?: UserAchievementUncheckedCreateNestedManyWithoutUserInput
     storyPlays?: StoryPlaySessionUncheckedCreateNestedManyWithoutUserInput
+    storySaves?: StorySaveUncheckedCreateNestedManyWithoutUserInput
+    storyCompletions?: StoryCompletionUncheckedCreateNestedManyWithoutUserInput
     stories?: TwineStoryUncheckedCreateNestedManyWithoutOwnerInput
     authoredVersions?: StoryVersionUncheckedCreateNestedManyWithoutAuthorInput
     reviewedVersions?: StoryVersionUncheckedCreateNestedManyWithoutReviewerInput
@@ -35229,6 +40447,8 @@ export namespace Prisma {
     journeys?: JourneyProgressUpdateManyWithoutUserNestedInput
     achievements?: UserAchievementUpdateManyWithoutUserNestedInput
     storyPlays?: StoryPlaySessionUpdateManyWithoutUserNestedInput
+    storySaves?: StorySaveUpdateManyWithoutUserNestedInput
+    storyCompletions?: StoryCompletionUpdateManyWithoutUserNestedInput
     stories?: TwineStoryUpdateManyWithoutOwnerNestedInput
     authoredVersions?: StoryVersionUpdateManyWithoutAuthorNestedInput
     reviewedVersions?: StoryVersionUpdateManyWithoutReviewerNestedInput
@@ -35255,6 +40475,8 @@ export namespace Prisma {
     journeys?: JourneyProgressUncheckedUpdateManyWithoutUserNestedInput
     achievements?: UserAchievementUncheckedUpdateManyWithoutUserNestedInput
     storyPlays?: StoryPlaySessionUncheckedUpdateManyWithoutUserNestedInput
+    storySaves?: StorySaveUncheckedUpdateManyWithoutUserNestedInput
+    storyCompletions?: StoryCompletionUncheckedUpdateManyWithoutUserNestedInput
     stories?: TwineStoryUncheckedUpdateManyWithoutOwnerNestedInput
     authoredVersions?: StoryVersionUncheckedUpdateManyWithoutAuthorNestedInput
     reviewedVersions?: StoryVersionUncheckedUpdateManyWithoutReviewerNestedInput
@@ -35282,6 +40504,8 @@ export namespace Prisma {
     journeys?: JourneyProgressCreateNestedManyWithoutUserInput
     achievements?: UserAchievementCreateNestedManyWithoutUserInput
     storyPlays?: StoryPlaySessionCreateNestedManyWithoutUserInput
+    storySaves?: StorySaveCreateNestedManyWithoutUserInput
+    storyCompletions?: StoryCompletionCreateNestedManyWithoutUserInput
     stories?: TwineStoryCreateNestedManyWithoutOwnerInput
     authoredVersions?: StoryVersionCreateNestedManyWithoutAuthorInput
     reviewedVersions?: StoryVersionCreateNestedManyWithoutReviewerInput
@@ -35308,6 +40532,8 @@ export namespace Prisma {
     journeys?: JourneyProgressUncheckedCreateNestedManyWithoutUserInput
     achievements?: UserAchievementUncheckedCreateNestedManyWithoutUserInput
     storyPlays?: StoryPlaySessionUncheckedCreateNestedManyWithoutUserInput
+    storySaves?: StorySaveUncheckedCreateNestedManyWithoutUserInput
+    storyCompletions?: StoryCompletionUncheckedCreateNestedManyWithoutUserInput
     stories?: TwineStoryUncheckedCreateNestedManyWithoutOwnerInput
     authoredVersions?: StoryVersionUncheckedCreateNestedManyWithoutAuthorInput
     reviewedVersions?: StoryVersionUncheckedCreateNestedManyWithoutReviewerInput
@@ -35339,6 +40565,8 @@ export namespace Prisma {
     journeys?: JourneyProgressCreateNestedManyWithoutUserInput
     achievements?: UserAchievementCreateNestedManyWithoutUserInput
     storyPlays?: StoryPlaySessionCreateNestedManyWithoutUserInput
+    storySaves?: StorySaveCreateNestedManyWithoutUserInput
+    storyCompletions?: StoryCompletionCreateNestedManyWithoutUserInput
     stories?: TwineStoryCreateNestedManyWithoutOwnerInput
     authoredVersions?: StoryVersionCreateNestedManyWithoutAuthorInput
     reviewedVersions?: StoryVersionCreateNestedManyWithoutReviewerInput
@@ -35365,6 +40593,8 @@ export namespace Prisma {
     journeys?: JourneyProgressUncheckedCreateNestedManyWithoutUserInput
     achievements?: UserAchievementUncheckedCreateNestedManyWithoutUserInput
     storyPlays?: StoryPlaySessionUncheckedCreateNestedManyWithoutUserInput
+    storySaves?: StorySaveUncheckedCreateNestedManyWithoutUserInput
+    storyCompletions?: StoryCompletionUncheckedCreateNestedManyWithoutUserInput
     stories?: TwineStoryUncheckedCreateNestedManyWithoutOwnerInput
     authoredVersions?: StoryVersionUncheckedCreateNestedManyWithoutAuthorInput
     reviewedVersions?: StoryVersionUncheckedCreateNestedManyWithoutReviewerInput
@@ -35483,6 +40713,8 @@ export namespace Prisma {
     journeys?: JourneyProgressUpdateManyWithoutUserNestedInput
     achievements?: UserAchievementUpdateManyWithoutUserNestedInput
     storyPlays?: StoryPlaySessionUpdateManyWithoutUserNestedInput
+    storySaves?: StorySaveUpdateManyWithoutUserNestedInput
+    storyCompletions?: StoryCompletionUpdateManyWithoutUserNestedInput
     stories?: TwineStoryUpdateManyWithoutOwnerNestedInput
     authoredVersions?: StoryVersionUpdateManyWithoutAuthorNestedInput
     reviewedVersions?: StoryVersionUpdateManyWithoutReviewerNestedInput
@@ -35509,6 +40741,8 @@ export namespace Prisma {
     journeys?: JourneyProgressUncheckedUpdateManyWithoutUserNestedInput
     achievements?: UserAchievementUncheckedUpdateManyWithoutUserNestedInput
     storyPlays?: StoryPlaySessionUncheckedUpdateManyWithoutUserNestedInput
+    storySaves?: StorySaveUncheckedUpdateManyWithoutUserNestedInput
+    storyCompletions?: StoryCompletionUncheckedUpdateManyWithoutUserNestedInput
     stories?: TwineStoryUncheckedUpdateManyWithoutOwnerNestedInput
     authoredVersions?: StoryVersionUncheckedUpdateManyWithoutAuthorNestedInput
     reviewedVersions?: StoryVersionUncheckedUpdateManyWithoutReviewerNestedInput
@@ -35546,6 +40780,8 @@ export namespace Prisma {
     journeys?: JourneyProgressUpdateManyWithoutUserNestedInput
     achievements?: UserAchievementUpdateManyWithoutUserNestedInput
     storyPlays?: StoryPlaySessionUpdateManyWithoutUserNestedInput
+    storySaves?: StorySaveUpdateManyWithoutUserNestedInput
+    storyCompletions?: StoryCompletionUpdateManyWithoutUserNestedInput
     stories?: TwineStoryUpdateManyWithoutOwnerNestedInput
     authoredVersions?: StoryVersionUpdateManyWithoutAuthorNestedInput
     reviewedVersions?: StoryVersionUpdateManyWithoutReviewerNestedInput
@@ -35572,6 +40808,8 @@ export namespace Prisma {
     journeys?: JourneyProgressUncheckedUpdateManyWithoutUserNestedInput
     achievements?: UserAchievementUncheckedUpdateManyWithoutUserNestedInput
     storyPlays?: StoryPlaySessionUncheckedUpdateManyWithoutUserNestedInput
+    storySaves?: StorySaveUncheckedUpdateManyWithoutUserNestedInput
+    storyCompletions?: StoryCompletionUncheckedUpdateManyWithoutUserNestedInput
     stories?: TwineStoryUncheckedUpdateManyWithoutOwnerNestedInput
     authoredVersions?: StoryVersionUncheckedUpdateManyWithoutAuthorNestedInput
     reviewedVersions?: StoryVersionUncheckedUpdateManyWithoutReviewerNestedInput
@@ -35613,6 +40851,8 @@ export namespace Prisma {
     journeys?: JourneyProgressCreateNestedManyWithoutUserInput
     achievements?: UserAchievementCreateNestedManyWithoutUserInput
     storyPlays?: StoryPlaySessionCreateNestedManyWithoutUserInput
+    storySaves?: StorySaveCreateNestedManyWithoutUserInput
+    storyCompletions?: StoryCompletionCreateNestedManyWithoutUserInput
     stories?: TwineStoryCreateNestedManyWithoutOwnerInput
     authoredVersions?: StoryVersionCreateNestedManyWithoutAuthorInput
     reviewedVersions?: StoryVersionCreateNestedManyWithoutReviewerInput
@@ -35639,6 +40879,8 @@ export namespace Prisma {
     journeys?: JourneyProgressUncheckedCreateNestedManyWithoutUserInput
     achievements?: UserAchievementUncheckedCreateNestedManyWithoutUserInput
     storyPlays?: StoryPlaySessionUncheckedCreateNestedManyWithoutUserInput
+    storySaves?: StorySaveUncheckedCreateNestedManyWithoutUserInput
+    storyCompletions?: StoryCompletionUncheckedCreateNestedManyWithoutUserInput
     stories?: TwineStoryUncheckedCreateNestedManyWithoutOwnerInput
     authoredVersions?: StoryVersionUncheckedCreateNestedManyWithoutAuthorInput
     reviewedVersions?: StoryVersionUncheckedCreateNestedManyWithoutReviewerInput
@@ -35786,6 +41028,98 @@ export namespace Prisma {
     skipDuplicates?: boolean
   }
 
+  export type StorySaveCreateWithoutSessionInput = {
+    id?: string
+    storySlug: string
+    storyVersion?: string | null
+    saveName?: string | null
+    isAutoSave?: boolean
+    currentPassageId: string
+    resources?: NullableJsonNullValueInput | InputJsonValue
+    hiddenState?: NullableJsonNullValueInput | InputJsonValue
+    visitedPassages?: NullableJsonNullValueInput | InputJsonValue
+    choicesMade?: NullableJsonNullValueInput | InputJsonValue
+    pathTaken?: NullableJsonNullValueInput | InputJsonValue
+    completed?: boolean
+    endingId?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    user?: UserCreateNestedOneWithoutStorySavesInput
+  }
+
+  export type StorySaveUncheckedCreateWithoutSessionInput = {
+    id?: string
+    storySlug: string
+    storyVersion?: string | null
+    userId?: string | null
+    saveName?: string | null
+    isAutoSave?: boolean
+    currentPassageId: string
+    resources?: NullableJsonNullValueInput | InputJsonValue
+    hiddenState?: NullableJsonNullValueInput | InputJsonValue
+    visitedPassages?: NullableJsonNullValueInput | InputJsonValue
+    choicesMade?: NullableJsonNullValueInput | InputJsonValue
+    pathTaken?: NullableJsonNullValueInput | InputJsonValue
+    completed?: boolean
+    endingId?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type StorySaveCreateOrConnectWithoutSessionInput = {
+    where: StorySaveWhereUniqueInput
+    create: XOR<StorySaveCreateWithoutSessionInput, StorySaveUncheckedCreateWithoutSessionInput>
+  }
+
+  export type StorySaveCreateManySessionInputEnvelope = {
+    data: StorySaveCreateManySessionInput | StorySaveCreateManySessionInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type StoryCompletionCreateWithoutSessionInput = {
+    id?: string
+    storySlug: string
+    storyVersion?: string | null
+    endingId: string
+    endingType?: string | null
+    finalResources?: NullableJsonNullValueInput | InputJsonValue
+    finalHiddenState?: NullableJsonNullValueInput | InputJsonValue
+    totalChoices?: number
+    totalTime?: number
+    pathTaken?: NullableJsonNullValueInput | InputJsonValue
+    choicesMade?: NullableJsonNullValueInput | InputJsonValue
+    reflectionResponses?: NullableJsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+    user?: UserCreateNestedOneWithoutStoryCompletionsInput
+  }
+
+  export type StoryCompletionUncheckedCreateWithoutSessionInput = {
+    id?: string
+    storySlug: string
+    storyVersion?: string | null
+    userId?: string | null
+    endingId: string
+    endingType?: string | null
+    finalResources?: NullableJsonNullValueInput | InputJsonValue
+    finalHiddenState?: NullableJsonNullValueInput | InputJsonValue
+    totalChoices?: number
+    totalTime?: number
+    pathTaken?: NullableJsonNullValueInput | InputJsonValue
+    choicesMade?: NullableJsonNullValueInput | InputJsonValue
+    reflectionResponses?: NullableJsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+  }
+
+  export type StoryCompletionCreateOrConnectWithoutSessionInput = {
+    where: StoryCompletionWhereUniqueInput
+    create: XOR<StoryCompletionCreateWithoutSessionInput, StoryCompletionUncheckedCreateWithoutSessionInput>
+  }
+
+  export type StoryCompletionCreateManySessionInputEnvelope = {
+    data: StoryCompletionCreateManySessionInput | StoryCompletionCreateManySessionInput[]
+    skipDuplicates?: boolean
+  }
+
   export type UserUpsertWithoutSessionsInput = {
     update: XOR<UserUpdateWithoutSessionsInput, UserUncheckedUpdateWithoutSessionsInput>
     create: XOR<UserCreateWithoutSessionsInput, UserUncheckedCreateWithoutSessionsInput>
@@ -35811,6 +41145,8 @@ export namespace Prisma {
     journeys?: JourneyProgressUpdateManyWithoutUserNestedInput
     achievements?: UserAchievementUpdateManyWithoutUserNestedInput
     storyPlays?: StoryPlaySessionUpdateManyWithoutUserNestedInput
+    storySaves?: StorySaveUpdateManyWithoutUserNestedInput
+    storyCompletions?: StoryCompletionUpdateManyWithoutUserNestedInput
     stories?: TwineStoryUpdateManyWithoutOwnerNestedInput
     authoredVersions?: StoryVersionUpdateManyWithoutAuthorNestedInput
     reviewedVersions?: StoryVersionUpdateManyWithoutReviewerNestedInput
@@ -35837,6 +41173,8 @@ export namespace Prisma {
     journeys?: JourneyProgressUncheckedUpdateManyWithoutUserNestedInput
     achievements?: UserAchievementUncheckedUpdateManyWithoutUserNestedInput
     storyPlays?: StoryPlaySessionUncheckedUpdateManyWithoutUserNestedInput
+    storySaves?: StorySaveUncheckedUpdateManyWithoutUserNestedInput
+    storyCompletions?: StoryCompletionUncheckedUpdateManyWithoutUserNestedInput
     stories?: TwineStoryUncheckedUpdateManyWithoutOwnerNestedInput
     authoredVersions?: StoryVersionUncheckedUpdateManyWithoutAuthorNestedInput
     reviewedVersions?: StoryVersionUncheckedUpdateManyWithoutReviewerNestedInput
@@ -35911,6 +41249,38 @@ export namespace Prisma {
   export type StoryInteractionUpdateManyWithWhereWithoutSessionInput = {
     where: StoryInteractionScalarWhereInput
     data: XOR<StoryInteractionUpdateManyMutationInput, StoryInteractionUncheckedUpdateManyWithoutSessionInput>
+  }
+
+  export type StorySaveUpsertWithWhereUniqueWithoutSessionInput = {
+    where: StorySaveWhereUniqueInput
+    update: XOR<StorySaveUpdateWithoutSessionInput, StorySaveUncheckedUpdateWithoutSessionInput>
+    create: XOR<StorySaveCreateWithoutSessionInput, StorySaveUncheckedCreateWithoutSessionInput>
+  }
+
+  export type StorySaveUpdateWithWhereUniqueWithoutSessionInput = {
+    where: StorySaveWhereUniqueInput
+    data: XOR<StorySaveUpdateWithoutSessionInput, StorySaveUncheckedUpdateWithoutSessionInput>
+  }
+
+  export type StorySaveUpdateManyWithWhereWithoutSessionInput = {
+    where: StorySaveScalarWhereInput
+    data: XOR<StorySaveUpdateManyMutationInput, StorySaveUncheckedUpdateManyWithoutSessionInput>
+  }
+
+  export type StoryCompletionUpsertWithWhereUniqueWithoutSessionInput = {
+    where: StoryCompletionWhereUniqueInput
+    update: XOR<StoryCompletionUpdateWithoutSessionInput, StoryCompletionUncheckedUpdateWithoutSessionInput>
+    create: XOR<StoryCompletionCreateWithoutSessionInput, StoryCompletionUncheckedCreateWithoutSessionInput>
+  }
+
+  export type StoryCompletionUpdateWithWhereUniqueWithoutSessionInput = {
+    where: StoryCompletionWhereUniqueInput
+    data: XOR<StoryCompletionUpdateWithoutSessionInput, StoryCompletionUncheckedUpdateWithoutSessionInput>
+  }
+
+  export type StoryCompletionUpdateManyWithWhereWithoutSessionInput = {
+    where: StoryCompletionScalarWhereInput
+    data: XOR<StoryCompletionUpdateManyMutationInput, StoryCompletionUncheckedUpdateManyWithoutSessionInput>
   }
 
   export type JourneyProgressCreateWithoutScenarioInput = {
@@ -36010,6 +41380,8 @@ export namespace Prisma {
     sessions?: UserSessionCreateNestedManyWithoutUserInput
     achievements?: UserAchievementCreateNestedManyWithoutUserInput
     storyPlays?: StoryPlaySessionCreateNestedManyWithoutUserInput
+    storySaves?: StorySaveCreateNestedManyWithoutUserInput
+    storyCompletions?: StoryCompletionCreateNestedManyWithoutUserInput
     stories?: TwineStoryCreateNestedManyWithoutOwnerInput
     authoredVersions?: StoryVersionCreateNestedManyWithoutAuthorInput
     reviewedVersions?: StoryVersionCreateNestedManyWithoutReviewerInput
@@ -36036,6 +41408,8 @@ export namespace Prisma {
     sessions?: UserSessionUncheckedCreateNestedManyWithoutUserInput
     achievements?: UserAchievementUncheckedCreateNestedManyWithoutUserInput
     storyPlays?: StoryPlaySessionUncheckedCreateNestedManyWithoutUserInput
+    storySaves?: StorySaveUncheckedCreateNestedManyWithoutUserInput
+    storyCompletions?: StoryCompletionUncheckedCreateNestedManyWithoutUserInput
     stories?: TwineStoryUncheckedCreateNestedManyWithoutOwnerInput
     authoredVersions?: StoryVersionUncheckedCreateNestedManyWithoutAuthorInput
     reviewedVersions?: StoryVersionUncheckedCreateNestedManyWithoutReviewerInput
@@ -36064,6 +41438,8 @@ export namespace Prisma {
     storyPlays?: StoryPlaySessionCreateNestedManyWithoutSessionInput
     achievements?: UserAchievementCreateNestedManyWithoutSessionInput
     storyInteractions?: StoryInteractionCreateNestedManyWithoutSessionInput
+    storySaves?: StorySaveCreateNestedManyWithoutSessionInput
+    storyCompletions?: StoryCompletionCreateNestedManyWithoutSessionInput
   }
 
   export type UserSessionUncheckedCreateWithoutJourneysInput = {
@@ -36077,6 +41453,8 @@ export namespace Prisma {
     storyPlays?: StoryPlaySessionUncheckedCreateNestedManyWithoutSessionInput
     achievements?: UserAchievementUncheckedCreateNestedManyWithoutSessionInput
     storyInteractions?: StoryInteractionUncheckedCreateNestedManyWithoutSessionInput
+    storySaves?: StorySaveUncheckedCreateNestedManyWithoutSessionInput
+    storyCompletions?: StoryCompletionUncheckedCreateNestedManyWithoutSessionInput
   }
 
   export type UserSessionCreateOrConnectWithoutJourneysInput = {
@@ -36172,6 +41550,8 @@ export namespace Prisma {
     sessions?: UserSessionUpdateManyWithoutUserNestedInput
     achievements?: UserAchievementUpdateManyWithoutUserNestedInput
     storyPlays?: StoryPlaySessionUpdateManyWithoutUserNestedInput
+    storySaves?: StorySaveUpdateManyWithoutUserNestedInput
+    storyCompletions?: StoryCompletionUpdateManyWithoutUserNestedInput
     stories?: TwineStoryUpdateManyWithoutOwnerNestedInput
     authoredVersions?: StoryVersionUpdateManyWithoutAuthorNestedInput
     reviewedVersions?: StoryVersionUpdateManyWithoutReviewerNestedInput
@@ -36198,6 +41578,8 @@ export namespace Prisma {
     sessions?: UserSessionUncheckedUpdateManyWithoutUserNestedInput
     achievements?: UserAchievementUncheckedUpdateManyWithoutUserNestedInput
     storyPlays?: StoryPlaySessionUncheckedUpdateManyWithoutUserNestedInput
+    storySaves?: StorySaveUncheckedUpdateManyWithoutUserNestedInput
+    storyCompletions?: StoryCompletionUncheckedUpdateManyWithoutUserNestedInput
     stories?: TwineStoryUncheckedUpdateManyWithoutOwnerNestedInput
     authoredVersions?: StoryVersionUncheckedUpdateManyWithoutAuthorNestedInput
     reviewedVersions?: StoryVersionUncheckedUpdateManyWithoutReviewerNestedInput
@@ -36232,6 +41614,8 @@ export namespace Prisma {
     storyPlays?: StoryPlaySessionUpdateManyWithoutSessionNestedInput
     achievements?: UserAchievementUpdateManyWithoutSessionNestedInput
     storyInteractions?: StoryInteractionUpdateManyWithoutSessionNestedInput
+    storySaves?: StorySaveUpdateManyWithoutSessionNestedInput
+    storyCompletions?: StoryCompletionUpdateManyWithoutSessionNestedInput
   }
 
   export type UserSessionUncheckedUpdateWithoutJourneysInput = {
@@ -36245,6 +41629,8 @@ export namespace Prisma {
     storyPlays?: StoryPlaySessionUncheckedUpdateManyWithoutSessionNestedInput
     achievements?: UserAchievementUncheckedUpdateManyWithoutSessionNestedInput
     storyInteractions?: StoryInteractionUncheckedUpdateManyWithoutSessionNestedInput
+    storySaves?: StorySaveUncheckedUpdateManyWithoutSessionNestedInput
+    storyCompletions?: StoryCompletionUncheckedUpdateManyWithoutSessionNestedInput
   }
 
   export type UserAchievementUpsertWithWhereUniqueWithoutJourneyInput = {
@@ -36352,6 +41738,8 @@ export namespace Prisma {
     sessions?: UserSessionCreateNestedManyWithoutUserInput
     journeys?: JourneyProgressCreateNestedManyWithoutUserInput
     storyPlays?: StoryPlaySessionCreateNestedManyWithoutUserInput
+    storySaves?: StorySaveCreateNestedManyWithoutUserInput
+    storyCompletions?: StoryCompletionCreateNestedManyWithoutUserInput
     stories?: TwineStoryCreateNestedManyWithoutOwnerInput
     authoredVersions?: StoryVersionCreateNestedManyWithoutAuthorInput
     reviewedVersions?: StoryVersionCreateNestedManyWithoutReviewerInput
@@ -36378,6 +41766,8 @@ export namespace Prisma {
     sessions?: UserSessionUncheckedCreateNestedManyWithoutUserInput
     journeys?: JourneyProgressUncheckedCreateNestedManyWithoutUserInput
     storyPlays?: StoryPlaySessionUncheckedCreateNestedManyWithoutUserInput
+    storySaves?: StorySaveUncheckedCreateNestedManyWithoutUserInput
+    storyCompletions?: StoryCompletionUncheckedCreateNestedManyWithoutUserInput
     stories?: TwineStoryUncheckedCreateNestedManyWithoutOwnerInput
     authoredVersions?: StoryVersionUncheckedCreateNestedManyWithoutAuthorInput
     reviewedVersions?: StoryVersionUncheckedCreateNestedManyWithoutReviewerInput
@@ -36406,6 +41796,8 @@ export namespace Prisma {
     journeys?: JourneyProgressCreateNestedManyWithoutSessionInput
     storyPlays?: StoryPlaySessionCreateNestedManyWithoutSessionInput
     storyInteractions?: StoryInteractionCreateNestedManyWithoutSessionInput
+    storySaves?: StorySaveCreateNestedManyWithoutSessionInput
+    storyCompletions?: StoryCompletionCreateNestedManyWithoutSessionInput
   }
 
   export type UserSessionUncheckedCreateWithoutAchievementsInput = {
@@ -36419,6 +41811,8 @@ export namespace Prisma {
     journeys?: JourneyProgressUncheckedCreateNestedManyWithoutSessionInput
     storyPlays?: StoryPlaySessionUncheckedCreateNestedManyWithoutSessionInput
     storyInteractions?: StoryInteractionUncheckedCreateNestedManyWithoutSessionInput
+    storySaves?: StorySaveUncheckedCreateNestedManyWithoutSessionInput
+    storyCompletions?: StoryCompletionUncheckedCreateNestedManyWithoutSessionInput
   }
 
   export type UserSessionCreateOrConnectWithoutAchievementsInput = {
@@ -36521,6 +41915,8 @@ export namespace Prisma {
     sessions?: UserSessionUpdateManyWithoutUserNestedInput
     journeys?: JourneyProgressUpdateManyWithoutUserNestedInput
     storyPlays?: StoryPlaySessionUpdateManyWithoutUserNestedInput
+    storySaves?: StorySaveUpdateManyWithoutUserNestedInput
+    storyCompletions?: StoryCompletionUpdateManyWithoutUserNestedInput
     stories?: TwineStoryUpdateManyWithoutOwnerNestedInput
     authoredVersions?: StoryVersionUpdateManyWithoutAuthorNestedInput
     reviewedVersions?: StoryVersionUpdateManyWithoutReviewerNestedInput
@@ -36547,6 +41943,8 @@ export namespace Prisma {
     sessions?: UserSessionUncheckedUpdateManyWithoutUserNestedInput
     journeys?: JourneyProgressUncheckedUpdateManyWithoutUserNestedInput
     storyPlays?: StoryPlaySessionUncheckedUpdateManyWithoutUserNestedInput
+    storySaves?: StorySaveUncheckedUpdateManyWithoutUserNestedInput
+    storyCompletions?: StoryCompletionUncheckedUpdateManyWithoutUserNestedInput
     stories?: TwineStoryUncheckedUpdateManyWithoutOwnerNestedInput
     authoredVersions?: StoryVersionUncheckedUpdateManyWithoutAuthorNestedInput
     reviewedVersions?: StoryVersionUncheckedUpdateManyWithoutReviewerNestedInput
@@ -36581,6 +41979,8 @@ export namespace Prisma {
     journeys?: JourneyProgressUpdateManyWithoutSessionNestedInput
     storyPlays?: StoryPlaySessionUpdateManyWithoutSessionNestedInput
     storyInteractions?: StoryInteractionUpdateManyWithoutSessionNestedInput
+    storySaves?: StorySaveUpdateManyWithoutSessionNestedInput
+    storyCompletions?: StoryCompletionUpdateManyWithoutSessionNestedInput
   }
 
   export type UserSessionUncheckedUpdateWithoutAchievementsInput = {
@@ -36594,6 +41994,8 @@ export namespace Prisma {
     journeys?: JourneyProgressUncheckedUpdateManyWithoutSessionNestedInput
     storyPlays?: StoryPlaySessionUncheckedUpdateManyWithoutSessionNestedInput
     storyInteractions?: StoryInteractionUncheckedUpdateManyWithoutSessionNestedInput
+    storySaves?: StorySaveUncheckedUpdateManyWithoutSessionNestedInput
+    storyCompletions?: StoryCompletionUncheckedUpdateManyWithoutSessionNestedInput
   }
 
   export type JourneyProgressUpsertWithoutAchievementsInput = {
@@ -36650,6 +42052,8 @@ export namespace Prisma {
     journeys?: JourneyProgressCreateNestedManyWithoutUserInput
     achievements?: UserAchievementCreateNestedManyWithoutUserInput
     storyPlays?: StoryPlaySessionCreateNestedManyWithoutUserInput
+    storySaves?: StorySaveCreateNestedManyWithoutUserInput
+    storyCompletions?: StoryCompletionCreateNestedManyWithoutUserInput
     authoredVersions?: StoryVersionCreateNestedManyWithoutAuthorInput
     reviewedVersions?: StoryVersionCreateNestedManyWithoutReviewerInput
     reviews?: StoryReviewCreateNestedManyWithoutReviewerInput
@@ -36676,6 +42080,8 @@ export namespace Prisma {
     journeys?: JourneyProgressUncheckedCreateNestedManyWithoutUserInput
     achievements?: UserAchievementUncheckedCreateNestedManyWithoutUserInput
     storyPlays?: StoryPlaySessionUncheckedCreateNestedManyWithoutUserInput
+    storySaves?: StorySaveUncheckedCreateNestedManyWithoutUserInput
+    storyCompletions?: StoryCompletionUncheckedCreateNestedManyWithoutUserInput
     authoredVersions?: StoryVersionUncheckedCreateNestedManyWithoutAuthorInput
     reviewedVersions?: StoryVersionUncheckedCreateNestedManyWithoutReviewerInput
     reviews?: StoryReviewUncheckedCreateNestedManyWithoutReviewerInput
@@ -36707,6 +42113,8 @@ export namespace Prisma {
     journeys?: JourneyProgressCreateNestedManyWithoutUserInput
     achievements?: UserAchievementCreateNestedManyWithoutUserInput
     storyPlays?: StoryPlaySessionCreateNestedManyWithoutUserInput
+    storySaves?: StorySaveCreateNestedManyWithoutUserInput
+    storyCompletions?: StoryCompletionCreateNestedManyWithoutUserInput
     stories?: TwineStoryCreateNestedManyWithoutOwnerInput
     authoredVersions?: StoryVersionCreateNestedManyWithoutAuthorInput
     reviewedVersions?: StoryVersionCreateNestedManyWithoutReviewerInput
@@ -36733,6 +42141,8 @@ export namespace Prisma {
     journeys?: JourneyProgressUncheckedCreateNestedManyWithoutUserInput
     achievements?: UserAchievementUncheckedCreateNestedManyWithoutUserInput
     storyPlays?: StoryPlaySessionUncheckedCreateNestedManyWithoutUserInput
+    storySaves?: StorySaveUncheckedCreateNestedManyWithoutUserInput
+    storyCompletions?: StoryCompletionUncheckedCreateNestedManyWithoutUserInput
     stories?: TwineStoryUncheckedCreateNestedManyWithoutOwnerInput
     authoredVersions?: StoryVersionUncheckedCreateNestedManyWithoutAuthorInput
     reviewedVersions?: StoryVersionUncheckedCreateNestedManyWithoutReviewerInput
@@ -36825,6 +42235,8 @@ export namespace Prisma {
     journeys?: JourneyProgressCreateNestedManyWithoutUserInput
     achievements?: UserAchievementCreateNestedManyWithoutUserInput
     storyPlays?: StoryPlaySessionCreateNestedManyWithoutUserInput
+    storySaves?: StorySaveCreateNestedManyWithoutUserInput
+    storyCompletions?: StoryCompletionCreateNestedManyWithoutUserInput
     stories?: TwineStoryCreateNestedManyWithoutOwnerInput
     authoredVersions?: StoryVersionCreateNestedManyWithoutAuthorInput
     reviewedVersions?: StoryVersionCreateNestedManyWithoutReviewerInput
@@ -36851,6 +42263,8 @@ export namespace Prisma {
     journeys?: JourneyProgressUncheckedCreateNestedManyWithoutUserInput
     achievements?: UserAchievementUncheckedCreateNestedManyWithoutUserInput
     storyPlays?: StoryPlaySessionUncheckedCreateNestedManyWithoutUserInput
+    storySaves?: StorySaveUncheckedCreateNestedManyWithoutUserInput
+    storyCompletions?: StoryCompletionUncheckedCreateNestedManyWithoutUserInput
     stories?: TwineStoryUncheckedCreateNestedManyWithoutOwnerInput
     authoredVersions?: StoryVersionUncheckedCreateNestedManyWithoutAuthorInput
     reviewedVersions?: StoryVersionUncheckedCreateNestedManyWithoutReviewerInput
@@ -37234,6 +42648,8 @@ export namespace Prisma {
     journeys?: JourneyProgressUpdateManyWithoutUserNestedInput
     achievements?: UserAchievementUpdateManyWithoutUserNestedInput
     storyPlays?: StoryPlaySessionUpdateManyWithoutUserNestedInput
+    storySaves?: StorySaveUpdateManyWithoutUserNestedInput
+    storyCompletions?: StoryCompletionUpdateManyWithoutUserNestedInput
     authoredVersions?: StoryVersionUpdateManyWithoutAuthorNestedInput
     reviewedVersions?: StoryVersionUpdateManyWithoutReviewerNestedInput
     reviews?: StoryReviewUpdateManyWithoutReviewerNestedInput
@@ -37260,6 +42676,8 @@ export namespace Prisma {
     journeys?: JourneyProgressUncheckedUpdateManyWithoutUserNestedInput
     achievements?: UserAchievementUncheckedUpdateManyWithoutUserNestedInput
     storyPlays?: StoryPlaySessionUncheckedUpdateManyWithoutUserNestedInput
+    storySaves?: StorySaveUncheckedUpdateManyWithoutUserNestedInput
+    storyCompletions?: StoryCompletionUncheckedUpdateManyWithoutUserNestedInput
     authoredVersions?: StoryVersionUncheckedUpdateManyWithoutAuthorNestedInput
     reviewedVersions?: StoryVersionUncheckedUpdateManyWithoutReviewerNestedInput
     reviews?: StoryReviewUncheckedUpdateManyWithoutReviewerNestedInput
@@ -37297,6 +42715,8 @@ export namespace Prisma {
     journeys?: JourneyProgressUpdateManyWithoutUserNestedInput
     achievements?: UserAchievementUpdateManyWithoutUserNestedInput
     storyPlays?: StoryPlaySessionUpdateManyWithoutUserNestedInput
+    storySaves?: StorySaveUpdateManyWithoutUserNestedInput
+    storyCompletions?: StoryCompletionUpdateManyWithoutUserNestedInput
     stories?: TwineStoryUpdateManyWithoutOwnerNestedInput
     authoredVersions?: StoryVersionUpdateManyWithoutAuthorNestedInput
     reviewedVersions?: StoryVersionUpdateManyWithoutReviewerNestedInput
@@ -37323,6 +42743,8 @@ export namespace Prisma {
     journeys?: JourneyProgressUncheckedUpdateManyWithoutUserNestedInput
     achievements?: UserAchievementUncheckedUpdateManyWithoutUserNestedInput
     storyPlays?: StoryPlaySessionUncheckedUpdateManyWithoutUserNestedInput
+    storySaves?: StorySaveUncheckedUpdateManyWithoutUserNestedInput
+    storyCompletions?: StoryCompletionUncheckedUpdateManyWithoutUserNestedInput
     stories?: TwineStoryUncheckedUpdateManyWithoutOwnerNestedInput
     authoredVersions?: StoryVersionUncheckedUpdateManyWithoutAuthorNestedInput
     reviewedVersions?: StoryVersionUncheckedUpdateManyWithoutReviewerNestedInput
@@ -37427,6 +42849,8 @@ export namespace Prisma {
     journeys?: JourneyProgressUpdateManyWithoutUserNestedInput
     achievements?: UserAchievementUpdateManyWithoutUserNestedInput
     storyPlays?: StoryPlaySessionUpdateManyWithoutUserNestedInput
+    storySaves?: StorySaveUpdateManyWithoutUserNestedInput
+    storyCompletions?: StoryCompletionUpdateManyWithoutUserNestedInput
     stories?: TwineStoryUpdateManyWithoutOwnerNestedInput
     authoredVersions?: StoryVersionUpdateManyWithoutAuthorNestedInput
     reviewedVersions?: StoryVersionUpdateManyWithoutReviewerNestedInput
@@ -37453,6 +42877,8 @@ export namespace Prisma {
     journeys?: JourneyProgressUncheckedUpdateManyWithoutUserNestedInput
     achievements?: UserAchievementUncheckedUpdateManyWithoutUserNestedInput
     storyPlays?: StoryPlaySessionUncheckedUpdateManyWithoutUserNestedInput
+    storySaves?: StorySaveUncheckedUpdateManyWithoutUserNestedInput
+    storyCompletions?: StoryCompletionUncheckedUpdateManyWithoutUserNestedInput
     stories?: TwineStoryUncheckedUpdateManyWithoutOwnerNestedInput
     authoredVersions?: StoryVersionUncheckedUpdateManyWithoutAuthorNestedInput
     reviewedVersions?: StoryVersionUncheckedUpdateManyWithoutReviewerNestedInput
@@ -37869,6 +43295,8 @@ export namespace Prisma {
     journeys?: JourneyProgressCreateNestedManyWithoutUserInput
     achievements?: UserAchievementCreateNestedManyWithoutUserInput
     storyPlays?: StoryPlaySessionCreateNestedManyWithoutUserInput
+    storySaves?: StorySaveCreateNestedManyWithoutUserInput
+    storyCompletions?: StoryCompletionCreateNestedManyWithoutUserInput
     stories?: TwineStoryCreateNestedManyWithoutOwnerInput
     reviewedVersions?: StoryVersionCreateNestedManyWithoutReviewerInput
     reviews?: StoryReviewCreateNestedManyWithoutReviewerInput
@@ -37895,6 +43323,8 @@ export namespace Prisma {
     journeys?: JourneyProgressUncheckedCreateNestedManyWithoutUserInput
     achievements?: UserAchievementUncheckedCreateNestedManyWithoutUserInput
     storyPlays?: StoryPlaySessionUncheckedCreateNestedManyWithoutUserInput
+    storySaves?: StorySaveUncheckedCreateNestedManyWithoutUserInput
+    storyCompletions?: StoryCompletionUncheckedCreateNestedManyWithoutUserInput
     stories?: TwineStoryUncheckedCreateNestedManyWithoutOwnerInput
     reviewedVersions?: StoryVersionUncheckedCreateNestedManyWithoutReviewerInput
     reviews?: StoryReviewUncheckedCreateNestedManyWithoutReviewerInput
@@ -37926,6 +43356,8 @@ export namespace Prisma {
     journeys?: JourneyProgressCreateNestedManyWithoutUserInput
     achievements?: UserAchievementCreateNestedManyWithoutUserInput
     storyPlays?: StoryPlaySessionCreateNestedManyWithoutUserInput
+    storySaves?: StorySaveCreateNestedManyWithoutUserInput
+    storyCompletions?: StoryCompletionCreateNestedManyWithoutUserInput
     stories?: TwineStoryCreateNestedManyWithoutOwnerInput
     authoredVersions?: StoryVersionCreateNestedManyWithoutAuthorInput
     reviews?: StoryReviewCreateNestedManyWithoutReviewerInput
@@ -37952,6 +43384,8 @@ export namespace Prisma {
     journeys?: JourneyProgressUncheckedCreateNestedManyWithoutUserInput
     achievements?: UserAchievementUncheckedCreateNestedManyWithoutUserInput
     storyPlays?: StoryPlaySessionUncheckedCreateNestedManyWithoutUserInput
+    storySaves?: StorySaveUncheckedCreateNestedManyWithoutUserInput
+    storyCompletions?: StoryCompletionUncheckedCreateNestedManyWithoutUserInput
     stories?: TwineStoryUncheckedCreateNestedManyWithoutOwnerInput
     authoredVersions?: StoryVersionUncheckedCreateNestedManyWithoutAuthorInput
     reviews?: StoryReviewUncheckedCreateNestedManyWithoutReviewerInput
@@ -38208,6 +43642,8 @@ export namespace Prisma {
     journeys?: JourneyProgressUpdateManyWithoutUserNestedInput
     achievements?: UserAchievementUpdateManyWithoutUserNestedInput
     storyPlays?: StoryPlaySessionUpdateManyWithoutUserNestedInput
+    storySaves?: StorySaveUpdateManyWithoutUserNestedInput
+    storyCompletions?: StoryCompletionUpdateManyWithoutUserNestedInput
     stories?: TwineStoryUpdateManyWithoutOwnerNestedInput
     reviewedVersions?: StoryVersionUpdateManyWithoutReviewerNestedInput
     reviews?: StoryReviewUpdateManyWithoutReviewerNestedInput
@@ -38234,6 +43670,8 @@ export namespace Prisma {
     journeys?: JourneyProgressUncheckedUpdateManyWithoutUserNestedInput
     achievements?: UserAchievementUncheckedUpdateManyWithoutUserNestedInput
     storyPlays?: StoryPlaySessionUncheckedUpdateManyWithoutUserNestedInput
+    storySaves?: StorySaveUncheckedUpdateManyWithoutUserNestedInput
+    storyCompletions?: StoryCompletionUncheckedUpdateManyWithoutUserNestedInput
     stories?: TwineStoryUncheckedUpdateManyWithoutOwnerNestedInput
     reviewedVersions?: StoryVersionUncheckedUpdateManyWithoutReviewerNestedInput
     reviews?: StoryReviewUncheckedUpdateManyWithoutReviewerNestedInput
@@ -38271,6 +43709,8 @@ export namespace Prisma {
     journeys?: JourneyProgressUpdateManyWithoutUserNestedInput
     achievements?: UserAchievementUpdateManyWithoutUserNestedInput
     storyPlays?: StoryPlaySessionUpdateManyWithoutUserNestedInput
+    storySaves?: StorySaveUpdateManyWithoutUserNestedInput
+    storyCompletions?: StoryCompletionUpdateManyWithoutUserNestedInput
     stories?: TwineStoryUpdateManyWithoutOwnerNestedInput
     authoredVersions?: StoryVersionUpdateManyWithoutAuthorNestedInput
     reviews?: StoryReviewUpdateManyWithoutReviewerNestedInput
@@ -38297,6 +43737,8 @@ export namespace Prisma {
     journeys?: JourneyProgressUncheckedUpdateManyWithoutUserNestedInput
     achievements?: UserAchievementUncheckedUpdateManyWithoutUserNestedInput
     storyPlays?: StoryPlaySessionUncheckedUpdateManyWithoutUserNestedInput
+    storySaves?: StorySaveUncheckedUpdateManyWithoutUserNestedInput
+    storyCompletions?: StoryCompletionUncheckedUpdateManyWithoutUserNestedInput
     stories?: TwineStoryUncheckedUpdateManyWithoutOwnerNestedInput
     authoredVersions?: StoryVersionUncheckedUpdateManyWithoutAuthorNestedInput
     reviews?: StoryReviewUncheckedUpdateManyWithoutReviewerNestedInput
@@ -38426,6 +43868,8 @@ export namespace Prisma {
     journeys?: JourneyProgressCreateNestedManyWithoutUserInput
     achievements?: UserAchievementCreateNestedManyWithoutUserInput
     storyPlays?: StoryPlaySessionCreateNestedManyWithoutUserInput
+    storySaves?: StorySaveCreateNestedManyWithoutUserInput
+    storyCompletions?: StoryCompletionCreateNestedManyWithoutUserInput
     stories?: TwineStoryCreateNestedManyWithoutOwnerInput
     authoredVersions?: StoryVersionCreateNestedManyWithoutAuthorInput
     reviewedVersions?: StoryVersionCreateNestedManyWithoutReviewerInput
@@ -38452,6 +43896,8 @@ export namespace Prisma {
     journeys?: JourneyProgressUncheckedCreateNestedManyWithoutUserInput
     achievements?: UserAchievementUncheckedCreateNestedManyWithoutUserInput
     storyPlays?: StoryPlaySessionUncheckedCreateNestedManyWithoutUserInput
+    storySaves?: StorySaveUncheckedCreateNestedManyWithoutUserInput
+    storyCompletions?: StoryCompletionUncheckedCreateNestedManyWithoutUserInput
     stories?: TwineStoryUncheckedCreateNestedManyWithoutOwnerInput
     authoredVersions?: StoryVersionUncheckedCreateNestedManyWithoutAuthorInput
     reviewedVersions?: StoryVersionUncheckedCreateNestedManyWithoutReviewerInput
@@ -38571,6 +44017,8 @@ export namespace Prisma {
     journeys?: JourneyProgressUpdateManyWithoutUserNestedInput
     achievements?: UserAchievementUpdateManyWithoutUserNestedInput
     storyPlays?: StoryPlaySessionUpdateManyWithoutUserNestedInput
+    storySaves?: StorySaveUpdateManyWithoutUserNestedInput
+    storyCompletions?: StoryCompletionUpdateManyWithoutUserNestedInput
     stories?: TwineStoryUpdateManyWithoutOwnerNestedInput
     authoredVersions?: StoryVersionUpdateManyWithoutAuthorNestedInput
     reviewedVersions?: StoryVersionUpdateManyWithoutReviewerNestedInput
@@ -38597,6 +44045,8 @@ export namespace Prisma {
     journeys?: JourneyProgressUncheckedUpdateManyWithoutUserNestedInput
     achievements?: UserAchievementUncheckedUpdateManyWithoutUserNestedInput
     storyPlays?: StoryPlaySessionUncheckedUpdateManyWithoutUserNestedInput
+    storySaves?: StorySaveUncheckedUpdateManyWithoutUserNestedInput
+    storyCompletions?: StoryCompletionUncheckedUpdateManyWithoutUserNestedInput
     stories?: TwineStoryUncheckedUpdateManyWithoutOwnerNestedInput
     authoredVersions?: StoryVersionUncheckedUpdateManyWithoutAuthorNestedInput
     reviewedVersions?: StoryVersionUncheckedUpdateManyWithoutReviewerNestedInput
@@ -38672,6 +44122,8 @@ export namespace Prisma {
     journeys?: JourneyProgressCreateNestedManyWithoutUserInput
     achievements?: UserAchievementCreateNestedManyWithoutUserInput
     storyPlays?: StoryPlaySessionCreateNestedManyWithoutUserInput
+    storySaves?: StorySaveCreateNestedManyWithoutUserInput
+    storyCompletions?: StoryCompletionCreateNestedManyWithoutUserInput
     stories?: TwineStoryCreateNestedManyWithoutOwnerInput
     authoredVersions?: StoryVersionCreateNestedManyWithoutAuthorInput
     reviewedVersions?: StoryVersionCreateNestedManyWithoutReviewerInput
@@ -38698,6 +44150,8 @@ export namespace Prisma {
     journeys?: JourneyProgressUncheckedCreateNestedManyWithoutUserInput
     achievements?: UserAchievementUncheckedCreateNestedManyWithoutUserInput
     storyPlays?: StoryPlaySessionUncheckedCreateNestedManyWithoutUserInput
+    storySaves?: StorySaveUncheckedCreateNestedManyWithoutUserInput
+    storyCompletions?: StoryCompletionUncheckedCreateNestedManyWithoutUserInput
     stories?: TwineStoryUncheckedCreateNestedManyWithoutOwnerInput
     authoredVersions?: StoryVersionUncheckedCreateNestedManyWithoutAuthorInput
     reviewedVersions?: StoryVersionUncheckedCreateNestedManyWithoutReviewerInput
@@ -38795,6 +44249,8 @@ export namespace Prisma {
     journeys?: JourneyProgressUpdateManyWithoutUserNestedInput
     achievements?: UserAchievementUpdateManyWithoutUserNestedInput
     storyPlays?: StoryPlaySessionUpdateManyWithoutUserNestedInput
+    storySaves?: StorySaveUpdateManyWithoutUserNestedInput
+    storyCompletions?: StoryCompletionUpdateManyWithoutUserNestedInput
     stories?: TwineStoryUpdateManyWithoutOwnerNestedInput
     authoredVersions?: StoryVersionUpdateManyWithoutAuthorNestedInput
     reviewedVersions?: StoryVersionUpdateManyWithoutReviewerNestedInput
@@ -38821,6 +44277,8 @@ export namespace Prisma {
     journeys?: JourneyProgressUncheckedUpdateManyWithoutUserNestedInput
     achievements?: UserAchievementUncheckedUpdateManyWithoutUserNestedInput
     storyPlays?: StoryPlaySessionUncheckedUpdateManyWithoutUserNestedInput
+    storySaves?: StorySaveUncheckedUpdateManyWithoutUserNestedInput
+    storyCompletions?: StoryCompletionUncheckedUpdateManyWithoutUserNestedInput
     stories?: TwineStoryUncheckedUpdateManyWithoutOwnerNestedInput
     authoredVersions?: StoryVersionUncheckedUpdateManyWithoutAuthorNestedInput
     reviewedVersions?: StoryVersionUncheckedUpdateManyWithoutReviewerNestedInput
@@ -38966,6 +44424,8 @@ export namespace Prisma {
     sessions?: UserSessionCreateNestedManyWithoutUserInput
     journeys?: JourneyProgressCreateNestedManyWithoutUserInput
     achievements?: UserAchievementCreateNestedManyWithoutUserInput
+    storySaves?: StorySaveCreateNestedManyWithoutUserInput
+    storyCompletions?: StoryCompletionCreateNestedManyWithoutUserInput
     stories?: TwineStoryCreateNestedManyWithoutOwnerInput
     authoredVersions?: StoryVersionCreateNestedManyWithoutAuthorInput
     reviewedVersions?: StoryVersionCreateNestedManyWithoutReviewerInput
@@ -38992,6 +44452,8 @@ export namespace Prisma {
     sessions?: UserSessionUncheckedCreateNestedManyWithoutUserInput
     journeys?: JourneyProgressUncheckedCreateNestedManyWithoutUserInput
     achievements?: UserAchievementUncheckedCreateNestedManyWithoutUserInput
+    storySaves?: StorySaveUncheckedCreateNestedManyWithoutUserInput
+    storyCompletions?: StoryCompletionUncheckedCreateNestedManyWithoutUserInput
     stories?: TwineStoryUncheckedCreateNestedManyWithoutOwnerInput
     authoredVersions?: StoryVersionUncheckedCreateNestedManyWithoutAuthorInput
     reviewedVersions?: StoryVersionUncheckedCreateNestedManyWithoutReviewerInput
@@ -39020,6 +44482,8 @@ export namespace Prisma {
     journeys?: JourneyProgressCreateNestedManyWithoutSessionInput
     achievements?: UserAchievementCreateNestedManyWithoutSessionInput
     storyInteractions?: StoryInteractionCreateNestedManyWithoutSessionInput
+    storySaves?: StorySaveCreateNestedManyWithoutSessionInput
+    storyCompletions?: StoryCompletionCreateNestedManyWithoutSessionInput
   }
 
   export type UserSessionUncheckedCreateWithoutStoryPlaysInput = {
@@ -39033,6 +44497,8 @@ export namespace Prisma {
     journeys?: JourneyProgressUncheckedCreateNestedManyWithoutSessionInput
     achievements?: UserAchievementUncheckedCreateNestedManyWithoutSessionInput
     storyInteractions?: StoryInteractionUncheckedCreateNestedManyWithoutSessionInput
+    storySaves?: StorySaveUncheckedCreateNestedManyWithoutSessionInput
+    storyCompletions?: StoryCompletionUncheckedCreateNestedManyWithoutSessionInput
   }
 
   export type UserSessionCreateOrConnectWithoutStoryPlaysInput = {
@@ -39197,6 +44663,8 @@ export namespace Prisma {
     sessions?: UserSessionUpdateManyWithoutUserNestedInput
     journeys?: JourneyProgressUpdateManyWithoutUserNestedInput
     achievements?: UserAchievementUpdateManyWithoutUserNestedInput
+    storySaves?: StorySaveUpdateManyWithoutUserNestedInput
+    storyCompletions?: StoryCompletionUpdateManyWithoutUserNestedInput
     stories?: TwineStoryUpdateManyWithoutOwnerNestedInput
     authoredVersions?: StoryVersionUpdateManyWithoutAuthorNestedInput
     reviewedVersions?: StoryVersionUpdateManyWithoutReviewerNestedInput
@@ -39223,6 +44691,8 @@ export namespace Prisma {
     sessions?: UserSessionUncheckedUpdateManyWithoutUserNestedInput
     journeys?: JourneyProgressUncheckedUpdateManyWithoutUserNestedInput
     achievements?: UserAchievementUncheckedUpdateManyWithoutUserNestedInput
+    storySaves?: StorySaveUncheckedUpdateManyWithoutUserNestedInput
+    storyCompletions?: StoryCompletionUncheckedUpdateManyWithoutUserNestedInput
     stories?: TwineStoryUncheckedUpdateManyWithoutOwnerNestedInput
     authoredVersions?: StoryVersionUncheckedUpdateManyWithoutAuthorNestedInput
     reviewedVersions?: StoryVersionUncheckedUpdateManyWithoutReviewerNestedInput
@@ -39257,6 +44727,8 @@ export namespace Prisma {
     journeys?: JourneyProgressUpdateManyWithoutSessionNestedInput
     achievements?: UserAchievementUpdateManyWithoutSessionNestedInput
     storyInteractions?: StoryInteractionUpdateManyWithoutSessionNestedInput
+    storySaves?: StorySaveUpdateManyWithoutSessionNestedInput
+    storyCompletions?: StoryCompletionUpdateManyWithoutSessionNestedInput
   }
 
   export type UserSessionUncheckedUpdateWithoutStoryPlaysInput = {
@@ -39270,6 +44742,8 @@ export namespace Prisma {
     journeys?: JourneyProgressUncheckedUpdateManyWithoutSessionNestedInput
     achievements?: UserAchievementUncheckedUpdateManyWithoutSessionNestedInput
     storyInteractions?: StoryInteractionUncheckedUpdateManyWithoutSessionNestedInput
+    storySaves?: StorySaveUncheckedUpdateManyWithoutSessionNestedInput
+    storyCompletions?: StoryCompletionUncheckedUpdateManyWithoutSessionNestedInput
   }
 
   export type TwineStoryCreateWithoutNodesInput = {
@@ -40383,6 +45857,8 @@ export namespace Prisma {
     journeys?: JourneyProgressCreateNestedManyWithoutSessionInput
     storyPlays?: StoryPlaySessionCreateNestedManyWithoutSessionInput
     achievements?: UserAchievementCreateNestedManyWithoutSessionInput
+    storySaves?: StorySaveCreateNestedManyWithoutSessionInput
+    storyCompletions?: StoryCompletionCreateNestedManyWithoutSessionInput
   }
 
   export type UserSessionUncheckedCreateWithoutStoryInteractionsInput = {
@@ -40396,6 +45872,8 @@ export namespace Prisma {
     journeys?: JourneyProgressUncheckedCreateNestedManyWithoutSessionInput
     storyPlays?: StoryPlaySessionUncheckedCreateNestedManyWithoutSessionInput
     achievements?: UserAchievementUncheckedCreateNestedManyWithoutSessionInput
+    storySaves?: StorySaveUncheckedCreateNestedManyWithoutSessionInput
+    storyCompletions?: StoryCompletionUncheckedCreateNestedManyWithoutSessionInput
   }
 
   export type UserSessionCreateOrConnectWithoutStoryInteractionsInput = {
@@ -40418,6 +45896,8 @@ export namespace Prisma {
     journeys?: JourneyProgressCreateNestedManyWithoutUserInput
     achievements?: UserAchievementCreateNestedManyWithoutUserInput
     storyPlays?: StoryPlaySessionCreateNestedManyWithoutUserInput
+    storySaves?: StorySaveCreateNestedManyWithoutUserInput
+    storyCompletions?: StoryCompletionCreateNestedManyWithoutUserInput
     stories?: TwineStoryCreateNestedManyWithoutOwnerInput
     authoredVersions?: StoryVersionCreateNestedManyWithoutAuthorInput
     reviewedVersions?: StoryVersionCreateNestedManyWithoutReviewerInput
@@ -40444,6 +45924,8 @@ export namespace Prisma {
     journeys?: JourneyProgressUncheckedCreateNestedManyWithoutUserInput
     achievements?: UserAchievementUncheckedCreateNestedManyWithoutUserInput
     storyPlays?: StoryPlaySessionUncheckedCreateNestedManyWithoutUserInput
+    storySaves?: StorySaveUncheckedCreateNestedManyWithoutUserInput
+    storyCompletions?: StoryCompletionUncheckedCreateNestedManyWithoutUserInput
     stories?: TwineStoryUncheckedCreateNestedManyWithoutOwnerInput
     authoredVersions?: StoryVersionUncheckedCreateNestedManyWithoutAuthorInput
     reviewedVersions?: StoryVersionUncheckedCreateNestedManyWithoutReviewerInput
@@ -40602,6 +46084,8 @@ export namespace Prisma {
     journeys?: JourneyProgressUpdateManyWithoutSessionNestedInput
     storyPlays?: StoryPlaySessionUpdateManyWithoutSessionNestedInput
     achievements?: UserAchievementUpdateManyWithoutSessionNestedInput
+    storySaves?: StorySaveUpdateManyWithoutSessionNestedInput
+    storyCompletions?: StoryCompletionUpdateManyWithoutSessionNestedInput
   }
 
   export type UserSessionUncheckedUpdateWithoutStoryInteractionsInput = {
@@ -40615,6 +46099,8 @@ export namespace Prisma {
     journeys?: JourneyProgressUncheckedUpdateManyWithoutSessionNestedInput
     storyPlays?: StoryPlaySessionUncheckedUpdateManyWithoutSessionNestedInput
     achievements?: UserAchievementUncheckedUpdateManyWithoutSessionNestedInput
+    storySaves?: StorySaveUncheckedUpdateManyWithoutSessionNestedInput
+    storyCompletions?: StoryCompletionUncheckedUpdateManyWithoutSessionNestedInput
   }
 
   export type UserUpsertWithoutStoryInteractionsInput = {
@@ -40643,6 +46129,8 @@ export namespace Prisma {
     journeys?: JourneyProgressUpdateManyWithoutUserNestedInput
     achievements?: UserAchievementUpdateManyWithoutUserNestedInput
     storyPlays?: StoryPlaySessionUpdateManyWithoutUserNestedInput
+    storySaves?: StorySaveUpdateManyWithoutUserNestedInput
+    storyCompletions?: StoryCompletionUpdateManyWithoutUserNestedInput
     stories?: TwineStoryUpdateManyWithoutOwnerNestedInput
     authoredVersions?: StoryVersionUpdateManyWithoutAuthorNestedInput
     reviewedVersions?: StoryVersionUpdateManyWithoutReviewerNestedInput
@@ -40669,6 +46157,8 @@ export namespace Prisma {
     journeys?: JourneyProgressUncheckedUpdateManyWithoutUserNestedInput
     achievements?: UserAchievementUncheckedUpdateManyWithoutUserNestedInput
     storyPlays?: StoryPlaySessionUncheckedUpdateManyWithoutUserNestedInput
+    storySaves?: StorySaveUncheckedUpdateManyWithoutUserNestedInput
+    storyCompletions?: StoryCompletionUncheckedUpdateManyWithoutUserNestedInput
     stories?: TwineStoryUncheckedUpdateManyWithoutOwnerNestedInput
     authoredVersions?: StoryVersionUncheckedUpdateManyWithoutAuthorNestedInput
     reviewedVersions?: StoryVersionUncheckedUpdateManyWithoutReviewerNestedInput
@@ -40678,6 +46168,414 @@ export namespace Prisma {
     originalStories?: TwineStoryUncheckedUpdateManyWithoutOriginalCreatorNestedInput
     reviewedCreatorProfiles?: CreatorProfileUncheckedUpdateManyWithoutLastReviewerNestedInput
     storyAuditLogs?: StoryAuditLogUncheckedUpdateManyWithoutActorNestedInput
+  }
+
+  export type UserCreateWithoutStorySavesInput = {
+    id?: string
+    email?: string | null
+    username?: string | null
+    hashedPassword?: string | null
+    role?: $Enums.UserRole
+    onboardedAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    isAdmin?: boolean
+    profile?: UserProfileCreateNestedOneWithoutUserInput
+    sessions?: UserSessionCreateNestedManyWithoutUserInput
+    journeys?: JourneyProgressCreateNestedManyWithoutUserInput
+    achievements?: UserAchievementCreateNestedManyWithoutUserInput
+    storyPlays?: StoryPlaySessionCreateNestedManyWithoutUserInput
+    storyCompletions?: StoryCompletionCreateNestedManyWithoutUserInput
+    stories?: TwineStoryCreateNestedManyWithoutOwnerInput
+    authoredVersions?: StoryVersionCreateNestedManyWithoutAuthorInput
+    reviewedVersions?: StoryVersionCreateNestedManyWithoutReviewerInput
+    reviews?: StoryReviewCreateNestedManyWithoutReviewerInput
+    creatorProfile?: CreatorProfileCreateNestedOneWithoutUserInput
+    approvedStories?: TwineStoryCreateNestedManyWithoutApprovedByInput
+    originalStories?: TwineStoryCreateNestedManyWithoutOriginalCreatorInput
+    reviewedCreatorProfiles?: CreatorProfileCreateNestedManyWithoutLastReviewerInput
+    storyAuditLogs?: StoryAuditLogCreateNestedManyWithoutActorInput
+    storyInteractions?: StoryInteractionCreateNestedManyWithoutUserInput
+  }
+
+  export type UserUncheckedCreateWithoutStorySavesInput = {
+    id?: string
+    email?: string | null
+    username?: string | null
+    hashedPassword?: string | null
+    role?: $Enums.UserRole
+    onboardedAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    isAdmin?: boolean
+    profile?: UserProfileUncheckedCreateNestedOneWithoutUserInput
+    sessions?: UserSessionUncheckedCreateNestedManyWithoutUserInput
+    journeys?: JourneyProgressUncheckedCreateNestedManyWithoutUserInput
+    achievements?: UserAchievementUncheckedCreateNestedManyWithoutUserInput
+    storyPlays?: StoryPlaySessionUncheckedCreateNestedManyWithoutUserInput
+    storyCompletions?: StoryCompletionUncheckedCreateNestedManyWithoutUserInput
+    stories?: TwineStoryUncheckedCreateNestedManyWithoutOwnerInput
+    authoredVersions?: StoryVersionUncheckedCreateNestedManyWithoutAuthorInput
+    reviewedVersions?: StoryVersionUncheckedCreateNestedManyWithoutReviewerInput
+    reviews?: StoryReviewUncheckedCreateNestedManyWithoutReviewerInput
+    creatorProfile?: CreatorProfileUncheckedCreateNestedOneWithoutUserInput
+    approvedStories?: TwineStoryUncheckedCreateNestedManyWithoutApprovedByInput
+    originalStories?: TwineStoryUncheckedCreateNestedManyWithoutOriginalCreatorInput
+    reviewedCreatorProfiles?: CreatorProfileUncheckedCreateNestedManyWithoutLastReviewerInput
+    storyAuditLogs?: StoryAuditLogUncheckedCreateNestedManyWithoutActorInput
+    storyInteractions?: StoryInteractionUncheckedCreateNestedManyWithoutUserInput
+  }
+
+  export type UserCreateOrConnectWithoutStorySavesInput = {
+    where: UserWhereUniqueInput
+    create: XOR<UserCreateWithoutStorySavesInput, UserUncheckedCreateWithoutStorySavesInput>
+  }
+
+  export type UserSessionCreateWithoutStorySavesInput = {
+    id?: string
+    token: string
+    kind?: $Enums.SessionKind
+    expiresAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    user?: UserCreateNestedOneWithoutSessionsInput
+    journeys?: JourneyProgressCreateNestedManyWithoutSessionInput
+    storyPlays?: StoryPlaySessionCreateNestedManyWithoutSessionInput
+    achievements?: UserAchievementCreateNestedManyWithoutSessionInput
+    storyInteractions?: StoryInteractionCreateNestedManyWithoutSessionInput
+    storyCompletions?: StoryCompletionCreateNestedManyWithoutSessionInput
+  }
+
+  export type UserSessionUncheckedCreateWithoutStorySavesInput = {
+    id?: string
+    token: string
+    kind?: $Enums.SessionKind
+    userId?: string | null
+    expiresAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    journeys?: JourneyProgressUncheckedCreateNestedManyWithoutSessionInput
+    storyPlays?: StoryPlaySessionUncheckedCreateNestedManyWithoutSessionInput
+    achievements?: UserAchievementUncheckedCreateNestedManyWithoutSessionInput
+    storyInteractions?: StoryInteractionUncheckedCreateNestedManyWithoutSessionInput
+    storyCompletions?: StoryCompletionUncheckedCreateNestedManyWithoutSessionInput
+  }
+
+  export type UserSessionCreateOrConnectWithoutStorySavesInput = {
+    where: UserSessionWhereUniqueInput
+    create: XOR<UserSessionCreateWithoutStorySavesInput, UserSessionUncheckedCreateWithoutStorySavesInput>
+  }
+
+  export type UserUpsertWithoutStorySavesInput = {
+    update: XOR<UserUpdateWithoutStorySavesInput, UserUncheckedUpdateWithoutStorySavesInput>
+    create: XOR<UserCreateWithoutStorySavesInput, UserUncheckedCreateWithoutStorySavesInput>
+    where?: UserWhereInput
+  }
+
+  export type UserUpdateToOneWithWhereWithoutStorySavesInput = {
+    where?: UserWhereInput
+    data: XOR<UserUpdateWithoutStorySavesInput, UserUncheckedUpdateWithoutStorySavesInput>
+  }
+
+  export type UserUpdateWithoutStorySavesInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    email?: NullableStringFieldUpdateOperationsInput | string | null
+    username?: NullableStringFieldUpdateOperationsInput | string | null
+    hashedPassword?: NullableStringFieldUpdateOperationsInput | string | null
+    role?: EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+    onboardedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    isAdmin?: BoolFieldUpdateOperationsInput | boolean
+    profile?: UserProfileUpdateOneWithoutUserNestedInput
+    sessions?: UserSessionUpdateManyWithoutUserNestedInput
+    journeys?: JourneyProgressUpdateManyWithoutUserNestedInput
+    achievements?: UserAchievementUpdateManyWithoutUserNestedInput
+    storyPlays?: StoryPlaySessionUpdateManyWithoutUserNestedInput
+    storyCompletions?: StoryCompletionUpdateManyWithoutUserNestedInput
+    stories?: TwineStoryUpdateManyWithoutOwnerNestedInput
+    authoredVersions?: StoryVersionUpdateManyWithoutAuthorNestedInput
+    reviewedVersions?: StoryVersionUpdateManyWithoutReviewerNestedInput
+    reviews?: StoryReviewUpdateManyWithoutReviewerNestedInput
+    creatorProfile?: CreatorProfileUpdateOneWithoutUserNestedInput
+    approvedStories?: TwineStoryUpdateManyWithoutApprovedByNestedInput
+    originalStories?: TwineStoryUpdateManyWithoutOriginalCreatorNestedInput
+    reviewedCreatorProfiles?: CreatorProfileUpdateManyWithoutLastReviewerNestedInput
+    storyAuditLogs?: StoryAuditLogUpdateManyWithoutActorNestedInput
+    storyInteractions?: StoryInteractionUpdateManyWithoutUserNestedInput
+  }
+
+  export type UserUncheckedUpdateWithoutStorySavesInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    email?: NullableStringFieldUpdateOperationsInput | string | null
+    username?: NullableStringFieldUpdateOperationsInput | string | null
+    hashedPassword?: NullableStringFieldUpdateOperationsInput | string | null
+    role?: EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+    onboardedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    isAdmin?: BoolFieldUpdateOperationsInput | boolean
+    profile?: UserProfileUncheckedUpdateOneWithoutUserNestedInput
+    sessions?: UserSessionUncheckedUpdateManyWithoutUserNestedInput
+    journeys?: JourneyProgressUncheckedUpdateManyWithoutUserNestedInput
+    achievements?: UserAchievementUncheckedUpdateManyWithoutUserNestedInput
+    storyPlays?: StoryPlaySessionUncheckedUpdateManyWithoutUserNestedInput
+    storyCompletions?: StoryCompletionUncheckedUpdateManyWithoutUserNestedInput
+    stories?: TwineStoryUncheckedUpdateManyWithoutOwnerNestedInput
+    authoredVersions?: StoryVersionUncheckedUpdateManyWithoutAuthorNestedInput
+    reviewedVersions?: StoryVersionUncheckedUpdateManyWithoutReviewerNestedInput
+    reviews?: StoryReviewUncheckedUpdateManyWithoutReviewerNestedInput
+    creatorProfile?: CreatorProfileUncheckedUpdateOneWithoutUserNestedInput
+    approvedStories?: TwineStoryUncheckedUpdateManyWithoutApprovedByNestedInput
+    originalStories?: TwineStoryUncheckedUpdateManyWithoutOriginalCreatorNestedInput
+    reviewedCreatorProfiles?: CreatorProfileUncheckedUpdateManyWithoutLastReviewerNestedInput
+    storyAuditLogs?: StoryAuditLogUncheckedUpdateManyWithoutActorNestedInput
+    storyInteractions?: StoryInteractionUncheckedUpdateManyWithoutUserNestedInput
+  }
+
+  export type UserSessionUpsertWithoutStorySavesInput = {
+    update: XOR<UserSessionUpdateWithoutStorySavesInput, UserSessionUncheckedUpdateWithoutStorySavesInput>
+    create: XOR<UserSessionCreateWithoutStorySavesInput, UserSessionUncheckedCreateWithoutStorySavesInput>
+    where?: UserSessionWhereInput
+  }
+
+  export type UserSessionUpdateToOneWithWhereWithoutStorySavesInput = {
+    where?: UserSessionWhereInput
+    data: XOR<UserSessionUpdateWithoutStorySavesInput, UserSessionUncheckedUpdateWithoutStorySavesInput>
+  }
+
+  export type UserSessionUpdateWithoutStorySavesInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    token?: StringFieldUpdateOperationsInput | string
+    kind?: EnumSessionKindFieldUpdateOperationsInput | $Enums.SessionKind
+    expiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    user?: UserUpdateOneWithoutSessionsNestedInput
+    journeys?: JourneyProgressUpdateManyWithoutSessionNestedInput
+    storyPlays?: StoryPlaySessionUpdateManyWithoutSessionNestedInput
+    achievements?: UserAchievementUpdateManyWithoutSessionNestedInput
+    storyInteractions?: StoryInteractionUpdateManyWithoutSessionNestedInput
+    storyCompletions?: StoryCompletionUpdateManyWithoutSessionNestedInput
+  }
+
+  export type UserSessionUncheckedUpdateWithoutStorySavesInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    token?: StringFieldUpdateOperationsInput | string
+    kind?: EnumSessionKindFieldUpdateOperationsInput | $Enums.SessionKind
+    userId?: NullableStringFieldUpdateOperationsInput | string | null
+    expiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    journeys?: JourneyProgressUncheckedUpdateManyWithoutSessionNestedInput
+    storyPlays?: StoryPlaySessionUncheckedUpdateManyWithoutSessionNestedInput
+    achievements?: UserAchievementUncheckedUpdateManyWithoutSessionNestedInput
+    storyInteractions?: StoryInteractionUncheckedUpdateManyWithoutSessionNestedInput
+    storyCompletions?: StoryCompletionUncheckedUpdateManyWithoutSessionNestedInput
+  }
+
+  export type UserCreateWithoutStoryCompletionsInput = {
+    id?: string
+    email?: string | null
+    username?: string | null
+    hashedPassword?: string | null
+    role?: $Enums.UserRole
+    onboardedAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    isAdmin?: boolean
+    profile?: UserProfileCreateNestedOneWithoutUserInput
+    sessions?: UserSessionCreateNestedManyWithoutUserInput
+    journeys?: JourneyProgressCreateNestedManyWithoutUserInput
+    achievements?: UserAchievementCreateNestedManyWithoutUserInput
+    storyPlays?: StoryPlaySessionCreateNestedManyWithoutUserInput
+    storySaves?: StorySaveCreateNestedManyWithoutUserInput
+    stories?: TwineStoryCreateNestedManyWithoutOwnerInput
+    authoredVersions?: StoryVersionCreateNestedManyWithoutAuthorInput
+    reviewedVersions?: StoryVersionCreateNestedManyWithoutReviewerInput
+    reviews?: StoryReviewCreateNestedManyWithoutReviewerInput
+    creatorProfile?: CreatorProfileCreateNestedOneWithoutUserInput
+    approvedStories?: TwineStoryCreateNestedManyWithoutApprovedByInput
+    originalStories?: TwineStoryCreateNestedManyWithoutOriginalCreatorInput
+    reviewedCreatorProfiles?: CreatorProfileCreateNestedManyWithoutLastReviewerInput
+    storyAuditLogs?: StoryAuditLogCreateNestedManyWithoutActorInput
+    storyInteractions?: StoryInteractionCreateNestedManyWithoutUserInput
+  }
+
+  export type UserUncheckedCreateWithoutStoryCompletionsInput = {
+    id?: string
+    email?: string | null
+    username?: string | null
+    hashedPassword?: string | null
+    role?: $Enums.UserRole
+    onboardedAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    isAdmin?: boolean
+    profile?: UserProfileUncheckedCreateNestedOneWithoutUserInput
+    sessions?: UserSessionUncheckedCreateNestedManyWithoutUserInput
+    journeys?: JourneyProgressUncheckedCreateNestedManyWithoutUserInput
+    achievements?: UserAchievementUncheckedCreateNestedManyWithoutUserInput
+    storyPlays?: StoryPlaySessionUncheckedCreateNestedManyWithoutUserInput
+    storySaves?: StorySaveUncheckedCreateNestedManyWithoutUserInput
+    stories?: TwineStoryUncheckedCreateNestedManyWithoutOwnerInput
+    authoredVersions?: StoryVersionUncheckedCreateNestedManyWithoutAuthorInput
+    reviewedVersions?: StoryVersionUncheckedCreateNestedManyWithoutReviewerInput
+    reviews?: StoryReviewUncheckedCreateNestedManyWithoutReviewerInput
+    creatorProfile?: CreatorProfileUncheckedCreateNestedOneWithoutUserInput
+    approvedStories?: TwineStoryUncheckedCreateNestedManyWithoutApprovedByInput
+    originalStories?: TwineStoryUncheckedCreateNestedManyWithoutOriginalCreatorInput
+    reviewedCreatorProfiles?: CreatorProfileUncheckedCreateNestedManyWithoutLastReviewerInput
+    storyAuditLogs?: StoryAuditLogUncheckedCreateNestedManyWithoutActorInput
+    storyInteractions?: StoryInteractionUncheckedCreateNestedManyWithoutUserInput
+  }
+
+  export type UserCreateOrConnectWithoutStoryCompletionsInput = {
+    where: UserWhereUniqueInput
+    create: XOR<UserCreateWithoutStoryCompletionsInput, UserUncheckedCreateWithoutStoryCompletionsInput>
+  }
+
+  export type UserSessionCreateWithoutStoryCompletionsInput = {
+    id?: string
+    token: string
+    kind?: $Enums.SessionKind
+    expiresAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    user?: UserCreateNestedOneWithoutSessionsInput
+    journeys?: JourneyProgressCreateNestedManyWithoutSessionInput
+    storyPlays?: StoryPlaySessionCreateNestedManyWithoutSessionInput
+    achievements?: UserAchievementCreateNestedManyWithoutSessionInput
+    storyInteractions?: StoryInteractionCreateNestedManyWithoutSessionInput
+    storySaves?: StorySaveCreateNestedManyWithoutSessionInput
+  }
+
+  export type UserSessionUncheckedCreateWithoutStoryCompletionsInput = {
+    id?: string
+    token: string
+    kind?: $Enums.SessionKind
+    userId?: string | null
+    expiresAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    journeys?: JourneyProgressUncheckedCreateNestedManyWithoutSessionInput
+    storyPlays?: StoryPlaySessionUncheckedCreateNestedManyWithoutSessionInput
+    achievements?: UserAchievementUncheckedCreateNestedManyWithoutSessionInput
+    storyInteractions?: StoryInteractionUncheckedCreateNestedManyWithoutSessionInput
+    storySaves?: StorySaveUncheckedCreateNestedManyWithoutSessionInput
+  }
+
+  export type UserSessionCreateOrConnectWithoutStoryCompletionsInput = {
+    where: UserSessionWhereUniqueInput
+    create: XOR<UserSessionCreateWithoutStoryCompletionsInput, UserSessionUncheckedCreateWithoutStoryCompletionsInput>
+  }
+
+  export type UserUpsertWithoutStoryCompletionsInput = {
+    update: XOR<UserUpdateWithoutStoryCompletionsInput, UserUncheckedUpdateWithoutStoryCompletionsInput>
+    create: XOR<UserCreateWithoutStoryCompletionsInput, UserUncheckedCreateWithoutStoryCompletionsInput>
+    where?: UserWhereInput
+  }
+
+  export type UserUpdateToOneWithWhereWithoutStoryCompletionsInput = {
+    where?: UserWhereInput
+    data: XOR<UserUpdateWithoutStoryCompletionsInput, UserUncheckedUpdateWithoutStoryCompletionsInput>
+  }
+
+  export type UserUpdateWithoutStoryCompletionsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    email?: NullableStringFieldUpdateOperationsInput | string | null
+    username?: NullableStringFieldUpdateOperationsInput | string | null
+    hashedPassword?: NullableStringFieldUpdateOperationsInput | string | null
+    role?: EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+    onboardedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    isAdmin?: BoolFieldUpdateOperationsInput | boolean
+    profile?: UserProfileUpdateOneWithoutUserNestedInput
+    sessions?: UserSessionUpdateManyWithoutUserNestedInput
+    journeys?: JourneyProgressUpdateManyWithoutUserNestedInput
+    achievements?: UserAchievementUpdateManyWithoutUserNestedInput
+    storyPlays?: StoryPlaySessionUpdateManyWithoutUserNestedInput
+    storySaves?: StorySaveUpdateManyWithoutUserNestedInput
+    stories?: TwineStoryUpdateManyWithoutOwnerNestedInput
+    authoredVersions?: StoryVersionUpdateManyWithoutAuthorNestedInput
+    reviewedVersions?: StoryVersionUpdateManyWithoutReviewerNestedInput
+    reviews?: StoryReviewUpdateManyWithoutReviewerNestedInput
+    creatorProfile?: CreatorProfileUpdateOneWithoutUserNestedInput
+    approvedStories?: TwineStoryUpdateManyWithoutApprovedByNestedInput
+    originalStories?: TwineStoryUpdateManyWithoutOriginalCreatorNestedInput
+    reviewedCreatorProfiles?: CreatorProfileUpdateManyWithoutLastReviewerNestedInput
+    storyAuditLogs?: StoryAuditLogUpdateManyWithoutActorNestedInput
+    storyInteractions?: StoryInteractionUpdateManyWithoutUserNestedInput
+  }
+
+  export type UserUncheckedUpdateWithoutStoryCompletionsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    email?: NullableStringFieldUpdateOperationsInput | string | null
+    username?: NullableStringFieldUpdateOperationsInput | string | null
+    hashedPassword?: NullableStringFieldUpdateOperationsInput | string | null
+    role?: EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+    onboardedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    isAdmin?: BoolFieldUpdateOperationsInput | boolean
+    profile?: UserProfileUncheckedUpdateOneWithoutUserNestedInput
+    sessions?: UserSessionUncheckedUpdateManyWithoutUserNestedInput
+    journeys?: JourneyProgressUncheckedUpdateManyWithoutUserNestedInput
+    achievements?: UserAchievementUncheckedUpdateManyWithoutUserNestedInput
+    storyPlays?: StoryPlaySessionUncheckedUpdateManyWithoutUserNestedInput
+    storySaves?: StorySaveUncheckedUpdateManyWithoutUserNestedInput
+    stories?: TwineStoryUncheckedUpdateManyWithoutOwnerNestedInput
+    authoredVersions?: StoryVersionUncheckedUpdateManyWithoutAuthorNestedInput
+    reviewedVersions?: StoryVersionUncheckedUpdateManyWithoutReviewerNestedInput
+    reviews?: StoryReviewUncheckedUpdateManyWithoutReviewerNestedInput
+    creatorProfile?: CreatorProfileUncheckedUpdateOneWithoutUserNestedInput
+    approvedStories?: TwineStoryUncheckedUpdateManyWithoutApprovedByNestedInput
+    originalStories?: TwineStoryUncheckedUpdateManyWithoutOriginalCreatorNestedInput
+    reviewedCreatorProfiles?: CreatorProfileUncheckedUpdateManyWithoutLastReviewerNestedInput
+    storyAuditLogs?: StoryAuditLogUncheckedUpdateManyWithoutActorNestedInput
+    storyInteractions?: StoryInteractionUncheckedUpdateManyWithoutUserNestedInput
+  }
+
+  export type UserSessionUpsertWithoutStoryCompletionsInput = {
+    update: XOR<UserSessionUpdateWithoutStoryCompletionsInput, UserSessionUncheckedUpdateWithoutStoryCompletionsInput>
+    create: XOR<UserSessionCreateWithoutStoryCompletionsInput, UserSessionUncheckedCreateWithoutStoryCompletionsInput>
+    where?: UserSessionWhereInput
+  }
+
+  export type UserSessionUpdateToOneWithWhereWithoutStoryCompletionsInput = {
+    where?: UserSessionWhereInput
+    data: XOR<UserSessionUpdateWithoutStoryCompletionsInput, UserSessionUncheckedUpdateWithoutStoryCompletionsInput>
+  }
+
+  export type UserSessionUpdateWithoutStoryCompletionsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    token?: StringFieldUpdateOperationsInput | string
+    kind?: EnumSessionKindFieldUpdateOperationsInput | $Enums.SessionKind
+    expiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    user?: UserUpdateOneWithoutSessionsNestedInput
+    journeys?: JourneyProgressUpdateManyWithoutSessionNestedInput
+    storyPlays?: StoryPlaySessionUpdateManyWithoutSessionNestedInput
+    achievements?: UserAchievementUpdateManyWithoutSessionNestedInput
+    storyInteractions?: StoryInteractionUpdateManyWithoutSessionNestedInput
+    storySaves?: StorySaveUpdateManyWithoutSessionNestedInput
+  }
+
+  export type UserSessionUncheckedUpdateWithoutStoryCompletionsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    token?: StringFieldUpdateOperationsInput | string
+    kind?: EnumSessionKindFieldUpdateOperationsInput | $Enums.SessionKind
+    userId?: NullableStringFieldUpdateOperationsInput | string | null
+    expiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    journeys?: JourneyProgressUncheckedUpdateManyWithoutSessionNestedInput
+    storyPlays?: StoryPlaySessionUncheckedUpdateManyWithoutSessionNestedInput
+    achievements?: UserAchievementUncheckedUpdateManyWithoutSessionNestedInput
+    storyInteractions?: StoryInteractionUncheckedUpdateManyWithoutSessionNestedInput
+    storySaves?: StorySaveUncheckedUpdateManyWithoutSessionNestedInput
   }
 
   export type UserSessionCreateManyUserInput = {
@@ -40721,6 +46619,42 @@ export namespace Prisma {
     progress?: NullableJsonNullValueInput | InputJsonValue
     rating?: number | null
     feedback?: string | null
+  }
+
+  export type StorySaveCreateManyUserInput = {
+    id?: string
+    storySlug: string
+    storyVersion?: string | null
+    sessionId?: string | null
+    saveName?: string | null
+    isAutoSave?: boolean
+    currentPassageId: string
+    resources?: NullableJsonNullValueInput | InputJsonValue
+    hiddenState?: NullableJsonNullValueInput | InputJsonValue
+    visitedPassages?: NullableJsonNullValueInput | InputJsonValue
+    choicesMade?: NullableJsonNullValueInput | InputJsonValue
+    pathTaken?: NullableJsonNullValueInput | InputJsonValue
+    completed?: boolean
+    endingId?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type StoryCompletionCreateManyUserInput = {
+    id?: string
+    storySlug: string
+    storyVersion?: string | null
+    sessionId?: string | null
+    endingId: string
+    endingType?: string | null
+    finalResources?: NullableJsonNullValueInput | InputJsonValue
+    finalHiddenState?: NullableJsonNullValueInput | InputJsonValue
+    totalChoices?: number
+    totalTime?: number
+    pathTaken?: NullableJsonNullValueInput | InputJsonValue
+    choicesMade?: NullableJsonNullValueInput | InputJsonValue
+    reflectionResponses?: NullableJsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
   }
 
   export type TwineStoryCreateManyOwnerInput = {
@@ -40901,6 +46835,8 @@ export namespace Prisma {
     storyPlays?: StoryPlaySessionUpdateManyWithoutSessionNestedInput
     achievements?: UserAchievementUpdateManyWithoutSessionNestedInput
     storyInteractions?: StoryInteractionUpdateManyWithoutSessionNestedInput
+    storySaves?: StorySaveUpdateManyWithoutSessionNestedInput
+    storyCompletions?: StoryCompletionUpdateManyWithoutSessionNestedInput
   }
 
   export type UserSessionUncheckedUpdateWithoutUserInput = {
@@ -40914,6 +46850,8 @@ export namespace Prisma {
     storyPlays?: StoryPlaySessionUncheckedUpdateManyWithoutSessionNestedInput
     achievements?: UserAchievementUncheckedUpdateManyWithoutSessionNestedInput
     storyInteractions?: StoryInteractionUncheckedUpdateManyWithoutSessionNestedInput
+    storySaves?: StorySaveUncheckedUpdateManyWithoutSessionNestedInput
+    storyCompletions?: StoryCompletionUncheckedUpdateManyWithoutSessionNestedInput
   }
 
   export type UserSessionUncheckedUpdateManyWithoutUserInput = {
@@ -41027,6 +46965,114 @@ export namespace Prisma {
     progress?: NullableJsonNullValueInput | InputJsonValue
     rating?: NullableIntFieldUpdateOperationsInput | number | null
     feedback?: NullableStringFieldUpdateOperationsInput | string | null
+  }
+
+  export type StorySaveUpdateWithoutUserInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    storySlug?: StringFieldUpdateOperationsInput | string
+    storyVersion?: NullableStringFieldUpdateOperationsInput | string | null
+    saveName?: NullableStringFieldUpdateOperationsInput | string | null
+    isAutoSave?: BoolFieldUpdateOperationsInput | boolean
+    currentPassageId?: StringFieldUpdateOperationsInput | string
+    resources?: NullableJsonNullValueInput | InputJsonValue
+    hiddenState?: NullableJsonNullValueInput | InputJsonValue
+    visitedPassages?: NullableJsonNullValueInput | InputJsonValue
+    choicesMade?: NullableJsonNullValueInput | InputJsonValue
+    pathTaken?: NullableJsonNullValueInput | InputJsonValue
+    completed?: BoolFieldUpdateOperationsInput | boolean
+    endingId?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    session?: UserSessionUpdateOneWithoutStorySavesNestedInput
+  }
+
+  export type StorySaveUncheckedUpdateWithoutUserInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    storySlug?: StringFieldUpdateOperationsInput | string
+    storyVersion?: NullableStringFieldUpdateOperationsInput | string | null
+    sessionId?: NullableStringFieldUpdateOperationsInput | string | null
+    saveName?: NullableStringFieldUpdateOperationsInput | string | null
+    isAutoSave?: BoolFieldUpdateOperationsInput | boolean
+    currentPassageId?: StringFieldUpdateOperationsInput | string
+    resources?: NullableJsonNullValueInput | InputJsonValue
+    hiddenState?: NullableJsonNullValueInput | InputJsonValue
+    visitedPassages?: NullableJsonNullValueInput | InputJsonValue
+    choicesMade?: NullableJsonNullValueInput | InputJsonValue
+    pathTaken?: NullableJsonNullValueInput | InputJsonValue
+    completed?: BoolFieldUpdateOperationsInput | boolean
+    endingId?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type StorySaveUncheckedUpdateManyWithoutUserInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    storySlug?: StringFieldUpdateOperationsInput | string
+    storyVersion?: NullableStringFieldUpdateOperationsInput | string | null
+    sessionId?: NullableStringFieldUpdateOperationsInput | string | null
+    saveName?: NullableStringFieldUpdateOperationsInput | string | null
+    isAutoSave?: BoolFieldUpdateOperationsInput | boolean
+    currentPassageId?: StringFieldUpdateOperationsInput | string
+    resources?: NullableJsonNullValueInput | InputJsonValue
+    hiddenState?: NullableJsonNullValueInput | InputJsonValue
+    visitedPassages?: NullableJsonNullValueInput | InputJsonValue
+    choicesMade?: NullableJsonNullValueInput | InputJsonValue
+    pathTaken?: NullableJsonNullValueInput | InputJsonValue
+    completed?: BoolFieldUpdateOperationsInput | boolean
+    endingId?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type StoryCompletionUpdateWithoutUserInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    storySlug?: StringFieldUpdateOperationsInput | string
+    storyVersion?: NullableStringFieldUpdateOperationsInput | string | null
+    endingId?: StringFieldUpdateOperationsInput | string
+    endingType?: NullableStringFieldUpdateOperationsInput | string | null
+    finalResources?: NullableJsonNullValueInput | InputJsonValue
+    finalHiddenState?: NullableJsonNullValueInput | InputJsonValue
+    totalChoices?: IntFieldUpdateOperationsInput | number
+    totalTime?: IntFieldUpdateOperationsInput | number
+    pathTaken?: NullableJsonNullValueInput | InputJsonValue
+    choicesMade?: NullableJsonNullValueInput | InputJsonValue
+    reflectionResponses?: NullableJsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    session?: UserSessionUpdateOneWithoutStoryCompletionsNestedInput
+  }
+
+  export type StoryCompletionUncheckedUpdateWithoutUserInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    storySlug?: StringFieldUpdateOperationsInput | string
+    storyVersion?: NullableStringFieldUpdateOperationsInput | string | null
+    sessionId?: NullableStringFieldUpdateOperationsInput | string | null
+    endingId?: StringFieldUpdateOperationsInput | string
+    endingType?: NullableStringFieldUpdateOperationsInput | string | null
+    finalResources?: NullableJsonNullValueInput | InputJsonValue
+    finalHiddenState?: NullableJsonNullValueInput | InputJsonValue
+    totalChoices?: IntFieldUpdateOperationsInput | number
+    totalTime?: IntFieldUpdateOperationsInput | number
+    pathTaken?: NullableJsonNullValueInput | InputJsonValue
+    choicesMade?: NullableJsonNullValueInput | InputJsonValue
+    reflectionResponses?: NullableJsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type StoryCompletionUncheckedUpdateManyWithoutUserInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    storySlug?: StringFieldUpdateOperationsInput | string
+    storyVersion?: NullableStringFieldUpdateOperationsInput | string | null
+    sessionId?: NullableStringFieldUpdateOperationsInput | string | null
+    endingId?: StringFieldUpdateOperationsInput | string
+    endingType?: NullableStringFieldUpdateOperationsInput | string | null
+    finalResources?: NullableJsonNullValueInput | InputJsonValue
+    finalHiddenState?: NullableJsonNullValueInput | InputJsonValue
+    totalChoices?: IntFieldUpdateOperationsInput | number
+    totalTime?: IntFieldUpdateOperationsInput | number
+    pathTaken?: NullableJsonNullValueInput | InputJsonValue
+    choicesMade?: NullableJsonNullValueInput | InputJsonValue
+    reflectionResponses?: NullableJsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type TwineStoryUpdateWithoutOwnerInput = {
@@ -41752,6 +47798,42 @@ export namespace Prisma {
     createdAt?: Date | string
   }
 
+  export type StorySaveCreateManySessionInput = {
+    id?: string
+    storySlug: string
+    storyVersion?: string | null
+    userId?: string | null
+    saveName?: string | null
+    isAutoSave?: boolean
+    currentPassageId: string
+    resources?: NullableJsonNullValueInput | InputJsonValue
+    hiddenState?: NullableJsonNullValueInput | InputJsonValue
+    visitedPassages?: NullableJsonNullValueInput | InputJsonValue
+    choicesMade?: NullableJsonNullValueInput | InputJsonValue
+    pathTaken?: NullableJsonNullValueInput | InputJsonValue
+    completed?: boolean
+    endingId?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type StoryCompletionCreateManySessionInput = {
+    id?: string
+    storySlug: string
+    storyVersion?: string | null
+    userId?: string | null
+    endingId: string
+    endingType?: string | null
+    finalResources?: NullableJsonNullValueInput | InputJsonValue
+    finalHiddenState?: NullableJsonNullValueInput | InputJsonValue
+    totalChoices?: number
+    totalTime?: number
+    pathTaken?: NullableJsonNullValueInput | InputJsonValue
+    choicesMade?: NullableJsonNullValueInput | InputJsonValue
+    reflectionResponses?: NullableJsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+  }
+
   export type JourneyProgressUpdateWithoutSessionInput = {
     id?: StringFieldUpdateOperationsInput | string
     status?: EnumJourneyStatusFieldUpdateOperationsInput | $Enums.JourneyStatus
@@ -41883,6 +47965,114 @@ export namespace Prisma {
     userId?: NullableStringFieldUpdateOperationsInput | string | null
     kind?: EnumStoryInteractionKindFieldUpdateOperationsInput | $Enums.StoryInteractionKind
     metadata?: NullableJsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type StorySaveUpdateWithoutSessionInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    storySlug?: StringFieldUpdateOperationsInput | string
+    storyVersion?: NullableStringFieldUpdateOperationsInput | string | null
+    saveName?: NullableStringFieldUpdateOperationsInput | string | null
+    isAutoSave?: BoolFieldUpdateOperationsInput | boolean
+    currentPassageId?: StringFieldUpdateOperationsInput | string
+    resources?: NullableJsonNullValueInput | InputJsonValue
+    hiddenState?: NullableJsonNullValueInput | InputJsonValue
+    visitedPassages?: NullableJsonNullValueInput | InputJsonValue
+    choicesMade?: NullableJsonNullValueInput | InputJsonValue
+    pathTaken?: NullableJsonNullValueInput | InputJsonValue
+    completed?: BoolFieldUpdateOperationsInput | boolean
+    endingId?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    user?: UserUpdateOneWithoutStorySavesNestedInput
+  }
+
+  export type StorySaveUncheckedUpdateWithoutSessionInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    storySlug?: StringFieldUpdateOperationsInput | string
+    storyVersion?: NullableStringFieldUpdateOperationsInput | string | null
+    userId?: NullableStringFieldUpdateOperationsInput | string | null
+    saveName?: NullableStringFieldUpdateOperationsInput | string | null
+    isAutoSave?: BoolFieldUpdateOperationsInput | boolean
+    currentPassageId?: StringFieldUpdateOperationsInput | string
+    resources?: NullableJsonNullValueInput | InputJsonValue
+    hiddenState?: NullableJsonNullValueInput | InputJsonValue
+    visitedPassages?: NullableJsonNullValueInput | InputJsonValue
+    choicesMade?: NullableJsonNullValueInput | InputJsonValue
+    pathTaken?: NullableJsonNullValueInput | InputJsonValue
+    completed?: BoolFieldUpdateOperationsInput | boolean
+    endingId?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type StorySaveUncheckedUpdateManyWithoutSessionInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    storySlug?: StringFieldUpdateOperationsInput | string
+    storyVersion?: NullableStringFieldUpdateOperationsInput | string | null
+    userId?: NullableStringFieldUpdateOperationsInput | string | null
+    saveName?: NullableStringFieldUpdateOperationsInput | string | null
+    isAutoSave?: BoolFieldUpdateOperationsInput | boolean
+    currentPassageId?: StringFieldUpdateOperationsInput | string
+    resources?: NullableJsonNullValueInput | InputJsonValue
+    hiddenState?: NullableJsonNullValueInput | InputJsonValue
+    visitedPassages?: NullableJsonNullValueInput | InputJsonValue
+    choicesMade?: NullableJsonNullValueInput | InputJsonValue
+    pathTaken?: NullableJsonNullValueInput | InputJsonValue
+    completed?: BoolFieldUpdateOperationsInput | boolean
+    endingId?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type StoryCompletionUpdateWithoutSessionInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    storySlug?: StringFieldUpdateOperationsInput | string
+    storyVersion?: NullableStringFieldUpdateOperationsInput | string | null
+    endingId?: StringFieldUpdateOperationsInput | string
+    endingType?: NullableStringFieldUpdateOperationsInput | string | null
+    finalResources?: NullableJsonNullValueInput | InputJsonValue
+    finalHiddenState?: NullableJsonNullValueInput | InputJsonValue
+    totalChoices?: IntFieldUpdateOperationsInput | number
+    totalTime?: IntFieldUpdateOperationsInput | number
+    pathTaken?: NullableJsonNullValueInput | InputJsonValue
+    choicesMade?: NullableJsonNullValueInput | InputJsonValue
+    reflectionResponses?: NullableJsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    user?: UserUpdateOneWithoutStoryCompletionsNestedInput
+  }
+
+  export type StoryCompletionUncheckedUpdateWithoutSessionInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    storySlug?: StringFieldUpdateOperationsInput | string
+    storyVersion?: NullableStringFieldUpdateOperationsInput | string | null
+    userId?: NullableStringFieldUpdateOperationsInput | string | null
+    endingId?: StringFieldUpdateOperationsInput | string
+    endingType?: NullableStringFieldUpdateOperationsInput | string | null
+    finalResources?: NullableJsonNullValueInput | InputJsonValue
+    finalHiddenState?: NullableJsonNullValueInput | InputJsonValue
+    totalChoices?: IntFieldUpdateOperationsInput | number
+    totalTime?: IntFieldUpdateOperationsInput | number
+    pathTaken?: NullableJsonNullValueInput | InputJsonValue
+    choicesMade?: NullableJsonNullValueInput | InputJsonValue
+    reflectionResponses?: NullableJsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type StoryCompletionUncheckedUpdateManyWithoutSessionInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    storySlug?: StringFieldUpdateOperationsInput | string
+    storyVersion?: NullableStringFieldUpdateOperationsInput | string | null
+    userId?: NullableStringFieldUpdateOperationsInput | string | null
+    endingId?: StringFieldUpdateOperationsInput | string
+    endingType?: NullableStringFieldUpdateOperationsInput | string | null
+    finalResources?: NullableJsonNullValueInput | InputJsonValue
+    finalHiddenState?: NullableJsonNullValueInput | InputJsonValue
+    totalChoices?: IntFieldUpdateOperationsInput | number
+    totalTime?: IntFieldUpdateOperationsInput | number
+    pathTaken?: NullableJsonNullValueInput | InputJsonValue
+    choicesMade?: NullableJsonNullValueInput | InputJsonValue
+    reflectionResponses?: NullableJsonNullValueInput | InputJsonValue
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 

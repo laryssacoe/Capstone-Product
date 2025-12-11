@@ -384,6 +384,53 @@ exports.Prisma.StoryInteractionScalarFieldEnum = {
   createdAt: 'createdAt'
 };
 
+exports.Prisma.StorySaveScalarFieldEnum = {
+  id: 'id',
+  storySlug: 'storySlug',
+  storyVersion: 'storyVersion',
+  userId: 'userId',
+  sessionId: 'sessionId',
+  saveName: 'saveName',
+  isAutoSave: 'isAutoSave',
+  currentPassageId: 'currentPassageId',
+  resources: 'resources',
+  hiddenState: 'hiddenState',
+  visitedPassages: 'visitedPassages',
+  choicesMade: 'choicesMade',
+  pathTaken: 'pathTaken',
+  completed: 'completed',
+  endingId: 'endingId',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.StoryCompletionScalarFieldEnum = {
+  id: 'id',
+  storySlug: 'storySlug',
+  storyVersion: 'storyVersion',
+  userId: 'userId',
+  sessionId: 'sessionId',
+  endingId: 'endingId',
+  endingType: 'endingType',
+  finalResources: 'finalResources',
+  finalHiddenState: 'finalHiddenState',
+  totalChoices: 'totalChoices',
+  totalTime: 'totalTime',
+  pathTaken: 'pathTaken',
+  choicesMade: 'choicesMade',
+  reflectionResponses: 'reflectionResponses',
+  createdAt: 'createdAt'
+};
+
+exports.Prisma.StoryAnalyticsScalarFieldEnum = {
+  storySlug: 'storySlug',
+  totalStarts: 'totalStarts',
+  totalCompletions: 'totalCompletions',
+  endingCounts: 'endingCounts',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
 exports.Prisma.SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -490,7 +537,10 @@ exports.Prisma.ModelName = {
   StoryPath: 'StoryPath',
   StoryTransition: 'StoryTransition',
   AvatarProfile: 'AvatarProfile',
-  StoryInteraction: 'StoryInteraction'
+  StoryInteraction: 'StoryInteraction',
+  StorySave: 'StorySave',
+  StoryCompletion: 'StoryCompletion',
+  StoryAnalytics: 'StoryAnalytics'
 };
 
 /**
