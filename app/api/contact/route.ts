@@ -3,25 +3,56 @@ import { NextRequest, NextResponse } from "next/server"
 export const dynamic = "force-dynamic"
 
 export async function POST(req: NextRequest) {
-  const { name, email, message, anonymous } = await req.json()
+  try {
+    const { name, email, message } = await req.json()
 
-  const response = await fetch("https://api.web3forms.com/submit", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      access_key: process.env.WEB3FORMS_KEY, 
-      subject: "Loop Contact Form Submission",
-      from_name: name || "Anonymous",
-      email: email || "anonymous@loop.app",
-      message: message,
-    }),
-  })
+    const accessKey = process.env.WEB3FORMS_KEY
+    if (!accessKey) {
+      return NextResponse.json(
+        { success: false, error: "Contact form is not configured." },
+        { status: 500 },
+      )
+    }
 
-  const data = await response.json()
-  
-  if (data.success) {
-    return NextResponse.json({ success: true })
+    const response = await fetch("https://api.web3forms.com/submit", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        access_key: accessKey,
+        subject: "Loop Contact Form Submission",
+        from_name: name || "Anonymous",
+        email: email || "anonymous@loop.app",
+        message,
+      }),
+    })
+
+    const contentType = response.headers.get("content-type") || ""
+    let payload: any = null
+    if (contentType.includes("application/json")) {
+      payload = await response.json()
+    } else {
+      payload = { success: false, error: await response.text() }
+    }
+
+    if (response.ok && payload?.success) {
+      return NextResponse.json({ success: true })
+    }
+
+    const errorMessage =
+      payload?.error ||
+      payload?.message ||
+      response.statusText ||
+      "Failed to send"
+
+    return NextResponse.json(
+      { success: false, error: errorMessage },
+      { status: 500 },
+    )
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Unexpected error"
+    return NextResponse.json(
+      { success: false, error: message },
+      { status: 500 },
+    )
   }
-  
-  return NextResponse.json({ success: false, error: "Failed to send" }, { status: 500 })
 }
