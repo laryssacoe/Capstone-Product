@@ -31,39 +31,138 @@ export async function getUserProgress(userId: string) {
     }),
   ])
 
+  // Fetch StoryCompletion records 
+  let storyCompletions: Array<{ storySlug: string; createdAt: Date; totalTime: number | null }> = []
+  try {
+    const completions = await prisma.storyCompletion.findMany({
+      where: { userId },
+      orderBy: { createdAt: "desc" },
+      select: {
+        storySlug: true,
+        createdAt: true,
+        totalTime: true,
+      },
+    })
+    storyCompletions = completions
+  } catch (error) {
+    console.warn("[getUserProgress] Could not fetch StoryCompletion records:", error)
+    // Continue without StoryCompletion data if schema is not available
+  }
+
+  // Get completed stories 
   const completedJourneys = journeys.filter((j) => j.status === "COMPLETED")
-  const issuesExplored = Array.from(new Set(completedJourneys.map((j) => j.scenario?.issueTag).filter(Boolean))) as string[]
+  const completedStorySlugs = new Set(storyCompletions.map((c) => c.storySlug))
+  
+  // Build a map of scenarios
+  const scenarioById = new Map(scenarios.map((s) => [s.id, s]))
+  const scenarioBySlug = new Map<string, typeof scenarios[0]>()
+  for (const scenario of scenarios) {
+    // Check if scenario has a storySlug in metadata
+    const metadata = scenario.metadata as Record<string, unknown> | null
+    const storySlug = metadata?.storySlug as string | undefined
+    if (storySlug) {
+      scenarioBySlug.set(storySlug, scenario)
+    }
+    // Try matching by scenario ID as slug
+    scenarioBySlug.set(scenario.id, scenario)
+  }
+
+  // Check for completion sources: JourneyProgress or StoryCompletion
+  const completedScenarioIds = new Set<string>()
+  
+  // Add scenarios from both sources
+  for (const journey of completedJourneys) {
+    completedScenarioIds.add(journey.scenarioId)
+  }
+  for (const storySlug of completedStorySlugs) {
+    const matchedScenario = scenarioBySlug.get(storySlug)
+    if (matchedScenario) {
+      completedScenarioIds.add(matchedScenario.id)
+    }
+  }
+
+  // Calculate metrics based on combined completions
+  const completedCount = completedScenarioIds.size
+  
+  // Get issues explored from completed scenarios
+  const issuesExplored: string[] = []
+  for (const scenarioId of completedScenarioIds) {
+    const scenario = scenarioById.get(scenarioId)
+    if (scenario?.issueTag) {
+      issuesExplored.push(scenario.issueTag)
+    }
+  }
+  const uniqueIssues = Array.from(new Set(issuesExplored))
+
   const totalScenarios = scenarios.length || 1
-  const completionPercentage = Math.round((completedJourneys.length / totalScenarios) * 100)
-  const totalEmpathyScore = completedJourneys.reduce((acc, journey) => {
-    const minutes = journey.scenario?.estimatedMinutes ?? 10
-    return acc + minutes * 10
-  }, 0)
+  const completionPercentage = Math.round((completedCount / totalScenarios) * 100)
+  
+  // Calculate empathy score from completed scenarios
+  let totalEmpathyScore = 0
+  for (const scenarioId of completedScenarioIds) {
+    const scenario = scenarioById.get(scenarioId)
+    const minutes = scenario?.estimatedMinutes ?? 10
+    totalEmpathyScore += minutes * 10
+  }
 
-  const streakDays = calculateStreak(completedJourneys.map((j) => j.completedAt ?? j.startedAt))
-  const timeSpent = completedJourneys.reduce(
-    (acc, journey) => acc + (journey.scenario?.estimatedMinutes ?? 10),
-    0,
-  )
+  // Calculate streak from both sources
+  const allCompletionDates: Date[] = [
+    ...completedJourneys.map((j) => j.completedAt ?? j.startedAt),
+    ...storyCompletions.map((c) => c.createdAt),
+  ].filter((d): d is Date => d !== null)
+  
+  const streakDays = calculateStreak(allCompletionDates)
+  
+  // Calculate time spent
+  let timeSpent = 0
+  for (const scenarioId of completedScenarioIds) {
+    const scenario = scenarioById.get(scenarioId)
+    timeSpent += scenario?.estimatedMinutes ?? 10
+  }
+  // Add play time from StoryCompletion if available
+  const totalPlayTime = storyCompletions.reduce((acc, c) => acc + (c.totalTime ?? 0), 0)
+  if (totalPlayTime > 0) {
+    timeSpent = Math.round(totalPlayTime / 60) 
+  }
 
-  const metrics = buildLearningMetrics(completedJourneys.length, issuesExplored.length, achievements.length)
-  const scenarioStates = scenarios.map((scenario) => ({
-    id: scenario.id,
-    title: scenario.title,
-    issueTag: scenario.issueTag,
-    difficulty: scenario.difficulty,
-    estimatedMinutes: scenario.estimatedMinutes,
-    completed: completedJourneys.some((journey) => journey.scenarioId === scenario.id),
-     metadata: (scenario.metadata as Record<string, unknown> | null) ?? null,
-  }))
+  const metrics = buildLearningMetrics(completedCount, uniqueIssues.length, achievements.length)
+  
+  // Build scenario states with completion status from both sources
+  const scenarioStates = scenarios.map((scenario) => {
+    const metadata = scenario.metadata as Record<string, unknown> | null
+    const storySlug = (metadata?.storySlug as string) ?? scenario.id
+    
+    // Check if completed via JourneyProgress or StoryCompletion
+    const isCompleted = completedScenarioIds.has(scenario.id) || completedStorySlugs.has(storySlug)
+    
+    return {
+      id: scenario.id,
+      title: scenario.title,
+      issueTag: scenario.issueTag,
+      difficulty: scenario.difficulty,
+      estimatedMinutes: scenario.estimatedMinutes,
+      completed: isCompleted,
+      metadata: metadata ?? null,
+    }
+  })
+
+  // Get most recent activity date
+  const lastJourneyDate = journeys.length ? (journeys[0].completedAt ?? journeys[0].startedAt) : null
+  const lastCompletionDate = storyCompletions.length ? storyCompletions[0].createdAt : null
+  let lastActive: Date | null = null
+  if (lastJourneyDate && lastCompletionDate) {
+    lastActive = lastJourneyDate > lastCompletionDate ? lastJourneyDate : lastCompletionDate
+  } else {
+    lastActive = lastJourneyDate ?? lastCompletionDate
+  }
 
   return {
     userId,
     totalEmpathyScore,
-    scenariosCompleted: completedJourneys.length,
+    scenariosCompleted: completedCount,
     totalScenarios,
     completionPercentage,
-    issuesExplored,
+    issuesExplored: uniqueIssues,
     achievements: achievements.map((entry) => ({
       id: entry.achievement.id,
       title: entry.achievement.title,
@@ -75,7 +174,7 @@ export async function getUserProgress(userId: string) {
     })),
     learningMetrics: metrics,
     streakDays,
-    lastActive: journeys.length ? journeys[0].completedAt ?? journeys[0].startedAt : null,
+    lastActive,
     timeSpent,
     scenarios: scenarioStates,
   }
@@ -114,11 +213,21 @@ export async function completeScenario(userId: string, scenarioId: string, _deta
 }
 
 async function evaluateAchievements(userId: string) {
-  const [completedCount, achievements, scenarios] = await Promise.all([
+  // Count completions from JourneyProgress
+  const [journeyCompletedCount, achievements, journeys] = await Promise.all([
     prisma.journeyProgress.count({ where: { userId, status: "COMPLETED" } }),
     prisma.userAchievement.findMany({ where: { userId }, include: { achievement: true } }),
     prisma.journeyProgress.findMany({ where: { userId, status: "COMPLETED" }, include: { scenario: true } }),
   ])
+
+  let storyCompletionCount = 0
+  try {
+    storyCompletionCount = await prisma.storyCompletion.count({ where: { userId } })
+  } catch {
+    // Ignore if StoryCompletion table does not exist
+  }
+
+  const completedCount = Math.max(journeyCompletedCount, storyCompletionCount)
 
   const unlockedCodes = new Set(achievements.map((entry) => entry.achievement.code))
 
@@ -129,7 +238,7 @@ async function evaluateAchievements(userId: string) {
   if (!unlockedCodes.has("empathy_builder") && completedCount >= 3) {
     pending.push("empathy_builder")
   }
-  if (!unlockedCodes.has("difficult_choices") && scenarios.some((journey) => journey.scenario?.difficulty === "high")) {
+  if (!unlockedCodes.has("difficult_choices") && journeys.some((journey) => journey.scenario?.difficulty === "high")) {
     pending.push("difficult_choices")
   }
 

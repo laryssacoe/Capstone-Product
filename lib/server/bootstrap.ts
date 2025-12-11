@@ -1,31 +1,13 @@
 import { prisma } from "./prisma"
 
-const baseScenarios = [
-  {
-    id: "housing-search",
-    title: "Housing Search",
-    summary: "Navigate discriminatory housing practices while balancing resources.",
-    issueTag: "housing-discrimination",
-    difficulty: "moderate",
-    estimatedMinutes: 12,
-  },
-  {
-    id: "job-interview",
-    title: "Inclusive Interview",
-    summary: "Request accommodations and evaluate employer responses.",
-    issueTag: "workplace-disability",
-    difficulty: "moderate",
-    estimatedMinutes: 15,
-  },
-  {
-    id: "corporate-advancement",
-    title: "Corporate Advancement",
-    summary: "Handle microaggressions and advocate for equitable promotion practices.",
-    issueTag: "corporate-racism",
-    difficulty: "high",
-    estimatedMinutes: 18,
-  },
-]
+const baseScenarios: Array<{
+  id: string
+  title: string
+  summary: string
+  issueTag: string
+  difficulty: string
+  estimatedMinutes: number
+}> = []
 
 const baseAchievements = [
   {
@@ -55,21 +37,23 @@ const baseAchievements = [
 ]
 
 export async function ensureBaseContent() {
-  await Promise.all(
-    baseScenarios.map((scenario) =>
-      prisma.scenario.upsert({
-        where: { id: scenario.id },
-        update: {
-          title: scenario.title,
-          summary: scenario.summary,
-          issueTag: scenario.issueTag,
-          difficulty: scenario.difficulty,
-          estimatedMinutes: scenario.estimatedMinutes,
-        },
-        create: scenario,
-      }),
-    ),
-  )
+  if (baseScenarios.length > 0) {
+    await Promise.all(
+      baseScenarios.map((scenario) =>
+        prisma.scenario.upsert({
+          where: { id: scenario.id },
+          update: {
+            title: scenario.title,
+            summary: scenario.summary,
+            issueTag: scenario.issueTag,
+            difficulty: scenario.difficulty,
+            estimatedMinutes: scenario.estimatedMinutes,
+          },
+          create: scenario,
+        }),
+      ),
+    )
+  }
 
   await Promise.all(
     baseAchievements.map(({ category, ...achievement }) =>
