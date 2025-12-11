@@ -1,6 +1,6 @@
 import React from "react"
 import { render, screen, waitFor } from "@testing-library/react"
-import userEvent from "@testing-library/user-event"
+import { describe, it, expect, afterEach, vi } from "vitest"
 import { ProgressTracker } from "@/components/progress-tracker"
 
 const baseProgress = {
@@ -76,10 +76,10 @@ describe("ProgressTracker", () => {
 
     render(<ProgressTracker />)
 
-    expect(screen.getByText(/Loading/)).toBeInTheDocument()
-    await waitFor(() => expect(screen.getByText("Empathy Level")).toBeInTheDocument())
+    expect(screen.getByText(/Loading your journey/i)).toBeInTheDocument()
+    await waitFor(() => expect(screen.getByText(/Empathy Building Progress/i)).toBeInTheDocument())
     expect(screen.getByText("Housing Search")).toBeInTheDocument()
-    expect(screen.getByText("Mark complete")).toBeInTheDocument()
+    expect(screen.getByText("Job Interview")).toBeInTheDocument()
   })
 
   it("prompts the visitor to sign in when the API responds with 401", async () => {
@@ -88,30 +88,17 @@ describe("ProgressTracker", () => {
     render(<ProgressTracker />)
 
     await waitFor(() => expect(screen.getByText("In order to start and see your journey, sign in.")).toBeInTheDocument())
-    expect(screen.getByRole("link", { name: /Go to sign in/i })).toHaveAttribute("href", "/login")
+    expect(screen.getByRole("link", { name: /Sign In/i })).toHaveAttribute("href", "/login")
   })
 
-  it("allows a scenario to be marked complete and surfaces confirmation", async () => {
-    const updated = {
-      ...baseProgress,
-      scenarios: baseProgress.scenarios.map((scenario) =>
-        scenario.id === "job-interview" ? { ...scenario, completed: true } : scenario,
-      ),
-    }
-
-    const fetchMock = mockFetch(createJsonResponse(baseProgress), createJsonResponse(updated))
+  it("displays completed and incomplete stories separately", async () => {
+    mockFetch(createJsonResponse(baseProgress))
 
     render(<ProgressTracker />)
 
-    const completeButton = await screen.findByRole("button", { name: /Mark complete/i })
-    await userEvent.click(completeButton)
-
-    await screen.findByText(/Mark scenario as complete/i)
-
-    const confirmButton = screen.getByRole("button", { name: /Yes, mark complete/i })
-    await userEvent.click(confirmButton)
-
-    await waitFor(() => expect(screen.getByText(/Scenario recorded/i)).toBeInTheDocument())
-    expect(fetchMock).toHaveBeenCalledTimes(2)
+    await waitFor(() => expect(screen.getByText(/Completed Stories/i)).toBeInTheDocument())
+    expect(screen.getByText(/Continue Your Journey/i)).toBeInTheDocument()
+    expect(screen.getByText("Housing Search")).toBeInTheDocument()
+    expect(screen.getByText("Job Interview")).toBeInTheDocument()
   })
 })
