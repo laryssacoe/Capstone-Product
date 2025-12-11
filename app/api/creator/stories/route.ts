@@ -298,12 +298,15 @@ export async function GET() {
       },
     });
 
-    // Fetch avatar profiles for each story
+    // Fetch avatar profiles for each story 
     const storyIds = stories.map(s => s.id)
-    const avatarProfiles = await prisma.avatarProfile.findMany({
-      where: { storyId: { in: storyIds } },
-    })
-    const avatarByStoryId = new Map(avatarProfiles.map(a => [a.storyId, a]))
+    let avatarByStoryId = new Map<string | null | undefined, any>()
+    if (typeof prisma.avatarProfile?.findMany === "function" && storyIds.length > 0) {
+      const avatarProfiles = await prisma.avatarProfile.findMany({
+        where: { storyId: { in: storyIds } },
+      })
+      avatarByStoryId = new Map(avatarProfiles.map((a) => [a.storyId, a]))
+    }
 
     const payload = stories.map((story) => {
       const latestApproved = story.latestVersion;
@@ -624,10 +627,12 @@ export async function DELETE(request: Request) {
       return NextResponse.json({ error: "You do not have permission to delete this story." }, { status: 403 });
     }
 
-    // Delete associated avatar profile first
-    await prisma.avatarProfile.deleteMany({
-      where: { storyId: story.id },
-    })
+    // Delete associated avatar profile first 
+    if (typeof prisma.avatarProfile?.deleteMany === "function") {
+      await prisma.avatarProfile.deleteMany({
+        where: { storyId: story.id },
+      })
+    }
 
     await prisma.twineStory.delete({
       where: { id: story.id },

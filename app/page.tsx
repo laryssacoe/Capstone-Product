@@ -20,7 +20,7 @@ import { OrbitControls, Environment, Html, Sphere } from "@react-three/drei";
 
 
 function InteractiveGlobe() {
-  const globeRef = useRef<THREE.Mesh>(null);
+  const globeRef = useRef<THREE.Mesh | null>(null);
   const [hovered, setHovered] = useState(false);
 
   useFrame(() => {
@@ -31,7 +31,7 @@ function InteractiveGlobe() {
   return (
     <group>
       <Sphere
-        ref={globeRef}
+        ref={globeRef as any}
         args={[2, 128, 128]}
         position={[0, 0, 0]}
         onPointerOver={() => setHovered(true)}
