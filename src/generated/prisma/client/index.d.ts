@@ -545,7 +545,7 @@ export class PrismaClient<
   get storyInteraction(): Prisma.StoryInteractionDelegate<ExtArgs, ClientOptions>;
 
   /**
-   * `prisma.storySave`: CRUD operations for the **StorySave** model.
+   * `prisma.storySave`: Exposes CRUD operations for the **StorySave** model.
     * Example usage:
     * ```ts
     * // Fetch zero or more StorySaves
