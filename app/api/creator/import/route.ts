@@ -2,7 +2,6 @@ import { randomUUID } from "crypto"
 import { NextResponse } from "next/server"
 import { z } from "zod"
 
-
 import { getCurrentSession } from "@/lib/server/auth"
 import { prisma } from "@/lib/server/prisma"
 import {
@@ -13,10 +12,48 @@ import {
 } from "@/lib/server/twine-transform"
 import { upsertStoryGraph, type StoryPayload } from "@/lib/server/story-graph"
 import { twineHtmlToTwison } from "@/lib/server/twine-html"
+
 export const dynamic = "force-dynamic"
 
+// Avatar metadata schema 
+const avatarMetadataSchema = z.object({
+  name: z.string().min(1),
+  age: z.number().optional(),
+  background: z.string().min(1),
+  appearance: z.object({
+    skinTone: z.string().optional(),
+    hairColor: z.string().optional(),
+    hairStyle: z.string().optional(),
+    clothing: z.string().optional(),
+    accessories: z.array(z.string()).optional(),
+    image: z.string().optional(), // Profile image path should be in /scenes/ directory
+  }).optional(),
+  initialResources: z.object({
+    money: z.number(),
+    time: z.number(),
+    socialSupport: z.number().optional().default(50),
+    mentalHealth: z.number().optional().default(70),
+    physicalHealth: z.number().optional().default(80),
+  }),
+  socialContext: z.object({
+    socioeconomicStatus: z.string().optional(),
+    location: z.string().optional(),
+    familyStructure: z.string().optional(),
+    educationLevel: z.string().optional(),
+    employmentStatus: z.string().optional(),
+    healthConditions: z.array(z.string()).optional(),
+    socialIssues: z.array(z.object({
+      id: z.string(),
+      type: z.string(),
+      severity: z.string(),
+      description: z.string(),
+      impacts: z.array(z.string()),
+    })).optional(),
+  }).optional(),
+  isPlayable: z.boolean().optional().default(true),
+})
 
-
+type AvatarMetadata = z.infer<typeof avatarMetadataSchema>
 
 const importOverridesSchema = z.object({
   slug: z.string().min(1).regex(/^[a-z0-9-]+$/i, "Story code must be URL safe.").optional(),
@@ -24,6 +61,7 @@ const importOverridesSchema = z.object({
   summary: z.string().optional(),
   tags: z.array(z.string()).optional(),
   visibility: z.enum(["PRIVATE", "UNLISTED", "PUBLIC"]).optional(),
+  avatar: avatarMetadataSchema.optional(),
 })
 
 type ImportOverrides = z.infer<typeof importOverridesSchema>
@@ -106,7 +144,57 @@ async function loadTwisonFromFile(file: File): Promise<TwisonStory> {
   )
 }
 
-async function maybeAttachAvatar(
+// Create or update avatar profile from metadata
+async function upsertAvatarFromMetadata(
+  ownerId: string,
+  storyId: string,
+  avatarMetadata: AvatarMetadata,
+  storyTitle: string,
+) {
+  // Check if avatar already exists for this story
+  const existingAvatar = await prisma.avatarProfile.findFirst({
+    where: { storyId },
+  })
+
+  const avatarData = {
+    name: avatarMetadata.name,
+    background: avatarMetadata.background,
+    initialResources: {
+      money: avatarMetadata.initialResources.money,
+      time: avatarMetadata.initialResources.time,
+      socialSupport: avatarMetadata.initialResources.socialSupport ?? 50,
+      mentalHealth: avatarMetadata.initialResources.mentalHealth ?? 70,
+      physicalHealth: avatarMetadata.initialResources.physicalHealth ?? 80,
+    },
+    appearance: avatarMetadata.appearance ?? {},
+    socialContext: avatarMetadata.socialContext ?? {},
+    isPlayable: avatarMetadata.isPlayable ?? true,
+    updatedAt: new Date(),
+  }
+
+  if (existingAvatar) {
+    // Update existing avatar
+    await prisma.avatarProfile.update({
+      where: { id: existingAvatar.id },
+      data: avatarData,
+    })
+    return existingAvatar.id
+  } else {
+    // Create new avatar
+    const newAvatar = await prisma.avatarProfile.create({
+      data: {
+        id: randomUUID(),
+        storyId,
+        ...avatarData,
+        createdAt: new Date(),
+      },
+    })
+    return newAvatar.id
+  }
+}
+
+// Auto-generate basic avatar from story content if no metadata provided
+async function maybeAttachAutoAvatar(
   ownerId: string,
   storyId: string,
   payload: StoryPayload,
@@ -120,7 +208,15 @@ async function maybeAttachAvatar(
   })
   if (hasAvatar) return
 
-  const background = firstNode.content && typeof firstNode.content === "object" ? (firstNode.content as any).text : ""
+  // Extract background from first node's text content
+  const content = firstNode.content as any
+  const textArray = content?.text
+  const background = Array.isArray(textArray) 
+    ? textArray.join(" ").slice(0, 240) 
+    : typeof textArray === "string" 
+      ? textArray.slice(0, 240) 
+      : ""
+  
   if (!background) return
 
   await prisma.avatarProfile.create({
@@ -128,11 +224,13 @@ async function maybeAttachAvatar(
       id: randomUUID(),
       storyId,
       name: firstNode.title ?? twison.name ?? "Story Protagonist",
-      background: background.slice(0, 240),
+      background,
       initialResources: {
-        empathy: 60,
-        resilience: 55,
-        communitySupport: 50,
+        money: 100,
+        time: 100,
+        socialSupport: 50,
+        mentalHealth: 70,
+        physicalHealth: 80,
       },
       socialContext: {
         derivedFromImport: true,
@@ -168,7 +266,9 @@ export async function POST(request: Request) {
     try {
       overrides = importOverridesSchema.parse(JSON.parse(overridesInput))
     } catch (error) {
-      return NextResponse.json({ error: "Invalid overrides payload." }, { status: 400 })
+      const zodError = error as z.ZodError
+      const message = zodError.errors?.map(e => `${e.path.join('.')}: ${e.message}`).join(', ') || "Invalid overrides payload."
+      return NextResponse.json({ error: message }, { status: 400 })
     }
   }
 
@@ -194,7 +294,14 @@ export async function POST(request: Request) {
 
   let payload: StoryPayload
   try {
-    payload = convertTwisonToStoryPayload(twison, overrides)
+    const storyOverrides = {
+      slug: overrides.slug,
+      title: overrides.title,
+      summary: overrides.summary,
+      tags: overrides.tags,
+      visibility: overrides.visibility,
+    }
+    payload = convertTwisonToStoryPayload(twison, storyOverrides)
     const convertedValidation = validateConvertedPayload(payload)
     if (!convertedValidation.ok) {
       throw new Error(convertedValidation.message)
@@ -204,7 +311,14 @@ export async function POST(request: Request) {
   }
 
   const story = await upsertStoryGraph(session.user.id, payload)
-  await maybeAttachAvatar(session.user.id, story.id, payload, twison)
+
+  // Handle avatar creation separately 
+  if (overrides.avatar) {
+    await upsertAvatarFromMetadata(session.user.id, story.id, overrides.avatar, story.title)
+  } else {
+    // Auto-generate basic avatar if none provided
+    await maybeAttachAutoAvatar(session.user.id, story.id, payload, twison)
+  }
 
   return NextResponse.json(
     {
@@ -213,6 +327,7 @@ export async function POST(request: Request) {
       title: story.title,
       nodes: payload.nodes.length,
       paths: payload.paths.length,
+      hasAvatar: Boolean(overrides.avatar),
     },
     { status: 201 },
   )
@@ -221,7 +336,7 @@ export async function POST(request: Request) {
 async function ensureStoryIdentifierAvailable(twison: TwisonStory, overrides: ImportOverrides) {
   const slugCandidate = overrides.slug ?? slugify(twison.name ?? "")
   if (!slugCandidate) {
-  throw new Error("Unable to derive a story code from the Twine story. Provide a code override before importing.")
+    throw new Error("Unable to derive a story code from the Twine story. Provide a code override before importing.")
   }
 
   const existingSlug = await prisma.twineStory.findUnique({
@@ -229,7 +344,7 @@ async function ensureStoryIdentifierAvailable(twison: TwisonStory, overrides: Im
     select: { id: true },
   })
   if (existingSlug) {
-  throw new Error(`Story code '${slugCandidate}' is already in use. Please choose a different code in the import form.`)
+    throw new Error(`Story code '${slugCandidate}' is already in use. Please choose a different code in the import form.`)
   }
 
   const titleCandidate = overrides.title ?? twison.name ?? ""

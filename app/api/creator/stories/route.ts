@@ -1,4 +1,6 @@
+import { randomUUID } from "crypto"
 import { NextResponse } from "next/server"
+import { z } from "zod"
 
 import { getCurrentSession } from "@/lib/server/auth"
 import { buildStoryApprovalLinks, isMailerConfigured, sendStoryPendingUpdateEmail } from "@/lib/server/mailer"
@@ -12,6 +14,121 @@ type SessionUser = {
   role: string
   email?: string | null
   username?: string | null
+}
+
+// Avatar metadata schema for validation
+const avatarMetadataSchema = z.object({
+  name: z.string().min(1),
+  age: z.number().optional(),
+  background: z.string().min(1),
+  appearance: z.object({
+    skinTone: z.string().optional(),
+    hairColor: z.string().optional(),
+    hairStyle: z.string().optional(),
+    clothing: z.string().optional(),
+    accessories: z.array(z.string()).optional(),
+    image: z.string().optional(),
+  }).optional(),
+  initialResources: z.object({
+    money: z.number(),
+    time: z.number(),
+    socialSupport: z.number().optional().default(50),
+    mentalHealth: z.number().optional().default(70),
+    physicalHealth: z.number().optional().default(80),
+  }),
+  socialContext: z.object({
+    socioeconomicStatus: z.string().optional(),
+    location: z.string().optional(),
+    familyStructure: z.string().optional(),
+    educationLevel: z.string().optional(),
+    employmentStatus: z.string().optional(),
+    healthConditions: z.array(z.string()).optional(),
+    socialIssues: z.array(z.object({
+      id: z.string(),
+      type: z.string(),
+      severity: z.string(),
+      description: z.string(),
+      impacts: z.array(z.string()),
+    })).optional(),
+  }).optional(),
+  isPlayable: z.boolean().optional().default(true),
+}).optional()
+
+function normalizeMedia(media: unknown) {
+  if (!media || typeof media !== "object") return undefined
+  const raw = media as Record<string, unknown>
+  const visual =
+    (typeof raw.visual === "string" && raw.visual.trim()) ||
+    (typeof raw.image === "string" && raw.image.trim()) ||
+    undefined
+  const audio = typeof raw.audio === "string" && raw.audio.trim() ? raw.audio.trim() : undefined
+  const normalized: Record<string, string> = {}
+  if (visual) normalized.visual = visual
+  if (audio) normalized.audio = audio
+  return Object.keys(normalized).length ? normalized : undefined
+}
+
+function normalizeContent(content: unknown) {
+  if (!content || typeof content !== "object") return content ?? undefined
+  const raw = content as Record<string, any>
+  const normalized: Record<string, any> = { ...raw }
+  const text = raw.text
+  if (Array.isArray(text)) {
+    normalized.text = text.map((entry) => (typeof entry === "string" ? entry : String(entry ?? "")))
+  } else if (typeof text === "string") {
+    const paragraphs = text
+      .split(/\n+/)
+      .map((paragraph) => paragraph.trim())
+      .filter(Boolean)
+    normalized.text = paragraphs.length ? paragraphs : [text.trim()]
+  }
+  return normalized
+}
+
+// Create or update avatar profile from metadata
+async function upsertAvatarFromMetadata(
+  storyId: string,
+  avatarMetadata: z.infer<typeof avatarMetadataSchema>,
+) {
+  if (!avatarMetadata) return null
+
+  const existingAvatar = await prisma.avatarProfile.findFirst({
+    where: { storyId },
+  })
+
+  const avatarData = {
+    name: avatarMetadata.name,
+    background: avatarMetadata.background,
+    initialResources: {
+      money: avatarMetadata.initialResources.money,
+      time: avatarMetadata.initialResources.time,
+      socialSupport: avatarMetadata.initialResources.socialSupport ?? 50,
+      mentalHealth: avatarMetadata.initialResources.mentalHealth ?? 70,
+      physicalHealth: avatarMetadata.initialResources.physicalHealth ?? 80,
+    },
+    appearance: avatarMetadata.appearance ?? {},
+    socialContext: avatarMetadata.socialContext ?? {},
+    isPlayable: avatarMetadata.isPlayable ?? true,
+    updatedAt: new Date(),
+  }
+
+  if (existingAvatar) {
+    await prisma.avatarProfile.update({
+      where: { id: existingAvatar.id },
+      data: avatarData,
+    })
+    return existingAvatar.id
+  } else {
+    const newAvatar = await prisma.avatarProfile.create({
+      data: {
+        id: randomUUID(),
+        storyId,
+        ...avatarData,
+        createdAt: new Date(),
+      },
+    })
+    return newAvatar.id
+  }
 }
 
 async function handlePendingStoryUpdate(story: {
@@ -181,6 +298,13 @@ export async function GET() {
       },
     });
 
+    // Fetch avatar profiles for each story
+    const storyIds = stories.map(s => s.id)
+    const avatarProfiles = await prisma.avatarProfile.findMany({
+      where: { storyId: { in: storyIds } },
+    })
+    const avatarByStoryId = new Map(avatarProfiles.map(a => [a.storyId, a]))
+
     const payload = stories.map((story) => {
       const latestApproved = story.latestVersion;
       const pendingVersion = story.versions.find((version) => version.status === "PENDING");
@@ -206,6 +330,17 @@ export async function GET() {
       const paths = Array.isArray(story.paths) ? story.paths : [];
       const transitions = Array.isArray(story.transitions) ? story.transitions : [];
 
+      // Get avatar metadata if present
+      const avatarProfile = avatarByStoryId.get(story.id)
+      const avatarMetadata = avatarProfile ? {
+        name: avatarProfile.name,
+        background: avatarProfile.background,
+        appearance: avatarProfile.appearance as any,
+        initialResources: avatarProfile.initialResources as any,
+        socialContext: avatarProfile.socialContext as any,
+        isPlayable: avatarProfile.isPlayable,
+      } : undefined
+
       return {
         id: story.id,
         slug: story.slug,
@@ -217,14 +352,18 @@ export async function GET() {
         updatedAt: story.updatedAt,
         reviewStatus,
         reviewVersionNumber,
-        nodes: nodes.map((node) => ({
-          key: node.key,
-          title: node.title ?? undefined,
-          synopsis: node.synopsis ?? undefined,
-          type: node.type,
-          content: node.content ?? undefined,
-          media: node.media ?? undefined,
-        })),
+        nodes: nodes.map((node) => {
+          const normalizedContent = normalizeContent(node.content)
+          const normalizedMedia = normalizeMedia(node.media)
+          return {
+            key: node.key,
+            title: node.title ?? undefined,
+            synopsis: node.synopsis ?? undefined,
+            type: node.type,
+            content: normalizedContent ?? undefined,
+            media: normalizedMedia ?? undefined,
+          }
+        }),
         paths: paths.map((path) => ({
           key: path.key,
           label: path.label,
@@ -239,6 +378,7 @@ export async function GET() {
           condition: transition.condition ?? undefined,
           effect: transition.effect ?? undefined,
         })),
+        metadata: avatarMetadata ? { avatar: avatarMetadata } : undefined,
         author: story.owner
           ? {
               id: story.owner.id,
@@ -271,8 +411,19 @@ export async function POST(request: Request) {
   }
 
   let parsed: ReturnType<typeof storyPayloadSchema.safeParse>
+  let avatarData: z.infer<typeof avatarMetadataSchema> | undefined
+  
   try {
     const json = await request.json()
+    
+    // Extract avatar metadata before validation
+    if (json.metadata?.avatar) {
+      const avatarParsed = avatarMetadataSchema.safeParse(json.metadata.avatar)
+      if (avatarParsed.success) {
+        avatarData = avatarParsed.data
+      }
+    }
+    
     parsed = storyPayloadSchema.safeParse(json)
   } catch (error) {
     return NextResponse.json({ error: "Invalid JSON payload." }, { status: 400 })
@@ -310,6 +461,11 @@ export async function POST(request: Request) {
 
     const story = await upsertStoryGraph(session.user.id, parsed.data)
 
+    // Handle avatar metadata
+    if (avatarData) {
+      await upsertAvatarFromMetadata(story.id, avatarData)
+    }
+
     const pendingUpdateEmailStatus = await handlePendingStoryUpdate(story, session.user)
 
     return NextResponse.json({ storyId: story.id, pendingUpdateEmail: pendingUpdateEmailStatus }, { status: 201 })
@@ -335,8 +491,19 @@ export async function PUT(request: Request) {
   }
 
   let parsed: ReturnType<typeof storyUpdatePayloadSchema.safeParse>
+  let avatarData: z.infer<typeof avatarMetadataSchema> | undefined
+  
   try {
     const json = await request.json()
+    
+    // Extract avatar metadata before validation
+    if (json.metadata?.avatar) {
+      const avatarParsed = avatarMetadataSchema.safeParse(json.metadata.avatar)
+      if (avatarParsed.success) {
+        avatarData = avatarParsed.data
+      }
+    }
+    
     parsed = storyUpdatePayloadSchema.safeParse(json)
   } catch (error) {
     return NextResponse.json({ error: "Invalid JSON payload." }, { status: 400 })
@@ -402,6 +569,11 @@ export async function PUT(request: Request) {
       enforceVisibility: shouldForcePublic ? "PUBLIC" : undefined,
     })
 
+    // Handle avatar metadata
+    if (avatarData) {
+      await upsertAvatarFromMetadata(story.id, avatarData)
+    }
+
     const pendingUpdateEmailStatus = await handlePendingStoryUpdate(story, session.user)
 
     return NextResponse.json({ storyId: story.id, pendingUpdateEmail: pendingUpdateEmailStatus }, { status: 200 })
@@ -451,6 +623,11 @@ export async function DELETE(request: Request) {
     if (!session.user.isAdmin && story.ownerId !== session.user.id) {
       return NextResponse.json({ error: "You do not have permission to delete this story." }, { status: 403 });
     }
+
+    // Delete associated avatar profile first
+    await prisma.avatarProfile.deleteMany({
+      where: { storyId: story.id },
+    })
 
     await prisma.twineStory.delete({
       where: { id: story.id },
