@@ -2,13 +2,50 @@ import { z } from "zod"
 
 import { prisma } from "@/lib/server/prisma"
 
+const storyChoiceEffectsSchema = z
+  .object({
+    money: z.number().optional(),
+    health: z.number().optional(),
+    mentalHealth: z.number().optional(),
+    support: z.number().optional(),
+    time: z.number().optional(),
+  })
+  .partial()
+
+const storyChoiceSchema = z.object({
+  id: z.string().min(1),
+  text: z.string().optional(),
+  leads_to: z.string().min(1).optional(),
+  effects: storyChoiceEffectsSchema.optional(),
+})
+
+const storyNodeContentSchema = z
+  .object({
+    text: z.union([z.array(z.string()), z.string()]).optional(),
+    choices: z.array(storyChoiceSchema).optional(),
+    next: z.string().optional(),
+    emotion: z.string().optional(),
+    intensity: z.number().optional(),
+  })
+  .passthrough()
+  .optional()
+
+const storyNodeMediaSchema = z
+  .object({
+    visual: z.string().nullable().optional(),
+    image: z.string().nullable().optional(),
+    audio: z.string().nullable().optional(),
+  })
+  .passthrough()
+  .optional()
+
 export const storyNodeSchema = z.object({
   key: z.string().min(1),
   title: z.string().optional(),
   synopsis: z.string().optional(),
   type: z.enum(["NARRATIVE", "DECISION", "RESOLUTION"]).optional(),
-  content: z.unknown().optional(),
-  media: z.unknown().optional(),
+  content: storyNodeContentSchema,
+  media: storyNodeMediaSchema,
 })
 
 export const storyPathSchema = z.object({
@@ -53,6 +90,86 @@ export async function upsertStoryGraph(
 ) {
   const { slug, title, summary, tags = [], visibility = "PRIVATE", nodes, paths, transitions } = payload
   const resolvedVisibility = options?.enforceVisibility ?? visibility
+
+  const normalizeEffects = (effects: unknown) => {
+    if (!effects || typeof effects !== "object") return undefined
+    const data = effects as Record<string, unknown>
+    const normalized: Record<string, number> = {}
+    const keys: (keyof typeof normalized)[] = ["money", "health", "mentalHealth", "support", "time"]
+    keys.forEach((key) => {
+      const value = data[key]
+      if (typeof value === "number" && Number.isFinite(value)) {
+        normalized[key] = value
+      }
+    })
+    return Object.keys(normalized).length ? normalized : undefined
+  }
+
+  const normalizeMedia = (media: unknown) => {
+    if (!media || typeof media !== "object") return undefined
+    const raw = media as Record<string, unknown>
+    const visual =
+      (typeof raw.visual === "string" && raw.visual.trim()) ||
+      (typeof raw.image === "string" && raw.image.trim()) ||
+      undefined
+    const audio = typeof raw.audio === "string" && raw.audio.trim() ? raw.audio.trim() : undefined
+    const normalized: Record<string, string> = {}
+    if (visual) normalized.visual = visual
+    if (audio) normalized.audio = audio
+    return Object.keys(normalized).length ? normalized : undefined
+  }
+
+  const normalizeContent = (content: unknown) => {
+    if (!content || typeof content !== "object") return undefined
+    const raw = content as Record<string, any>
+    const normalized: Record<string, any> = { ...raw }
+
+    const text = raw.text
+    if (Array.isArray(text)) {
+      normalized.text = text.map((entry) => (typeof entry === "string" ? entry : String(entry ?? "")))
+    } else if (typeof text === "string") {
+      const paragraphs = text
+        .split(/\n+/)
+        .map((paragraph) => paragraph.trim())
+        .filter(Boolean)
+      normalized.text = paragraphs.length ? paragraphs : [text.trim()]
+    }
+
+    if (Array.isArray(raw.choices)) {
+      normalized.choices = raw.choices.map((choice: any, index: number) => {
+        const idCandidate =
+          (typeof choice?.id === "string" && choice.id.trim()) ||
+          (typeof choice?.path === "string" && choice.path.trim()) ||
+          `choice-${index + 1}`
+        const leadsTo =
+          (typeof choice?.leads_to === "string" && choice.leads_to.trim()) ||
+          (typeof choice?.to === "string" && choice.to.trim()) ||
+          (typeof choice?.target === "string" && choice.target.trim()) ||
+          undefined
+
+        return {
+          id: idCandidate,
+          text: typeof choice?.text === "string" ? choice.text : idCandidate,
+          leads_to: leadsTo,
+          effects: normalizeEffects(choice?.effects),
+        }
+      })
+    }
+
+    if (typeof raw.next === "string") {
+      normalized.next = raw.next
+    }
+
+    if (typeof raw.emotion === "string") {
+      normalized.emotion = raw.emotion
+    }
+
+    if (typeof raw.intensity === "number") {
+      normalized.intensity = raw.intensity
+    }
+
+    return normalized
+  }
 
   const [creatorProfile, userProfile, ownerAccount] = await Promise.all([
     prisma.creatorProfile.findUnique({ where: { userId: ownerId } }),
@@ -114,6 +231,8 @@ export async function upsertStoryGraph(
 
   const nodeKeyToId = new Map<string, string>()
   for (const node of nodes) {
+    const normalizedContent = normalizeContent(node.content)
+    const normalizedMedia = normalizeMedia(node.media)
     const created = await prisma.storyNode.create({
       data: {
         storyId: story.id,
@@ -121,8 +240,8 @@ export async function upsertStoryGraph(
         title: node.title ?? null,
         synopsis: node.synopsis ?? null,
         type: node.type ?? "NARRATIVE",
-        content: node.content ?? undefined,
-        media: node.media ?? undefined,
+        content: normalizedContent ?? undefined,
+        media: normalizedMedia ?? undefined,
       },
     })
     nodeKeyToId.set(node.key, created.id)
