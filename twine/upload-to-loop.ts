@@ -368,6 +368,9 @@ async function main() {
     const lowerName = fileName.toLowerCase()
     const form = new FormData()
 
+    // Convert Buffer to Uint8Array for Blob compatibility
+    const fileData = new Uint8Array(fileBuffer)
+
     if (lowerName.endsWith(".json")) {
       const json = fileBuffer.toString("utf8")
       let parsed: any
@@ -394,7 +397,7 @@ async function main() {
       form.append("twineFile", new Blob([html], { type: "text/html" }), fileName)
     } else {
       const mime = lowerName.endsWith(".zip") ? "application/zip" : "application/octet-stream"
-      form.append("twineFile", new Blob([fileBuffer], { type: mime }), fileName)
+      form.append("twineFile", new Blob([fileData], { type: mime }), fileName)
     }
 
     // Build overrides including avatar metadata
