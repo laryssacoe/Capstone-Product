@@ -394,7 +394,7 @@ const getScenarioImage = (scenario: Scenario): string | null => {
   const imagePath = (scenario as any)?.metadata?.appearance?.image || "";
   
   // Only trust image paths in /scenes/ directory 
-  if (imagePath && (imagePath.startsWith("/scenes/") || imagePath.startsWith("/images/scenes/"))) {
+  if (imagePath && imagePath.startsWith("/scenes/")) {
     return imagePath;
   }
 
