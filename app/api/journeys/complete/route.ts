@@ -2,7 +2,6 @@ import { NextResponse } from "next/server"
 import { z } from "zod"
 import { getCurrentSession } from "@/lib/server/auth"
 import { completeScenario, getUserProgress } from "@/lib/server/progress"
-import { ensureBaseContent } from "@/lib/server/bootstrap"
 export const dynamic = "force-dynamic"
 
 
@@ -52,7 +51,6 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: parsed.error.format() }, { status: 400 })
   }
 
-  await ensureBaseContent()
   try {
     await completeScenario(session.user.id, parsed.data.scenarioId, parsed.data.scenario ?? undefined)
   } catch (error) {

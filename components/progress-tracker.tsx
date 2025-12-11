@@ -1,23 +1,415 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Progress } from "@/components/ui/progress"
-import { Badge } from "@/components/ui/badge"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Trophy, Target, Heart, Brain, Users, Star, TrendingUp, Award } from "lucide-react"
+import Link from "next/link"
+import styled, { keyframes } from "styled-components"
+import { 
+  BookOpen, 
+  Clock, 
+  CheckCircle2, 
+  Heart, 
+  Eye, 
+  Brain, 
+  Trophy,
+  Target,
+  TrendingUp,
+  Loader2
+} from "lucide-react"
 import type { TrackedScenario, UserProgress } from "@/types/simulation"
-import { useToast } from "@/hooks/use-toast"
-import {
-  AlertDialog,
-  AlertDialogContent,
-  AlertDialogHeader,
-  AlertDialogFooter,
-  AlertDialogTitle,
-  AlertDialogDescription,
-  AlertDialogAction,
-  AlertDialogCancel,
-} from "@/components/ui/alert-dialog"
+
+const spin = keyframes`
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+`
+
+const LoadingContainer = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 64px 0;
+`
+
+const SpinningLoader = styled(Loader2)`
+  width: 32px;
+  height: 32px;
+  color: #a78bfa;
+  animation: ${spin} 1s linear infinite;
+  margin-bottom: 16px;
+`
+
+const LoadingText = styled.p`
+  color: rgb(148, 163, 184);
+  margin: 0;
+`
+
+const ErrorContainer = styled.div`
+  text-align: center;
+  padding: 48px 0;
+`
+
+const ErrorIconWrapper = styled.div`
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  margin: 0 auto 24px auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: rgba(167, 139, 250, 0.1);
+`
+
+const ErrorTitle = styled.h2`
+  font-size: 24px;
+  font-weight: 700;
+  color: white;
+  margin: 0 0 12px 0;
+`
+
+const ErrorMessage = styled.p`
+  color: rgb(148, 163, 184);
+  margin: 0 0 32px 0;
+  max-width: 448px;
+  margin-left: auto;
+  margin-right: auto;
+`
+
+const ButtonGroup = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  justify-content: center;
+  
+  @media (min-width: 640px) {
+    flex-direction: row;
+  }
+`
+
+const PrimaryButton = styled(Link)`
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 500;
+  padding: 12px 24px;
+  border-radius: 8px;
+  background-color: #7c3aed;
+  color: white;
+  text-decoration: none;
+  transition: opacity 0.2s;
+  
+  &:hover {
+    opacity: 0.9;
+  }
+`
+
+const SecondaryButton = styled(Link)`
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 500;
+  padding: 12px 24px;
+  border-radius: 8px;
+  background-color: transparent;
+  color: white;
+  text-decoration: none;
+  border: 1px solid rgb(71, 85, 105);
+  transition: background-color 0.2s;
+  
+  &:hover {
+    background-color: rgb(30, 41, 59);
+  }
+`
+
+const FooterText = styled.p`
+  color: rgb(100, 116, 139);
+  font-size: 14px;
+  margin: 24px 0 0 0;
+`
+
+const FooterLink = styled(Link)`
+  color: #a78bfa;
+  text-decoration: underline;
+  
+  &:hover {
+    color: #c4b5fd;
+  }
+`
+
+const Container = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 48px;
+`
+
+const StatsGrid = styled.div`
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+  
+  @media (min-width: 640px) {
+    grid-template-columns: repeat(3, 1fr);
+  }
+`
+
+const StatCard = styled.div<{ $bgColor: string; $borderColor: string }>`
+  border-radius: 12px;
+  padding: 20px;
+  border: 1px solid ${({ $borderColor }) => $borderColor};
+  text-align: center;
+  background-color: ${({ $bgColor }) => $bgColor};
+`
+
+const StatValue = styled.p<{ $color: string }>`
+  font-size: 30px;
+  font-weight: 700;
+  margin: 0 0 4px 0;
+  color: ${({ $color }) => $color};
+`
+
+const StatLabel = styled.p`
+  font-size: 14px;
+  color: rgb(148, 163, 184);
+  margin: 0;
+`
+
+const SectionTitle = styled.h3`
+  font-size: 18px;
+  font-weight: 600;
+  color: white;
+  margin: 0 0 24px 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+`
+
+const SectionTitleSmall = styled.h3`
+  font-size: 18px;
+  font-weight: 600;
+  color: white;
+  margin: 0 0 16px 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+`
+
+const MetricsContainer = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+`
+
+const MetricCard = styled.div`
+  border-radius: 12px;
+  padding: 20px;
+  border: 1px solid rgba(71, 85, 105, 0.5);
+  background-color: rgba(30, 41, 59, 0.5);
+`
+
+const MetricHeader = styled.div`
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 12px;
+`
+
+const MetricLeft = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 12px;
+`
+
+const MetricIconWrapper = styled.div<{ $bgColor: string }>`
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: ${({ $bgColor }) => $bgColor};
+`
+
+const MetricLabel = styled.p`
+  font-weight: 500;
+  color: white;
+  margin: 0;
+`
+
+const MetricDescription = styled.p`
+  font-size: 14px;
+  color: rgb(100, 116, 139);
+  margin: 0;
+`
+
+const MetricValue = styled.span<{ $color: string }>`
+  font-size: 14px;
+  font-weight: 500;
+  color: ${({ $color }) => $color};
+`
+
+const ProgressBarBg = styled.div`
+  width: 100%;
+  height: 8px;
+  border-radius: 9999px;
+  background-color: rgba(51, 65, 85, 0.5);
+  overflow: hidden;
+`
+
+const ProgressBarFill = styled.div<{ $width: number; $color: string }>`
+  height: 100%;
+  border-radius: 9999px;
+  transition: all 0.5s;
+  width: ${({ $width }) => $width}%;
+  background-color: ${({ $color }) => $color};
+`
+
+const AchievementsGrid = styled.div`
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+  
+  @media (min-width: 640px) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+`
+
+const AchievementCard = styled.div`
+  border-radius: 8px;
+  padding: 16px;
+  border: 1px solid rgba(51, 65, 85, 0.3);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background-color: rgba(30, 41, 59, 0.3);
+`
+
+const AchievementIcon = styled.div`
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: rgba(251, 191, 36, 0.1);
+`
+
+const AchievementTitle = styled.p`
+  color: white;
+  font-weight: 500;
+  margin: 0;
+`
+
+const AchievementPoints = styled.p`
+  font-size: 14px;
+  color: rgb(100, 116, 139);
+  margin: 0;
+`
+
+const StoriesList = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+`
+
+const StoryCard = styled.div`
+  border-radius: 8px;
+  padding: 16px;
+  border: 1px solid rgba(51, 65, 85, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background-color: rgba(30, 41, 59, 0.3);
+`
+
+const StoryLeft = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 12px;
+`
+
+const StoryColorBar = styled.div<{ $color: string }>`
+  width: 8px;
+  height: 40px;
+  border-radius: 9999px;
+  background-color: ${({ $color }) => $color};
+`
+
+const StoryTitle = styled.p`
+  color: white;
+  font-weight: 500;
+  margin: 0;
+`
+
+const StoryCategory = styled.p`
+  font-size: 14px;
+  color: rgb(100, 116, 139);
+  margin: 0;
+`
+
+const StoryTime = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 14px;
+  color: rgb(100, 116, 139);
+`
+
+const StoryLink = styled(Link)`
+  border-radius: 8px;
+  padding: 16px;
+  border: 1px solid rgba(51, 65, 85, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background-color: rgba(30, 41, 59, 0.5);
+  text-decoration: none;
+  transition: border-color 0.2s;
+  
+  &:hover {
+    border-color: rgba(139, 92, 246, 0.5);
+  }
+`
+
+const StoryLinkTime = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 14px;
+  color: rgb(148, 163, 184);
+`
+
+const EmptyStateContainer = styled.div`
+  text-align: center;
+  padding: 32px 0;
+`
+
+const EmptyStateIcon = styled.div`
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  margin: 0 auto 16px auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: rgba(96, 165, 250, 0.1);
+`
+
+const EmptyStateTitle = styled.h3`
+  font-size: 18px;
+  font-weight: 500;
+  color: white;
+  margin: 0 0 8px 0;
+`
+
+const EmptyStateText = styled.p`
+  color: rgb(148, 163, 184);
+  margin: 0 0 24px 0;
+`
+
+const FooterSection = styled.div`
+  text-align: center;
+  padding-top: 32px;
+  border-top: 1px solid rgba(51, 65, 85, 0.5);
+`
 
 interface ProgressTrackerProps {
   userId?: string
@@ -28,11 +420,7 @@ export function ProgressTracker({ userId = "demo-user", className }: ProgressTra
   const [progress, setProgress] = useState<UserProgress | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [actionMessage, setActionMessage] = useState<string | null>(null)
-  const [pendingScenario, setPendingScenario] = useState<TrackedScenario | null>(null)
-  const [confirming, setConfirming] = useState(false)
   const signInPrompt = "In order to start and see your journey, sign in."
-  const { toast } = useToast()
 
   const normalizeProgress = (data: UserProgress): UserProgress => ({
     ...data,
@@ -77,382 +465,266 @@ export function ProgressTracker({ userId = "demo-user", className }: ProgressTra
     }
   }, [userId])
 
-  async function submitScenarioCompletion(scenario: TrackedScenario) {
-    setActionMessage(null)
-    try {
-      const response = await fetch("/api/journeys/complete", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          scenarioId: scenario.id,
-          scenario: {
-            title: scenario.title,
-            description: (scenario.metadata as any)?.description,
-            issue:
-              (scenario.metadata as any)?.issue ??
-              (scenario.issueTag
-                ? {
-                    id: scenario.issueTag,
-                    type: scenario.issueTag,
-                    severity: scenario.difficulty ?? undefined,
-                  }
-                : undefined),
-            difficulty: scenario.difficulty ?? undefined,
-            estimatedMinutes: scenario.estimatedMinutes ?? undefined,
-            minimumResources: (scenario.metadata as any)?.minimumResources,
-          },
-        }),
-      })
-      if (!response.ok) {
-        const data = await response.json().catch(() => ({}))
-        const message = data.error ?? "Unable to update scenario."
-        throw new Error(message)
-      }
-      const data = await response.json()
-      setProgress(normalizeProgress(data))
-      setActionMessage("Scenario recorded! Progress updated.")
-    } catch (err) {
-      const message = err instanceof Error ? err.message : "Unable to update scenario."
-      setActionMessage(message)
-      toast({
-        title: "Could not save scenario",
-        description: message,
-        variant: "destructive",
-      })
-    }
-  }
-
-  async function confirmScenarioCompletion() {
-    if (!pendingScenario) return
-    setConfirming(true)
-    await submitScenarioCompletion(pendingScenario)
-    setConfirming(false)
-    setPendingScenario(null)
-  }
-
-  const getIconComponent = (iconName: string) => {
-    const icons = {
-      target: Target,
-      heart: Heart,
-      brain: Brain,
-      users: Users,
-      star: Star,
-      trophy: Trophy,
-      award: Award,
-    }
-    const IconComponent = icons[iconName as keyof typeof icons] || Target
-    return <IconComponent className="h-5 w-5" />
-  }
-
-  const getAchievementColor = (category: string) => {
-    const colors = {
-      milestone: "bg-slate-800 text-blue-300 border-slate-700",
-      empathy: "bg-slate-800 text-purple-300 border-slate-700",
-      decision: "bg-slate-800 text-indigo-300 border-slate-700",
-      exploration: "bg-slate-800 text-cyan-300 border-slate-700",
-    }
-    return colors[category as keyof typeof colors] || colors.milestone
-  }
-
+  // Loading state
   if (loading) {
-    return <div className={`text-center text-gray-300 ${className}`}>Loading your progress…</div>
-  }
-
-  if (error || !progress) {
     return (
-      <div className={`text-center space-y-4 ${className}`}>
-        <p className="text-gray-300">{error ?? signInPrompt}</p>
-        <a
-          className="inline-flex justify-center rounded-lg bg-blue-600 px-6 py-2 text-white"
-          href="/login"
-        >
-          Go to sign in
-        </a>
-      </div>
+      <LoadingContainer className={className}>
+        <SpinningLoader />
+        <LoadingText>Loading your journey...</LoadingText>
+      </LoadingContainer>
     )
   }
 
+  // Error/Sign-in state
+  if (error || !progress) {
+    return (
+      <ErrorContainer className={className}>
+        <ErrorIconWrapper>
+          <BookOpen size={40} color="#a78bfa" />
+        </ErrorIconWrapper>
+        <ErrorTitle>Track Your Learning Journey</ErrorTitle>
+        <ErrorMessage>{error ?? signInPrompt}</ErrorMessage>
+        <ButtonGroup>
+          <PrimaryButton href="/login">Sign In</PrimaryButton>
+          <SecondaryButton href="/register">Create Account</SecondaryButton>
+        </ButtonGroup>
+        <FooterText>
+          Or{" "}
+          <FooterLink href="/scenarios">explore stories</FooterLink>{" "}
+          without an account
+        </FooterText>
+      </ErrorContainer>
+    )
+  }
+
+  // Calculate values
   const empathyLevel = Math.floor(progress.totalEmpathyScore / 100) + 1
-  const completionPercentage =
-    progress.completionPercentage ??
-    Math.round((progress.scenariosCompleted / Math.max(progress.totalScenarios, 1)) * 100)
+  const completedScenarios = progress.scenarios.filter((s) => s.completed)
+  const totalTimeMinutes = progress.timeSpent ?? 0
+
+  // Empathy metrics based on real data
+  const empathyMetrics = [
+    {
+      id: "perspectives",
+      label: "Perspectives Understood",
+      description: "Different life situations you've explored",
+      current: progress.issuesExplored.length,
+      goal: 10,
+      icon: Eye,
+      color: "#a78bfa", 
+    },
+    {
+      id: "scenarios",
+      label: "Scenarios Completed",
+      description: "Stories you've experienced to the end",
+      current: progress.scenariosCompleted,
+      goal: progress.totalScenarios || 8,
+      icon: Brain,
+      color: "#60a5fa", 
+    },
+    {
+      id: "empathy",
+      label: "Empathy Score",
+      description: "Your overall empathy development",
+      current: progress.totalEmpathyScore,
+      goal: empathyLevel * 100,
+      icon: Heart,
+      color: "#f472b6", 
+    },
+  ]
+
+  // Category colors for stories
+  const getCategoryColor = (issueTag: string | null) => {
+    const colors: Record<string, string> = {
+      "immigration": "#a78bfa",
+      "disability": "#60a5fa",
+      "racism": "#f472b6",
+      "poverty": "#34d399",
+      "ageism": "#fbbf24",
+      "gender": "#ec4899",
+      "lgbtq": "#8b5cf6",
+      "mental-health": "#06b6d4",
+    }
+    return colors[issueTag ?? ""] ?? "#94a3b8"
+  }
+
+  const formatIssueTag = (tag: string | null) => {
+    if (!tag) return "Social Challenge"
+    return tag
+      .replace(/-/g, " ")
+      .replace(/\b\w/g, (l) => l.toUpperCase())
+  }
+
+  const formatTime = (minutes: number) => {
+    if (minutes > 60) {
+      return `${Math.floor(minutes / 60)}h ${minutes % 60}m`
+    }
+    return `~${minutes}m`
+  }
 
   return (
-    <div className={`space-y-6 ${className}`}>
-      {actionMessage && (
-        <div className="rounded-lg border border-slate-700 bg-slate-800/60 p-3 text-sm text-slate-200">{actionMessage}</div>
-      )}
-      {/* Overview Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 justify-items-center">
-        <Card className="bg-slate-800/50 border-slate-700 w-full max-w-sm">
-          <CardContent className="p-4">
-            <div className="flex flex-col items-center justify-center space-y-2">
-              <Trophy className="h-6 w-6 text-blue-400" />
-              <div className="text-center">
-                <p className="text-sm font-medium text-gray-300">Empathy Level</p>
-                <p className="text-2xl font-bold text-blue-400">{empathyLevel}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+    <Container className={className}>
+      {/* Stats Cards */}
+      <StatsGrid>
+        <StatCard $bgColor="rgba(167, 139, 250, 0.1)" $borderColor="rgba(167, 139, 250, 0.3)">
+          <StatValue $color="#a78bfa">
+            {progress.scenariosCompleted}/{progress.totalScenarios}
+          </StatValue>
+          <StatLabel>Stories Completed</StatLabel>
+        </StatCard>
+        <StatCard $bgColor="rgba(96, 165, 250, 0.1)" $borderColor="rgba(96, 165, 250, 0.3)">
+          <StatValue $color="#60a5fa">
+            {progress.issuesExplored.length}
+          </StatValue>
+          <StatLabel>Perspectives Explored</StatLabel>
+        </StatCard>
+        <StatCard $bgColor="rgba(244, 114, 182, 0.1)" $borderColor="rgba(244, 114, 182, 0.3)">
+          <StatValue $color="#f472b6">
+            {formatTime(totalTimeMinutes)}
+          </StatValue>
+          <StatLabel>Time Invested</StatLabel>
+        </StatCard>
+      </StatsGrid>
 
-        <Card className="bg-slate-800/50 border-slate-700 w-full max-w-sm">
-          <CardContent className="p-4">
-            <div className="flex flex-col items-center justify-center space-y-2">
-              <Target className="h-6 w-6 text-purple-400" />
-              <div className="text-center">
-                <p className="text-sm font-medium text-gray-300">Scenarios</p>
-                <p className="text-2xl font-bold text-purple-400">
-                  {progress.scenariosCompleted}/{progress.totalScenarios}
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-slate-800/50 border-slate-700 w-full max-w-sm">
-          <CardContent className="p-4">
-            <div className="flex flex-col items-center justify-center space-y-2">
-              <TrendingUp className="h-6 w-6 text-indigo-400" />
-              <div className="text-center">
-                <p className="text-sm font-medium text-gray-300">Streak</p>
-                <p className="text-2xl font-bold text-indigo-400">{progress.streakDays} days</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-slate-800/50 border-slate-700 w-full max-w-sm">
-          <CardContent className="p-4">
-            <div className="flex flex-col items-center justify-center space-y-2">
-              <Users className="h-6 w-6 text-cyan-400" />
-              <div className="text-center">
-                <p className="text-sm font-medium text-gray-300">Issues Explored</p>
-                <p className="text-2xl font-bold text-cyan-400">{progress.issuesExplored.length}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+      {/* Empathy Building Progress */}
+      <div>
+        <SectionTitle>
+          <Heart size={20} color="#f472b6" />
+          Empathy Building Progress
+        </SectionTitle>
+        <MetricsContainer>
+          {empathyMetrics.map((metric) => {
+            const Icon = metric.icon
+            const percentage = Math.min(100, Math.round((metric.current / metric.goal) * 100))
+            return (
+              <MetricCard key={metric.id}>
+                <MetricHeader>
+                  <MetricLeft>
+                    <MetricIconWrapper $bgColor={`${metric.color}20`}>
+                      <Icon size={20} color={metric.color} />
+                    </MetricIconWrapper>
+                    <div>
+                      <MetricLabel>{metric.label}</MetricLabel>
+                      <MetricDescription>{metric.description}</MetricDescription>
+                    </div>
+                  </MetricLeft>
+                  <MetricValue $color={metric.color}>
+                    {metric.current}/{metric.goal}
+                  </MetricValue>
+                </MetricHeader>
+                <ProgressBarBg>
+                  <ProgressBarFill $width={percentage} $color={metric.color} />
+                </ProgressBarBg>
+              </MetricCard>
+            )
+          })}
+        </MetricsContainer>
       </div>
 
-      <Tabs defaultValue="progress" className="w-full">
-        <TabsList className="grid w-full grid-cols-3 bg-slate-800/50 border-slate-700">
-          <TabsTrigger value="progress" className="data-[state=active]:bg-slate-700 data-[state=active]:text-blue-400">
-            Progress
-          </TabsTrigger>
-          <TabsTrigger
-            value="achievements"
-            className="data-[state=active]:bg-slate-700 data-[state=active]:text-blue-400"
-          >
-            Achievements
-          </TabsTrigger>
-          <TabsTrigger value="insights" className="data-[state=active]:bg-slate-700 data-[state=active]:text-blue-400">
-            Insights
-          </TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="progress" className="space-y-4">
-          <Card className="bg-slate-800/50 border-slate-700">
-            <CardHeader>
-              <CardTitle className="text-gray-100">Learning Journey</CardTitle>
-              <CardDescription className="text-gray-400">
-                Your progress through different social awareness areas
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div>
-                <div className="flex justify-between text-sm mb-2 text-gray-300">
-                  <span>Overall Completion</span>
-                  <span>{completionPercentage}%</span>
+      {/* Achievements Section: only show if user has actually unlocked achievements */}
+      {progress.achievements && progress.achievements.length > 0 && progress.scenariosCompleted > 0 && (
+        <div>
+          <SectionTitleSmall>
+            <Trophy size={20} color="#fbbf24" />
+            Achievements Unlocked
+          </SectionTitleSmall>
+          <AchievementsGrid>
+            {progress.achievements.slice(0, 4).map((achievement) => (
+              <AchievementCard key={achievement.id}>
+                <AchievementIcon>
+                  <Trophy size={20} color="#fbbf24" />
+                </AchievementIcon>
+                <div>
+                  <AchievementTitle>{achievement.title}</AchievementTitle>
+                  <AchievementPoints>+{achievement.points} pts</AchievementPoints>
                 </div>
-                <Progress value={completionPercentage} className="h-2 [&>div]:bg-pink-500" />
-              </div>
+              </AchievementCard>
+            ))}
+          </AchievementsGrid>
+        </div>
+      )}
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-3">
-                  <h4 className="font-medium text-gray-200">Learning Metrics</h4>
-                  {Object.entries(progress.learningMetrics).map(([key, value]) => (
-                    <div key={key}>
-                      <div className="flex justify-between text-sm mb-1 text-gray-300">
-                        <span className="capitalize">{key.replace(/([A-Z])/g, " $1").trim()}</span>
-                        <span>{value}%</span>
-                      </div>
-                      <Progress value={value} className="h-1.5 [&>div]:bg-pink-400" />
-                    </div>
-                  ))}
-                </div>
-
-                <div className="space-y-3">
-                  <h4 className="font-medium text-gray-200">Issues Explored</h4>
-                  <div className="space-y-2">
-                    {progress.issuesExplored.length ? (
-                      progress.issuesExplored.map((issue) => (
-                        <Badge
-                          key={issue}
-                          variant="secondary"
-                          className="mr-2 bg-slate-700 text-gray-300 border-slate-600"
-                        >
-                          {issue.replace(/-/g, " ").replace(/\b\w/g, (l) => l.toUpperCase())}
-                        </Badge>
-                      ))
-                    ) : (
-                      <p className="text-sm text-gray-400">Complete a scenario to uncover new issues.</p>
-                    )}
-                  </div>
-                  <p className="text-sm text-gray-400">
-                    Time spent learning: {Math.floor(progress.timeSpent / 60)}h {progress.timeSpent % 60}m
-                  </p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="bg-slate-800/50 border-slate-700">
-            <CardHeader>
-              <CardTitle className="text-gray-100">Scenario Checklist</CardTitle>
-              <CardDescription className="text-gray-400">
-                Mark scenarios complete to sync achievements
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              {progress.scenarios.map((scenario) => (
-                <div
-                  key={scenario.id}
-                  className="flex flex-col gap-3 rounded-lg border border-slate-700/70 bg-slate-900/40 p-3 sm:flex-row sm:items-center sm:justify-between"
-                >
+      {/* Completed Stories */}
+      {completedScenarios.length > 0 && (
+        <div>
+          <SectionTitleSmall>
+            <CheckCircle2 size={20} color="#34d399" />
+            Completed Stories
+          </SectionTitleSmall>
+          <StoriesList>
+            {completedScenarios.slice(0, 5).map((scenario) => (
+              <StoryCard key={scenario.id}>
+                <StoryLeft>
+                  <StoryColorBar $color={getCategoryColor(scenario.issueTag)} />
                   <div>
-                    <p className="font-medium text-gray-100">{scenario.title}</p>
-                    <p className="text-sm text-gray-400 capitalize">
-                      {scenario.issueTag?.replace(/-/g, " ") ?? "General"} • Difficulty: {scenario.difficulty ?? "n/a"}
-                    </p>
+                    <StoryTitle>{scenario.title}</StoryTitle>
+                    <StoryCategory>{formatIssueTag(scenario.issueTag)}</StoryCategory>
                   </div>
-                  {scenario.completed ? (
-                    <Badge className="self-start bg-emerald-500/20 text-emerald-300 border-emerald-500/50">Completed</Badge>
-                  ) : (
-                    <button
-                      className="self-start rounded-lg border border-blue-500/40 px-3 py-1 text-sm text-blue-200 transition hover:bg-blue-500/10"
-                      onClick={() => setPendingScenario(scenario)}
-                    >
-                      Mark complete
-                    </button>
-                  )}
-                </div>
-              ))}
-            </CardContent>
-          </Card>
-        </TabsContent>
+                </StoryLeft>
+                {scenario.estimatedMinutes && (
+                  <StoryTime>
+                    <Clock size={16} />
+                    {scenario.estimatedMinutes}m
+                  </StoryTime>
+                )}
+              </StoryCard>
+            ))}
+          </StoriesList>
+        </div>
+      )}
 
-        <TabsContent value="achievements" className="space-y-4">
-          <Card className="bg-slate-800/50 border-slate-700">
-            <CardHeader>
-              <CardTitle className="text-gray-100">Achievements Unlocked</CardTitle>
-              <CardDescription className="text-gray-400">
-                Recognition for your empathy journey milestones
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              {progress.achievements.length === 0 && (
-                <p className="text-sm text-gray-400">Unlock an achievement by completing your first scenario.</p>
-              )}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {progress.achievements.map((achievement) => (
-                  <div
-                    key={achievement.id}
-                    className="flex items-start space-x-3 p-3 rounded-lg border border-slate-700 bg-slate-800/30"
-                  >
-                    <div className={`p-2 rounded-full ${getAchievementColor(achievement.category)}`}>
-                      {getIconComponent(achievement.icon)}
+      {/* Up Next / Incomplete Stories */}
+      {progress.scenarios.filter((s) => !s.completed).length > 0 && (
+        <div>
+          <SectionTitleSmall>
+            <BookOpen size={20} color="#60a5fa" />
+            Continue Your Journey
+          </SectionTitleSmall>
+          <StoriesList>
+            {progress.scenarios
+              .filter((s) => !s.completed)
+              .slice(0, 3)
+              .map((scenario) => {
+                // Use storySlug from metadata if available, otherwise scenario id
+                const storySlug = (scenario.metadata as any)?.storySlug ?? scenario.id
+                return (
+                  <StoryLink key={scenario.id} href={`/simulation/${storySlug}`}>
+                    <div>
+                      <StoryTitle>{scenario.title}</StoryTitle>
+                      <StoryCategory>{formatIssueTag(scenario.issueTag)}</StoryCategory>
                     </div>
-                    <div className="flex-1">
-                      <h4 className="font-medium text-gray-200">{achievement.title}</h4>
-                      <p className="text-sm text-gray-400">{achievement.description}</p>
-                      <p className="text-xs text-gray-500 mt-1">
-                        Unlocked {achievement.unlockedAt.toLocaleDateString()} • +{achievement.points} pts
-                      </p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
+                    {scenario.estimatedMinutes && (
+                      <StoryLinkTime>
+                        <Clock size={16} />
+                        {scenario.estimatedMinutes} min
+                      </StoryLinkTime>
+                    )}
+                  </StoryLink>
+                )
+              })}
+          </StoriesList>
+        </div>
+      )}
 
-        <TabsContent value="insights" className="space-y-4">
-          <Card className="bg-slate-800/50 border-slate-700">
-            <CardHeader>
-              <CardTitle className="text-gray-100">Learning Insights</CardTitle>
-              <CardDescription className="text-gray-400">
-                Personalized feedback on your empathy development
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="p-4 bg-blue-900/20 rounded-lg border border-blue-800/30">
-                <h4 className="font-medium text-blue-300 mb-2">Strength: Issue Awareness</h4>
-                <p className="text-sm text-blue-200/80">
-                  You excel at understanding the complexity of social issues. Your awareness score of 92% shows deep
-                  comprehension of systemic challenges.
-                </p>
-              </div>
+      {/* Empty state */}
+      {completedScenarios.length === 0 && (
+        <EmptyStateContainer>
+          <EmptyStateIcon>
+            <Target size={32} color="#60a5fa" />
+          </EmptyStateIcon>
+          <EmptyStateTitle>Start Your First Story</EmptyStateTitle>
+          <EmptyStateText>
+            Begin exploring perspectives to track your empathy journey.
+          </EmptyStateText>
+        </EmptyStateContainer>
+      )}
 
-              <div className="p-4 bg-purple-900/20 rounded-lg border border-purple-800/30">
-                <h4 className="font-medium text-purple-300 mb-2">Growth Area: Resource Management</h4>
-                <p className="text-sm text-purple-200/80">
-                  Consider focusing on strategic resource allocation. Practice scenarios that challenge your ability to
-                  balance competing priorities with limited resources.
-                </p>
-              </div>
-
-              <div className="p-4 bg-indigo-900/20 rounded-lg border border-indigo-800/30">
-                <h4 className="font-medium text-indigo-300 mb-2">Recent Progress</h4>
-                <p className="text-sm text-indigo-200/80">
-                  Your empathy score has grown by 15% this week! You’re developing stronger emotional intelligence and
-                  perspective-taking abilities.
-                </p>
-              </div>
-
-              <div className="p-4 bg-cyan-900/20 rounded-lg border border-cyan-800/30">
-                <h4 className="font-medium text-cyan-300 mb-2">Next Milestone</h4>
-                <p className="text-sm text-cyan-200/80">
-                  Complete 3 more scenarios to unlock the “Social Justice Advocate” achievement and reach Empathy Level{" "}
-                  {empathyLevel + 1}.
-                </p>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
-
-      <AlertDialog open={!!pendingScenario} onOpenChange={(open) => {
-        if (!open && !confirming) setPendingScenario(null)
-      }}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Mark scenario as complete?</AlertDialogTitle>
-            <AlertDialogDescription>
-              {pendingScenario ? (
-                <span>
-                  This will mark <strong>{pendingScenario.title}</strong> as finished and update your achievements.
-                  You can revisit the story anytime.
-                </span>
-              ) : (
-                "Confirm scenario completion."
-              )}
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel disabled={confirming}>Cancel</AlertDialogCancel>
-            <AlertDialogAction
-              disabled={confirming}
-              onClick={(event) => {
-                event.preventDefault()
-                confirmScenarioCompletion()
-              }}
-            >
-              {confirming ? "Saving..." : "Yes, mark complete"}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-    </div>
+      {/* Continue Button */}
+      <FooterSection>
+        <PrimaryButton href="/scenarios">
+          Explore More Stories
+        </PrimaryButton>
+      </FooterSection>
+    </Container>
   )
 }
