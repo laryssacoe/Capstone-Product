@@ -52,12 +52,12 @@ Loop is an immersive social awareness platform built as a capstone project. It u
 
 This diagram provides a high-level overview of the mechanism of the app, showing how the user interacts with the frontend, backend, and database.
 
-![alt](app/public/diagram_2.png)
+![alt](app/public/images/diagram_2.png)
 
 ### 2. Data Flow: Story Submission & Review
 
 This sequence diagram illustrates the end-to-end process of a creator submitting a story and an administrator reviewing and approving it. This is a core algorithmic flow of the platform.
-![Data Flow for Story Submission & Review](app/public/diagram_1.png)
+![Data Flow for Story Submission & Review](app/public/images/diagram_1.png)
 
 ### Story graph structure
 - Stories now live in normalized graph tables: `StoryNode` (passages), `StoryPath` (decisions/edges), and `StoryTransition` (node ↔ path connections). Each path can fan out to multiple nodes, and nodes can reference shared paths, enabling reusable decisions. The schema also tracks media/content metadata for every node.
