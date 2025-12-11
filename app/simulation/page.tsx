@@ -1850,7 +1850,7 @@ function SimulationContent() {
 
       {/* Top Bar: Minimal stats */}
       <TopBar>
-        <BackButton onClick={() => router.push("/scenarios")}>
+        <BackButton onClick={() => router.push("/")}>
           <ArrowLeft size={16} />
           Exit
         </BackButton>
