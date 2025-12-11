@@ -7,6 +7,7 @@ import Image from "next/image";
 import { useAuth } from "@/hooks/use-auth";
 import { useEffect, useRef, useState, Suspense } from "react";
 import * as THREE from "three";
+import emailjs from '@emailjs/browser';
 
 import { Button as UIButton } from "@/components/ui/button";
 import { Badge as UIBadge } from "@/components/ui/badge";
@@ -488,7 +489,7 @@ export default function HomePage() {
   const [errorMessage, setErrorMessage] = useState("");
   const [sending, setSending] = useState(false);
   const [isLoaded, setIsLoaded] = useState(false);
-  
+
   useEffect(() => {
     // Small delay to let styles and canvas initialize
     const timer = setTimeout(() => setIsLoaded(true), 100);
@@ -505,71 +506,56 @@ export default function HomePage() {
     document.querySelector("#features-section")?.scrollIntoView({ behavior: "smooth" });
   };
 
-const handleContactSubmit = async (e: React.FormEvent) => {
-  e.preventDefault();
-  setSending(true);
-  
-  try {
-    if (!message.trim()) {
-      setErrorMessage("Please enter your message.");
-      setShowErrorMessage(true);
-      setTimeout(() => setShowErrorMessage(false), 4000);
-      setSending(false);
-      return;
-    }
-
-    const senderName = user?.profile?.displayName || user?.email || "Anonymous visitor";
-    const senderEmail = user?.email || "anonymous@loop.app";
-
-    // Submit email directly to Web3Forms from client 
-    const accessKey = process.env.NEXT_PUBLIC_WEB3FORMS_KEY;
+  const handleContactSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSending(true);
     
-    if (!accessKey) {
-      setErrorMessage("Contact form is not configured.");
-      setShowErrorMessage(true);
-      setTimeout(() => setShowErrorMessage(false), 4000);
-      setSending(false);
-      return;
-    }
+    try {
+      if (!message.trim()) {
+        setErrorMessage("Please enter your message.");
+        setShowErrorMessage(true);
+        setTimeout(() => setShowErrorMessage(false), 4000);
+        setSending(false);
+        return;
+      }
 
-    const res = await fetch("https://api.web3forms.com/submit", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Accept": "application/json",
-      },
-      body: JSON.stringify({
-        access_key: accessKey,
-        subject: "Loop Contact Form Submission",
-        from_name: senderName,
-        email: senderEmail,
-        message: message.trim(),
-        source: "Loop Moderation",
-        user_authenticated: !!user,
-      }),
-    });
+      const serviceId = process.env.NEXT_PUBLIC_EMAILJS_SERVICE_ID;
+      const templateId = process.env.NEXT_PUBLIC_EMAILJS_TEMPLATE_ID;
+      const publicKey = process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY;
 
-    const data = await res.json();
-    
-    if (data.success) {
+      if (!serviceId || !templateId || !publicKey) {
+        setErrorMessage("Contact form is not configured.");
+        setShowErrorMessage(true);
+        setTimeout(() => setShowErrorMessage(false), 4000);
+        setSending(false);
+        return;
+      }
+
+      await emailjs.send(
+        serviceId,
+        templateId,
+        {
+          from_name: user?.profile?.displayName || user?.email || "Anonymous visitor",
+          from_email: user?.email || "anonymous@loop.app",
+          message: message.trim(),
+          user_authenticated: user ? "Yes" : "No",
+        },
+        publicKey
+      );
+
       setShowSuccessMessage(true);
       setMessage("");
       setShowContactForm(false);
       setTimeout(() => setShowSuccessMessage(false), 4000);
-    } else {
-      setErrorMessage(data.message || "Failed to send message. Please try again.");
+    } catch (err) {
+      console.error("Contact form error:", err);
+      setErrorMessage("Something went wrong. Please try again.");
       setShowErrorMessage(true);
       setTimeout(() => setShowErrorMessage(false), 4000);
     }
-  } catch (err) {
-    console.error("Contact form error:", err);
-    setErrorMessage("Something went wrong. Please try again.");
-    setShowErrorMessage(true);
-    setTimeout(() => setShowErrorMessage(false), 4000);
-  }
-  
-  setSending(false);
-};
+    
+    setSending(false);
+  };
 
   return (
     <Page>
