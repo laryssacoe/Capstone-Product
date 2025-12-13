@@ -6,7 +6,8 @@ import { useRouter, useSearchParams } from "next/navigation"
 import Link from "next/link"
 import styled, { keyframes } from "styled-components"
 import AppHeader from "@/components/app-header"
-import { BookOpen, ClipboardCheck, UploadCloud, Info, User, Image as ImageIcon, Music, Trash2, Upload, FolderOpen, FileJson } from "lucide-react"
+import emailjs from '@emailjs/browser';
+import { BookOpen, ClipboardCheck, UploadCloud, Info, User, Image as ImageIcon, Music, Trash2, Upload, FolderOpen, FileJson, Copy } from "lucide-react"
 
 import { useAuth } from "@/hooks/use-auth"
 import { useToast } from "@/hooks/use-toast"
@@ -17,6 +18,7 @@ import {
   twineJsonExample,
   twineChecklistSections,
 } from "@/lib/creator-story-templates"
+import { time } from "console"
 
 // Keyframes
 const pulse = keyframes`
@@ -1149,11 +1151,12 @@ interface CreatorStory {
 
 interface UploadedMedia {
   id: string
-  file: File
+  file?: File  
   name: string
   type: "image" | "audio"
-  url: string
+  url: string  
   mappedToNode?: string
+  serverPath?: string
 }
 
 interface NodeKeyInfo {
@@ -1377,54 +1380,113 @@ function CreatorDashboardContent() {
     setTwineChecklistState(twineChecklistSections.map((section) => section.items.map(() => false)))
   }, [])
 
+  const handleDuplicateMedia = useCallback((id: string) => {
+    const original = uploadedMedia.find(m => m.id === id)
+    if (!original) return
+
+    const duplicate: UploadedMedia = {
+      ...original,
+      id: `${original.id}-dup-${Date.now()}`,
+      mappedToNode: undefined,  
+    }
+
+    setUploadedMedia(prev => [...prev, duplicate])
+    
+    toast({
+      title: "Media duplicated",
+      description: `Select a node for the duplicated ${original.name}`,
+    })
+  }, [uploadedMedia, toast])
+
   // Media upload handlers
-  const handleMediaUpload = useCallback((files: FileList | null, type: "image" | "audio") => {
+  const handleMediaUpload = useCallback(async (files: FileList | null, type: "image" | "audio") => {
     if (!files || files.length === 0) return
     setMediaUploadError(null)
-
-    const newMedia: UploadedMedia[] = []
-    const allowedImageTypes = ["image/png", "image/jpeg", "image/jpg", "image/webp", "image/gif"]
-    const allowedAudioTypes = ["audio/mpeg", "audio/mp3", "audio/wav", "audio/ogg"]
-    const allowedTypes = type === "image" ? allowedImageTypes : allowedAudioTypes
 
     for (let i = 0; i < files.length; i++) {
       const file = files[i]
       
+      const allowedImageTypes = ["image/png", "image/jpeg", "image/jpg", "image/webp", "image/gif"]
+      const allowedAudioTypes = ["audio/mpeg", "audio/mp3", "audio/wav", "audio/ogg"]
+      const allowedTypes = type === "image" ? allowedImageTypes : allowedAudioTypes
+
       if (!allowedTypes.includes(file.type)) {
-        setMediaUploadError(`Invalid file type: ${file.name}. ${type === "image" ? "Use PNG, JPG, WebP, or GIF." : "Use MP3, WAV, or OGG."}`)
+        setMediaUploadError(`Invalid file type: ${file.name}`)
         continue
       }
 
       if (file.size > 10 * 1024 * 1024) {
-        setMediaUploadError(`File too large: ${file.name}. Maximum size is 10MB.`)
+        setMediaUploadError(`File too large: ${file.name}`)
         continue
       }
 
-      const baseName = file.name.replace(/\.[^/.]+$/, "")
-      const extension = file.name.split('.').pop()
-      const safeName = normalizeSlug(baseName) + "." + extension
-
-      newMedia.push({
+      // Add to uploadedMedia state
+      setUploadedMedia(prev => [...prev, {
         id: `${Date.now()}-${i}`,
-        file,
-        name: safeName,
+        file,  
+        name: file.name,
         type,
         url: URL.createObjectURL(file),
-      })
+      }])
     }
-
-    setUploadedMedia(prev => [...prev, ...newMedia])
   }, [])
 
   const handleRemoveMedia = useCallback((id: string) => {
-    setUploadedMedia(prev => {
-      const item = prev.find(m => m.id === id)
-      if (item) {
-        URL.revokeObjectURL(item.url)
+    const item = uploadedMedia.find(m => m.id === id)
+    if (!item) return
+
+    if (item.file) {
+      URL.revokeObjectURL(item.url)
+    }
+
+    // Remove from uploadedMedia state
+    setUploadedMedia(prev => prev.filter(m => m.id !== id))
+
+    try {
+      const parsed = JSON.parse(graphJson)
+      if (parsed && Array.isArray(parsed.nodes)) {
+        let modified = false
+        const imagePath = item.serverPath || `/scenes/${item.name}`
+        const audioPath = item.serverPath || `/audio/${item.name}`
+
+        const updatedNodes = parsed.nodes.map((node: any) => {
+          if (!node.media) return node
+
+          const newMedia = { ...node.media }
+          
+          // Remove image reference if it matches
+          if (item.type === "image" && (newMedia.image === imagePath || newMedia.image === `/scenes/${item.name}`)) {
+            delete newMedia.image
+            modified = true
+          }
+          
+          // Remove audio reference if it matches
+          if (item.type === "audio" && (newMedia.audio === audioPath || newMedia.audio === `/audio/${item.name}`)) {
+            delete newMedia.audio
+            modified = true
+          }
+
+          // If media object is now empty, remove it entirely
+          if (Object.keys(newMedia).length === 0) {
+            const { media, ...nodeWithoutMedia } = node
+            return nodeWithoutMedia
+          }
+
+          return { ...node, media: newMedia }
+        })
+
+        if (modified) {
+          setGraphJson(JSON.stringify({ ...parsed, nodes: updatedNodes }, null, 2))
+          toast({
+            title: "Media removed",
+            description: `Removed ${item.name} from library and story graph.`,
+          })
+        }
       }
-      return prev.filter(m => m.id !== id)
-    })
-  }, [])
+    } catch {
+      // Ignore JSON parse errors here
+    }
+  }, [uploadedMedia, graphJson, toast])
 
   const handleMediaNameChange = useCallback((id: string, newName: string) => {
     setUploadedMedia(prev => prev.map(m => 
@@ -1438,37 +1500,159 @@ function CreatorDashboardContent() {
     ))
   }, [])
 
-  const applyMediaMappingsToGraph = useCallback(() => {
-    try {
-      const parsed = JSON.parse(graphJson)
-      if (!parsed || !Array.isArray(parsed.nodes)) return
+  const applyMediaMappingsToGraph = useCallback(async () => {
 
-      const updatedNodes = parsed.nodes.map((node: any) => {
-        const mappedImage = uploadedMedia.find(m => m.type === "image" && m.mappedToNode === node.key)
-        const mappedAudio = uploadedMedia.find(m => m.type === "audio" && m.mappedToNode === node.key)
-        
-        if (!mappedImage && !mappedAudio) return node
-
-        const media = node.media && typeof node.media === "object" ? { ...node.media } : {}
-        
-        if (mappedImage) {
-          media.image = `/scenes/${mappedImage.name}`
-        }
-        if (mappedAudio) {
-          media.audio = `/audio/${mappedAudio.name}`
-        }
-
-        return { ...node, media }
-      })
-
-      setGraphJson(JSON.stringify({ ...parsed, nodes: updatedNodes }, null, 2))
+    // Avoid no media upload
+    if (uploadedMedia.length === 0) {
       toast({
-        title: "Media mappings applied",
-        description: "Node media paths have been updated in the story graph.",
+        variant: "destructive", 
+        title: "No media to apply",
+        description: "Upload some images or audio files first.",
       })
-    } catch {
-      setFormError("Fix the story graph JSON before applying media mappings.")
+      return
     }
+
+    // Media is only accepted with a selected node
+    const unmappedMedia = uploadedMedia.filter(m => {
+      const node = m.mappedToNode
+      const isMapped = node && node.trim() !== "" && node !== "undefined"
+      return !isMapped
+    })
+
+    if (unmappedMedia.length > 0) {      
+      toast({
+        variant: "destructive",
+        title: "Select nodes first",
+        description: `Please select a node for: ${unmappedMedia.map(m => m.name).join(", ")}`,
+        duration: 5000,  // 5 seconds
+      })
+      
+        // Also set the mediaUploadError state for a persistent message
+        setMediaUploadError(`Please select a node for each file before applying: ${unmappedMedia.map(m => m.name).join(", ")}`)
+      
+      return
+    }
+
+    // Check for valid graph JSON
+    let parsed: any
+    try {
+      parsed = JSON.parse(graphJson)
+      if (!parsed || !Array.isArray(parsed.nodes)) {
+        toast({
+          variant: "destructive",
+          title: "Invalid graph",
+          description: "Cannot parse story graph JSON.",
+        })
+        return
+      }
+    } catch (e) {
+      toast({
+        variant: "destructive",
+        title: "JSON Error",
+        description: "Fix the story graph JSON before applying media mappings.",
+      })
+      return
+    }
+
+    // Upload files
+    const filesToUpload = uploadedMedia.filter(m => m.file && !m.serverPath)
+    const updatedMediaList = [...uploadedMedia]
+    
+    if (filesToUpload.length > 0) {
+      toast({
+        title: "Uploading files...",
+        description: `Uploading ${filesToUpload.length} file(s) to server.`,
+      })
+
+      for (const media of filesToUpload) {
+        if (!media.file) continue
+        
+        const formData = new FormData()
+        formData.append("file", media.file)
+        formData.append("type", media.type)
+
+        try {
+          const res = await fetch("/api/creator/upload", {
+            method: "POST",
+            credentials: "include",
+            body: formData,
+          })
+          const data = await res.json()
+
+          if (!res.ok) {
+            toast({
+              variant: "destructive",
+              title: "Upload failed",
+              description: data.error || `Failed to upload ${media.name}`,
+            })
+            return
+          }
+
+          const idx = updatedMediaList.findIndex(m => m.id === media.id)
+          if (idx !== -1) {
+            updatedMediaList[idx] = { 
+              ...updatedMediaList[idx], 
+              name: data.filename, 
+              serverPath: data.path 
+            }
+          }
+        } catch (err) {
+          toast({
+            variant: "destructive",
+            title: "Upload failed",
+            description: `Failed to upload ${media.name}`,
+          })
+          return
+        }
+      }
+
+      setUploadedMedia(updatedMediaList)
+    }
+
+    // Apply mappings    
+    const globalAudio = updatedMediaList.find(m => m.type === "audio" && m.mappedToNode === "__ALL_NODES__")
+    let imageCount = 0
+    let audioCount = 0
+
+    const updatedNodes = parsed.nodes.map((node: any) => {
+      const mappedImage = updatedMediaList.find(m => m.type === "image" && m.mappedToNode === node.key)
+      const mappedAudio = updatedMediaList.find(m => m.type === "audio" && m.mappedToNode === node.key)
+      
+      const audioToUse = mappedAudio || globalAudio
+      
+      if (!mappedImage && !audioToUse) return node
+
+      const media = node.media && typeof node.media === "object" ? { ...node.media } : {}
+      
+      if (mappedImage) {
+        media.image = mappedImage.serverPath 
+        imageCount++
+      }
+      if (audioToUse) {
+        media.audio = audioToUse.serverPath 
+        audioCount++
+      }
+
+      return { ...node, media }
+    })
+
+    setGraphJson(JSON.stringify({ ...parsed, nodes: updatedNodes }, null, 2))
+    
+    const parts = []
+    if (imageCount > 0) parts.push(`${imageCount} image(s)`)
+    if (globalAudio) {
+      parts.push(`background audio to all ${parsed.nodes.length} nodes`)
+    } else if (audioCount > 0) {
+      parts.push(`${audioCount} audio file(s)`)
+    }
+
+    // At the end of successful apply no error
+    setMediaUploadError(null)  
+    toast({
+      title: "Media applied to graph!",
+      description: `Applied ${parts.join(" and ")}. Save your story to persist changes.`,
+      duration: 5000,
+    })
   }, [graphJson, uploadedMedia, toast])
 
   // Walkthrough handlers
@@ -1664,7 +1848,81 @@ function CreatorDashboardContent() {
       setAvatarJson(avatarTemplateJson)
       setIncludeAvatar(false)
     }
-    setUploadedMedia([])
+
+    // Extract existing media from story nodes
+    const existingMedia: UploadedMedia[] = []
+    const seenPaths = new Set<string>()
+
+    // Helper to check if path is valid 
+    const isValidMediaPath = (path: string | undefined): path is string => {
+      if (!path) return false
+      return (
+        path.startsWith("/scenes/") ||
+        path.startsWith("/audio/") ||
+        path.includes("cloudinary.com") ||
+        path.includes("res.cloudinary.com") ||
+        path.startsWith("http://") ||
+        path.startsWith("https://")
+      )
+    }
+
+    // Helper to extract filename from path or URL
+    const extractFilename = (path: string): string => {
+      if (path.includes("cloudinary.com") || path.includes("res.cloudinary.com")) {
+        const parts = path.split("/")
+        const lastPart = parts[parts.length - 1]
+        return lastPart.replace(/-\d{10,}\.\w+$/, "").replace(/\.\w+$/, "") || lastPart
+      }
+      return path.split("/").pop() || path
+    }
+
+    story.nodes.forEach((node) => {
+      // Extract images 
+      const imagePath = node.media?.image || node.media?.visual
+      if (imagePath) {
+        console.log(`Checking image path: "${imagePath}"`, {
+          isValid: isValidMediaPath(imagePath),
+          alreadySeen: seenPaths.has(imagePath)
+        })
+      }
+      
+      if (isValidMediaPath(imagePath) && !seenPaths.has(imagePath)) {
+        seenPaths.add(imagePath)
+        const mediaItem = {
+          id: `existing-img-${node.key}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+          name: extractFilename(imagePath),
+          type: "image" as const,
+          url: imagePath,
+          serverPath: imagePath,
+          mappedToNode: node.key,
+        }
+        existingMedia.push(mediaItem)
+      }
+
+      // Extract audio
+      const audioPath = node.media?.audio
+      if (audioPath) {
+        console.log(`Checking audio path: "${audioPath}"`, {
+          isValid: isValidMediaPath(audioPath),
+          alreadySeen: seenPaths.has(audioPath)
+        })
+      }
+      
+      if (isValidMediaPath(audioPath) && !seenPaths.has(audioPath)) {
+        seenPaths.add(audioPath)
+        const mediaItem = {
+          id: `existing-audio-${node.key}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+          name: extractFilename(audioPath),
+          type: "audio" as const,
+          url: audioPath,
+          serverPath: audioPath,
+          mappedToNode: node.key,
+        }
+        existingMedia.push(mediaItem)
+      }
+    })
+
+    setUploadedMedia(existingMedia)
     setFormError(null)
     setPublishError(null)
     setPublishSuccess(null)
@@ -1741,7 +1999,18 @@ function CreatorDashboardContent() {
       if (isEditing) {
         setSlug(payload.slug)
       } else {
-        resetStoryFormToNew()
+        setEditingStoryId(null)
+        setSlug("")
+        setTitle("New Story Title")
+        setSummary("Short description of this journey.")
+        setTags("community, empathy")
+        setGraphJson(storyGraphTemplateJson)
+        setAvatarJson(avatarTemplateJson)
+        setIncludeAvatar(true)
+        setFormError(null)
+        setPublishError(null)
+        setPublishSuccess(null)
+        setMediaUploadError(null)
       }
 
       try {
@@ -1774,7 +2043,9 @@ function CreatorDashboardContent() {
     setPublishSuccess(null)
     setStoriesMessage(null)
     setPublishing(true)
+    
     try {
+      // Validate graph
       let graph: { nodes: unknown; paths: unknown; transitions: unknown }
       try {
         graph = JSON.parse(graphJson)
@@ -1787,6 +2058,7 @@ function CreatorDashboardContent() {
         throw new Error(validation.message)
       }
 
+      // Validate avatar if included
       let avatarMetadata: AvatarMetadata | undefined
       if (includeAvatar) {
         try {
@@ -1800,6 +2072,7 @@ function CreatorDashboardContent() {
         }
       }
 
+      // Validate slug
       const normalized = normalizeSlug(slug)
       if (!normalized) {
         throw new Error("Story code is required and must use letters, numbers, or dashes.")
@@ -1810,6 +2083,7 @@ function CreatorDashboardContent() {
         throw new Error(`Story code already belongs to "${conflictingStory.title}". Please choose a different code.`)
       }
 
+      // Build payload
       const payload = {
         slug: normalized,
         title,
@@ -1856,14 +2130,41 @@ function CreatorDashboardContent() {
         throw new Error((publishData && publishData.error) || publishRaw || "Unable to submit for approval.")
       }
 
-      if (publishData?.email?.delivered === false) {
-        const detail =
-          typeof publishData.email.message === "string"
-            ? publishData.email.message
-            : "the notification email could not be delivered."
-        setPublishSuccess(`Submitted for approval, but ${detail}`)
-      } else {
+      let emailSent = false
+      try {
+        const serviceId = process.env.NEXT_PUBLIC_EMAILJS_SERVICE_ID
+        const templateId = process.env.NEXT_PUBLIC_EMAILJS_ADMIN_TEMPLATE_ID
+        const publicKey = process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY
+        const adminEmail = process.env.NEXT_PUBLIC_ADMIN_APPROVAL_EMAIL
+        const baseUrl = process.env.NEXT_PUBLIC_APP_URL || window.location.origin
+
+        if (serviceId && templateId && publicKey && adminEmail) {
+          const storyUrl = `${baseUrl}/creator/preview/${normalized}`
+          const approveUrl = `${baseUrl}/admin?action=approve&versionId=${publishData.versionId}`
+          const rejectUrl = `${baseUrl}/admin?action=reject&versionId=${publishData.versionId}`
+
+          await emailjs.send(serviceId, templateId, {
+            to_email: adminEmail,
+            story_url: storyUrl,
+            story_title: title,
+            story_slug: normalized,
+            version_number: publishData.versionId ? "1" : "1",
+            submitter_username: user.username || user.email?.split("@")[0] || "Unknown",
+            submitter_email: user.email || "unknown@loop.app",
+            approve_url: approveUrl,
+            reject_url: rejectUrl,
+          }, publicKey)
+          
+          emailSent = true
+        }
+      } catch (emailErr) {
+        console.warn("Admin notification email failed:", emailErr)
+      }
+
+      if (emailSent) {
         setPublishSuccess("Submitted for approval. An admin has been notified.")
+      } else {
+        setPublishSuccess("Submitted for approval, but the notification email could not be sent.")
       }
 
       try {
@@ -1880,6 +2181,7 @@ function CreatorDashboardContent() {
     story: CreatorStory,
     ownership: { transfer: boolean; contact: boolean },
   ) => {
+
     if (!user) {
       router.push("/login")
       return
@@ -1910,18 +2212,46 @@ function CreatorDashboardContent() {
         throw new Error((publishData && publishData.error) || publishRaw || "Unable to submit for approval.")
       }
 
+      // Send admin notification email from browser
+      let emailSent = false
+      try {
+        const serviceId = process.env.NEXT_PUBLIC_EMAILJS_SERVICE_ID
+        const templateId = process.env.NEXT_PUBLIC_EMAILJS_ADMIN_TEMPLATE_ID
+        const publicKey = process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY
+        const adminEmail = process.env.NEXT_PUBLIC_ADMIN_APPROVAL_EMAIL
+        const baseUrl = process.env.NEXT_PUBLIC_APP_URL || window.location.origin
+
+        if (serviceId && templateId && publicKey && adminEmail) {
+          const storyUrl = `${baseUrl}/creator/preview/${story.slug}`
+          const approveUrl = `${baseUrl}/admin?action=approve&versionId=${publishData.versionId}`
+          const rejectUrl = `${baseUrl}/admin?action=reject&versionId=${publishData.versionId}`
+
+          await emailjs.send(serviceId, templateId, {
+            to_email: adminEmail,
+            story_url: storyUrl,
+            story_title: story.title,
+            story_slug: story.slug,
+            version_number: publishData.versionNumber || "1",
+            submitter_username: user.username || user.email?.split("@")[0] || "Unknown",
+            submitter_email: user.email || "unknown@loop.app",
+            approve_url: approveUrl,
+            reject_url: rejectUrl,
+          }, publicKey)
+          
+          emailSent = true
+        }
+      } catch (emailErr) {
+        console.warn("Admin notification email failed:", emailErr)
+      }
+
       try {
         await refreshStories()
       } catch {}
 
-      if (publishData?.email?.delivered === false) {
-        const detail =
-          typeof publishData.email.message === "string"
-            ? publishData.email.message
-            : "the notification email could not be delivered."
-        setStoriesMessage(`Submitted for approval, but ${detail}`)
-      } else {
+      if (emailSent) {
         setStoriesMessage(`"${story.title}" submitted for approval. An admin has been notified.`)
+      } else {
+        setStoriesMessage(`"${story.title}" submitted for approval, but the notification email could not be sent.`)
       }
     } catch (error) {
       setFetchError(error instanceof Error ? error.message : "Unable to submit story for approval.")
@@ -2108,7 +2438,11 @@ function CreatorDashboardContent() {
   // Helper to validate image path
   const getStoryImage = (story: typeof storiesPreview[0]): string | null => {
     const imagePath = story.avatarImage
-    if (imagePath && imagePath.startsWith("/scenes/")) {
+    if (imagePath && (
+      imagePath.startsWith("/scenes/") ||
+      imagePath.includes("cloudinary.com") ||
+      imagePath.includes("res.cloudinary.com")
+    )) {
       return imagePath
     }
     return null
@@ -2442,7 +2776,14 @@ function CreatorDashboardContent() {
                                 <MediaItemHeader>
                                   {media.type === "image" ? (
                                     <MediaThumbnail>
-                                      <MediaThumbnailImage src={media.url} alt="" />
+                                      <MediaThumbnailImage 
+                                        src={media.serverPath || media.url} 
+                                        alt="" 
+                                        onError={(e) => {
+                                          console.log("Thumbnail failed to load:", media.serverPath || media.url)
+                                          e.currentTarget.style.display = 'none'
+                                        }}
+                                      />
                                     </MediaThumbnail>
                                   ) : (
                                     <MediaThumbnail>
@@ -2456,7 +2797,24 @@ function CreatorDashboardContent() {
                                       placeholder="filename.png"
                                     />
                                   </div>
-                                  <Button type="button" $variant="ghost" $size="sm" onClick={() => handleRemoveMedia(media.id)} style={{ color: 'rgb(248, 113, 113)', padding: 4 }}>
+                                  <Button 
+                                    type="button" 
+                                    $variant="ghost" 
+                                    $size="sm" 
+                                    onClick={() => handleDuplicateMedia(media.id)} 
+                                    style={{ color: 'rgb(147, 197, 253)', padding: 4 }}
+                                    title="Duplicate for another node"
+                                  >
+                                    <Copy size={16} />
+                                  </Button>
+                                  
+                                  <Button 
+                                    type="button" 
+                                    $variant="ghost" 
+                                    $size="sm" 
+                                    onClick={() => handleRemoveMedia(media.id)} 
+                                    style={{ color: 'rgb(248, 113, 113)', padding: 4 }}
+                                  >
                                     <Trash2 size={16} />
                                   </Button>
                                 </MediaItemHeader>
@@ -2468,23 +2826,37 @@ function CreatorDashboardContent() {
                                     onChange={(e) => handleMediaNodeMapping(media.id, e.target.value)}
                                     style={{ flex: 1 }}
                                   >
-                                    <option value="">-- Select Node --</option>
+                                    <option value="">Select Node</option>
+                                    {media.type === "audio" && (
+                                      <option value="__ALL_NODES__">All Nodes (Background Music)</option>
+                                    )}
                                     {nodeKeys.map((n: NodeKeyInfo) => (
                                       <option key={n.key} value={n.key}>{n.title}</option>
                                     ))}
                                   </MediaSelect>
                                 </MediaRow>
-                                
+
                                 <MediaPath>
-                                  Path: {media.type === "image" ? `/scenes/${media.name}` : `/audio/${media.name}`}
+                                  {media.serverPath 
+                                    ? (media.serverPath.includes("cloudinary.com") 
+                                        ? `☁️ ${media.serverPath.slice(-50)}...` 
+                                        : `Path: ${media.serverPath}`)
+                                    : `Path: ${media.type === "image" ? `/scenes/${media.name}` : `/audio/${media.name}`}`
+                                  }
                                 </MediaPath>
                               </MediaItem>
                             ))}
                           </MediaGrid>
 
-                          <Button type="button" $variant="outline" $size="sm" onClick={applyMediaMappingsToGraph} style={{ borderColor: 'rgba(16, 185, 129, 0.5)', color: 'rgb(167, 243, 208)', alignSelf: 'flex-start' }}>
+                          <Button 
+                            type="button" 
+                            $variant="outline" 
+                            $size="sm" 
+                            onClick={applyMediaMappingsToGraph} 
+                            style={{ borderColor: 'rgba(16, 185, 129, 0.5)', color: 'rgb(167, 243, 208)', alignSelf: 'flex-start' }}
+                          >
                             <Upload size={16} style={{ marginRight: 8 }} />
-                            Apply Mappings to Graph JSON
+                            Apply Mappings to Story Graph
                           </Button>
 
                           <span style={{ fontSize: 12, color: 'rgb(100, 116, 139)' }}>

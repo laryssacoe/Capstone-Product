@@ -36,6 +36,7 @@ interface StoryNode {
   media?: {
     image?: string
     visual?: string
+    audio?: string  
   }
 }
 
@@ -552,6 +553,17 @@ const ErrorScreen = styled.div`
   gap: 1.5rem;
 `
 
+// Helper to check if a URL is valid media (local or Cloudinary)
+const isValidMediaUrl = (url: string | undefined): boolean => {
+  if (!url) return false
+  return (
+    url.startsWith("/scenes/") ||
+    url.startsWith("/audio/") ||
+    url.includes("cloudinary.com") ||
+    url.includes("res.cloudinary.com")
+  )
+}
+
 // Helper to render effect tags with icons 
 const renderEffectTag = (type: 'money' | 'health' | 'time', value: number) => {
   if (value === 0) return null
@@ -590,6 +602,8 @@ export default function CreatorStoryPreviewPage() {
   const params = useParams<{ slug: string }>()
   const router = useRouter()
   const slug = params?.slug
+  const audioRef = useRef<HTMLAudioElement>(null)
+  const currentAudioSrc = useRef<string | null>(null)
 
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -653,6 +667,7 @@ export default function CreatorStoryPreviewPage() {
     return () => {
       clearTimeout(timer1)
       clearTimeout(timer2)
+      clearTimeout(timer3)
     }
   }, [currentKey])
 
@@ -669,13 +684,65 @@ export default function CreatorStoryPreviewPage() {
   const hasNext = Boolean(currentNode?.content?.next)
   const textContent = currentNode?.content?.text ?? []
   const passageImage = currentNode?.media?.image || currentNode?.media?.visual
-  const hasValidImage = Boolean(passageImage && passageImage.startsWith("/scenes/"))
+  const passageAudio = currentNode?.media?.audio
+  const hasValidImage = isValidMediaUrl(passageImage)
+  const hasValidAudio = isValidMediaUrl(passageAudio)
+
+  // Audio playback effect
+  useEffect(() => {
+    const audio = audioRef.current
+    if (!audio) return
+
+    if (hasValidAudio && audioEnabled && passageAudio) {
+      if (currentAudioSrc.current !== passageAudio) {
+        audio.src = passageAudio
+        audio.loop = true
+        audio.volume = 0.5
+        currentAudioSrc.current = passageAudio
+        
+        const playPromise = audio.play()
+        if (playPromise !== undefined) {
+          playPromise
+            .then(() => console.log("Audio started playing"))
+            .catch(err => console.log("Audio autoplay blocked:", err.message))
+        }
+      } 
+    } else {
+      // Stop audio if disabled or no valid audio for this node
+      if (currentAudioSrc.current) {
+        audio.pause()
+        audio.currentTime = 0
+        currentAudioSrc.current = null
+      }
+    }
+  }, [currentKey, audioEnabled, hasValidAudio, passageAudio])
+
+  // Handle audio toggle
+  useEffect(() => {
+    const audio = audioRef.current
+    if (!audio) return
+
+    if (!audioEnabled && currentAudioSrc.current) {
+      audio.pause()
+    } else if (audioEnabled && currentAudioSrc.current && passageAudio === currentAudioSrc.current) {
+      audio.play().catch(err => console.log("Resume blocked:", err.message))
+    }
+  }, [audioEnabled, passageAudio])
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      if (audioRef.current) {
+        audioRef.current.pause()
+        currentAudioSrc.current = null
+      }
+    }
+  }, [])
 
   const getAvatarImage = (): string | null => {
-    const imagePath = graph?.avatar?.appearance?.image
-    if (imagePath && imagePath.startsWith("/scenes/")) return imagePath
-    return null
-  }
+  const imagePath = graph?.avatar?.appearance?.image
+  return isValidMediaUrl(imagePath) ? imagePath! : null
+}
 
   const handleChoice = (choice: StoryChoice) => {
     if (choice.effects) {
@@ -727,6 +794,9 @@ export default function CreatorStoryPreviewPage() {
     setAvatarImageError(false)
     setHistoryStack([])
     
+    // Reset audio tracking so it starts fresh
+    currentAudioSrc.current = null
+    
     if (graph.avatar?.initialResources) {
       const ir = graph.avatar.initialResources
       setStats({
@@ -766,6 +836,12 @@ export default function CreatorStoryPreviewPage() {
 
   // End of story
   if (!currentNode) {
+    // Stop audio when story ends
+    if (audioRef.current) {
+      audioRef.current.pause()
+      audioRef.current.currentTime = 0
+      currentAudioSrc.current = null
+    }
     return (
       <Container>
         <FullScreenBox>
@@ -794,6 +870,12 @@ export default function CreatorStoryPreviewPage() {
 
   return (
     <Container>
+      <audio 
+        ref={audioRef} 
+        preload="auto"
+        style={{ display: 'none' }}
+      />
+
       <BackgroundLayer>
         <BackgroundImage $url={passageImage || ""} $hasImage={hasValidImage} />
         <GradientOverlay />
