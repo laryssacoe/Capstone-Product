@@ -129,7 +129,7 @@ export default function AdminDashboard() {
         // Send approval email to creator
         try {
           const serviceId = process.env.NEXT_PUBLIC_EMAILJS_SERVICE_ID
-          const templateId = process.env.NEXT_PUBLIC_EMAILJS_CREATOR_APPROVAL_TEMPLATE_ID
+          const templateId = process.env.NEXT_PUBLIC_EMAILJS_CREATOR_FEEDBACK_TEMPLATE_ID
           const publicKey = process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY
           const baseUrl = process.env.NEXT_PUBLIC_APP_URL || window.location.origin
 
@@ -188,7 +188,7 @@ export default function AdminDashboard() {
         // Send rejection email to creator
         try {
           const serviceId = process.env.NEXT_PUBLIC_EMAILJS_SERVICE_ID
-          const templateId = process.env.NEXT_PUBLIC_EMAILJS_CREATOR_REJECTION_TEMPLATE_ID
+          const templateId = process.env.NEXT_PUBLIC_EMAILJS_CREATOR_FEEDBACK_TEMPLATE_ID
           const publicKey = process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY
           const baseUrl = process.env.NEXT_PUBLIC_APP_URL || window.location.origin
 
