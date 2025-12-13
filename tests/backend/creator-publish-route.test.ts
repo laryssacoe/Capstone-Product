@@ -49,15 +49,8 @@ vi.mock("@/lib/server/auth", () => ({
   getCurrentSession: vi.fn(),
 }))
 
-vi.mock("@/lib/server/mailer", () => ({
-  isMailerConfigured: vi.fn(),
-  sendStorySubmissionEmail: vi.fn(),
-  buildStoryApprovalLinks: vi.fn(),
-}))
-
 const { prisma } = await import("@/lib/server/prisma")
 const { getCurrentSession } = await import("@/lib/server/auth")
-const { isMailerConfigured, sendStorySubmissionEmail, buildStoryApprovalLinks } = await import("@/lib/server/mailer")
 const { POST } = await import("@/app/api/creator/stories/publish/route")
 
 const prismaMock = prisma as unknown as {
@@ -76,9 +69,6 @@ const prismaMock = prisma as unknown as {
 }
 
 const getCurrentSessionMock = getCurrentSession as unknown as Mock
-const isMailerConfiguredMock = isMailerConfigured as unknown as Mock
-const sendStorySubmissionEmailMock = sendStorySubmissionEmail as unknown as Mock
-const buildStoryApprovalLinksMock = buildStoryApprovalLinks as unknown as Mock
 
 function buildRequest(body: Record<string, unknown>) {
   return new Request("http://localhost/api/creator/stories/publish", {
@@ -149,7 +139,7 @@ describe("POST /api/creator/stories/publish", () => {
     expect(response.status).toBe(403)
   })
 
-  it("creates a pending version and sends approval email", async () => {
+  it("creates a pending version and returns version info", async () => {
     getCurrentSessionMock.mockResolvedValueOnce({
       user: { id: "user-1", role: "CREATOR", email: "creator@example.com", username: "creator" },
     })
@@ -182,35 +172,21 @@ describe("POST /api/creator/stories/publish", () => {
       versionNumber: 2,
       status: "PENDING",
     })
-    isMailerConfiguredMock.mockReturnValueOnce(true)
-    buildStoryApprovalLinksMock.mockReturnValueOnce({
-      approveUrl: "https://example.com/approve",
-      rejectUrl: "https://example.com/reject",
-      previewUrl: "https://example.com/preview",
-    })
 
     const response = await POST(buildRequest({ slug: "story-1" }))
 
     expect(response.status).toBe(201)
     expect(prismaMock.storyVersion.create).toHaveBeenCalled()
-    expect(isMailerConfiguredMock).toHaveBeenCalledTimes(1)
-    expect(sendStorySubmissionEmailMock).toHaveBeenCalledWith(
-      expect.objectContaining({
-        storyTitle: "Story 1",
-        storySlug: "story-1",
-        versionId: "version-2",
-        versionNumber: 2,
-        approveUrl: "https://example.com/approve",
-      }),
-    )
     expect(prismaMock.twineStory.update).toHaveBeenCalled()
     expect(prismaMock.storyAuditLog.create).toHaveBeenCalled()
 
     const json = await response.json()
-    expect(json.email).toEqual({ delivered: true })
+    expect(json.versionId).toBe("version-2")
+    expect(json.versionNumber).toBe(2)
+    expect(json.status).toBe("PENDING")
   })
 
-  it("responds with helpful message when mailer is not configured", async () => {
+  it("returns version info for browser-side email sending", async () => {
     getCurrentSessionMock.mockResolvedValueOnce({
       user: { id: "user-1", role: "CREATOR" },
     })
@@ -238,15 +214,17 @@ describe("POST /api/creator/stories/publish", () => {
       versionNumber: 1,
       status: "PENDING",
     })
-    isMailerConfiguredMock.mockReturnValueOnce(false)
 
     const response = await POST(buildRequest({ slug: "story-1" }))
 
     expect(response.status).toBe(201)
     const json = await response.json()
-    expect(json.email.delivered).toBe(false)
-    expect(json.email.message).toContain("Mailer configuration")
-    expect(sendStorySubmissionEmailMock).not.toHaveBeenCalled()
+    
+    // Email is now sent from browser using EmailJS, so route just returns version info
+    expect(json.versionId).toBe("version-1")
+    expect(json.versionNumber).toBe(1)
+    expect(json.status).toBe("PENDING")
+    
     expect(prismaMock.twineStory.update).toHaveBeenCalled()
   })
 })
