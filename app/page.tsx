@@ -537,6 +537,7 @@ export default function HomePage() {
         {
           from_name: user?.profile?.displayName || user?.email || "Anonymous visitor",
           from_email: user?.email || "anonymous@loop.app",
+          time: new Date().toLocaleString(),
           message: message.trim(),
           user_authenticated: user ? "Yes" : "No",
         },

@@ -23,6 +23,7 @@ import {
   ArrowUpDown,
   Hash,
 } from "lucide-react"
+import emailjs from "@emailjs/browser"
 import Link from "next/link"
 
 interface ApiStory {
@@ -120,6 +121,38 @@ export default function AdminDashboard() {
       })
 
       if (res.ok) {
+        const data = await res.json()
+        
+        // Find the story to get author info
+        const story = stories.find(s => s.storyCode === storyCode)
+        
+        // Send approval email to creator
+        try {
+          const serviceId = process.env.NEXT_PUBLIC_EMAILJS_SERVICE_ID
+          const templateId = process.env.NEXT_PUBLIC_EMAILJS_CREATOR_APPROVAL_TEMPLATE_ID
+          const publicKey = process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY
+          const baseUrl = process.env.NEXT_PUBLIC_APP_URL || window.location.origin
+
+          if (serviceId && templateId && publicKey && story?.author?.email) {
+            const storyUrl = `${baseUrl}/play/${storyCode}`
+
+            await emailjs.send(serviceId, templateId, {
+              to_email: story.author.email,
+              to_name: story.author.displayName || "Creator",
+              story_title: story.title,
+              story_slug: storyCode,
+              story_url: `${baseUrl}/play/${storyCode}`,
+              dashboard_url: `${baseUrl}/creator`,
+              app_url: baseUrl,
+              status: "Approved",
+              status_color: "#10b981", 
+              message: "Congratulations! Your story is now live on Loop and available for players to experience.",
+            }, publicKey)
+          }
+        } catch (emailErr) {
+          console.warn("Creator notification email failed:", emailErr)
+        }
+
         toast({ title: "Story approved successfully" })
         setStories(
           stories.map((s) =>
@@ -149,6 +182,36 @@ export default function AdminDashboard() {
       })
 
       if (res.ok) {
+        // Find the story to get author info
+        const story = stories.find(s => s.storyCode === storyCode)
+        
+        // Send rejection email to creator
+        try {
+          const serviceId = process.env.NEXT_PUBLIC_EMAILJS_SERVICE_ID
+          const templateId = process.env.NEXT_PUBLIC_EMAILJS_CREATOR_REJECTION_TEMPLATE_ID
+          const publicKey = process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY
+          const baseUrl = process.env.NEXT_PUBLIC_APP_URL || window.location.origin
+
+          if (serviceId && templateId && publicKey && story?.author?.email) {
+            const editUrl = `${baseUrl}/creator`
+
+            await emailjs.send(serviceId, templateId, {
+              to_email: story.author.email,
+              to_name: story.author.displayName || "Creator",
+              story_title: story.title,
+              story_slug: storyCode,
+              story_url: `${baseUrl}/creator/preview/${storyCode}`,
+              dashboard_url: `${baseUrl}/creator`,
+              app_url: baseUrl,
+              status: "Rejected",
+              status_color: "#ef4444", 
+              message: "Unfortunately, your story did not meet our guidelines. Please review the feedback and consider making changes before resubmitting.",
+            }, publicKey)
+          }
+        } catch (emailErr) {
+          console.warn("Creator notification email failed:", emailErr)
+        }
+
         toast({ title: "Story rejected" })
         setStories(stories.map((s) => (s.storyCode === storyCode ? { ...s, reviewStatus: "REJECTED" as const } : s)))
       } else {

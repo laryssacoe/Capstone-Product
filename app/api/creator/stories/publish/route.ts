@@ -2,14 +2,10 @@ import { randomUUID } from "crypto"
 import { NextResponse } from "next/server"
 import { z } from "zod"
 
-
 import { getCurrentSession } from "@/lib/server/auth"
 import { prisma } from "@/lib/server/prisma"
-import { buildStoryApprovalLinks, isMailerConfigured, sendStorySubmissionEmail } from "@/lib/server/mailer"
+
 export const dynamic = "force-dynamic"
-
-
-
 
 const ownershipSchema = z.object({
   transfer: z.boolean(),
@@ -59,7 +55,6 @@ export async function POST(request: Request) {
     }
   }
 
-  // Find the story owned by the user (admins can submit any)
   const story = await prisma.twineStory.findUnique({
     where: { slug },
     include: {
@@ -82,7 +77,6 @@ export async function POST(request: Request) {
     "Loop creator"
   const creditText = `Created by ${creditName}`
 
-  // Load current graph snapshot
   const [nodes, paths, transitions] = await Promise.all([
     prisma.storyNode.findMany({ where: { storyId: story.id }, orderBy: { createdAt: "asc" } }),
     prisma.storyPath.findMany({ where: { storyId: story.id }, orderBy: { createdAt: "asc" } }),
@@ -101,7 +95,6 @@ export async function POST(request: Request) {
   const ipAddress = forwardedHeader ? forwardedHeader.split(",")[0]?.trim() ?? null : null
   const userAgent = request.headers.get("user-agent") ?? null
 
-  // Create a pending version for review
   const version = await prisma.storyVersion.create({
     data: {
       storyId: story.id,
@@ -164,47 +157,12 @@ export async function POST(request: Request) {
     },
   })
 
-  const links = buildStoryApprovalLinks(story.slug, version.id, approvalToken)
-  let emailStatus: { delivered: boolean; message?: string } = { delivered: false }
-
-  if (!isMailerConfigured()) {
-    emailStatus = {
-      delivered: false,
-      message:
-        "Mailer configuration missing. Set SMTP_HOST/PORT/USER/PASS, MAIL_FROM_ADDRESS, ADMIN_APPROVAL_EMAIL, and APP_BASE_URL to enable email notifications.",
-    }
-    console.warn("[story-publish] Approval email skipped:", emailStatus.message)
-  } else {
-    try {
-      await sendStorySubmissionEmail({
-        storyTitle: story.title,
-        storySlug: story.slug,
-        versionId: version.id,
-        versionNumber: version.versionNumber,
-        submitterEmail: session.user.email,
-        submitterUsername: session.user.username,
-        approveUrl: links.approveUrl,
-        rejectUrl: links.rejectUrl,
-        previewUrl: links.previewUrl,
-      })
-      emailStatus = { delivered: true }
-    } catch (error) {
-      console.error("[story-publish] Failed to send approval email:", error)
-      return NextResponse.json(
-        {
-          error:
-            "Story submitted but approval email could not be sent. Please verify SMTP configuration and try again.",
-        },
-        { status: 502 },
-      )
-    }
-  }
 
   return NextResponse.json(
     {
       versionId: version.id,
+      versionNumber: version.versionNumber,
       status: version.status,
-      email: emailStatus,
     },
     { status: 201 },
   )
