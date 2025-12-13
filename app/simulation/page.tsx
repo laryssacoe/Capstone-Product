@@ -776,10 +776,19 @@ function normalizeAvatar(raw: any, storySlug: string | null): Avatar {
   }
 }
 
-// Get avatar profile image based on avatar ID
+// Get avatar profile image based on avatar ID or from appearance data
 function getAvatarProfileImage(avatarId: string, fallback: string): string {
   const id = avatarId.toLowerCase()
   
+  if (fallback && (
+    fallback.startsWith("/scenes/") ||
+    fallback.includes("cloudinary.com") ||
+    fallback.includes("res.cloudinary.com")
+  )) {
+    return fallback
+  }
+  
+  // Example specific cases
   if (id.includes("katrina")) {
     return "/scenes/katrina-profile.png"
   }
@@ -1836,7 +1845,13 @@ function SimulationContent() {
   
   const textContent = Array.isArray(currentPassage.text) ? currentPassage.text : [currentPassage.text]
   const passageImage = currentPassage.image || ""
-  const hasBackgroundImage = !!currentPassage.image && !currentPassage.image.includes("placeholder")
+
+  // Support both local paths and Cloudinary URLs for background images
+  const hasBackgroundImage = !!passageImage && (
+    passageImage.startsWith("/scenes/") ||
+    passageImage.includes("cloudinary.com") ||
+    passageImage.includes("res.cloudinary.com")
+  )
 
   return (
     <Container>

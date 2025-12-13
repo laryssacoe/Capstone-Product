@@ -44,12 +44,16 @@ const gradForAvatar = (id: string) => {
   }
 };
 
-// Get avatar profile image, only return valid image paths
+// Get avatar profile image, support local paths and Cloudinary URLs
 const getAvatarImage = (avatar: AvatarWithMetrics): string => {
   const imagePath = (avatar.appearance as any)?.image || (avatar as any).image || "";
   
-  // Only trust image paths in /scenes/ directory 
-  if (imagePath && imagePath.startsWith("/scenes/")) {
+  // Trust image paths in /scenes/ directory or Cloudinary URLs
+  if (imagePath && (
+    imagePath.startsWith("/scenes/") ||
+    imagePath.includes("cloudinary.com") ||
+    imagePath.includes("res.cloudinary.com")
+  )) {
     return imagePath;
   }
   

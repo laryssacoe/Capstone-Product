@@ -393,8 +393,12 @@ const getScenarioImage = (scenario: Scenario): string | null => {
   // Check metadata for appearance.image
   const imagePath = (scenario as any)?.metadata?.appearance?.image || "";
   
-  // Only trust image paths in /scenes/ directory 
-  if (imagePath && imagePath.startsWith("/scenes/")) {
+  // Trust image paths in /scenes/ directory or Cloudinary URLs
+  if (imagePath && (
+    imagePath.startsWith("/scenes/") ||
+    imagePath.includes("cloudinary.com") ||
+    imagePath.includes("res.cloudinary.com")
+  )) {
     return imagePath;
   }
 
