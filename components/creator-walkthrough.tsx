@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useCallback, useRef } from "react"
+import { useState, useEffect, useCallback, useMemo, useRef } from "react"
 import styled, { keyframes } from "styled-components"
 import { X, ChevronRight, ChevronLeft, PenLine } from "lucide-react"
 
@@ -11,7 +11,7 @@ interface WalkthroughStep {
   position: "top" | "bottom" | "left" | "right"
 }
 
-const walkthroughSteps: WalkthroughStep[] = [
+const baseWalkthroughSteps: WalkthroughStep[] = [
   {
     target: "tab-stories",
     title: "Your Stories",
@@ -43,6 +43,25 @@ const walkthroughSteps: WalkthroughStep[] = [
     position: "top",
   },
 ]
+
+const buildWalkthroughSteps = (includeExample: boolean) =>
+  baseWalkthroughSteps
+    .filter((step) => includeExample || step.target !== "example-story-card")
+    .map((step) => {
+      if (!includeExample && step.target === "tab-stories") {
+        return {
+          ...step,
+          description: "This is where all your stories live.",
+        }
+      }
+      if (!includeExample && step.target === "create-button") {
+        return {
+          ...step,
+          description: "Ready to build your own story? Click here to start fresh.",
+        }
+      }
+      return step
+    })
 
 // Styled Components
 const TooltipContainer = styled.div`
@@ -336,19 +355,22 @@ interface CreatorWalkthroughProps {
   onComplete: () => void
   isOpen: boolean
   onTabChange?: (tab: string) => void
+  hasExampleStory: boolean
 }
 
-export function CreatorWalkthrough({ onComplete, isOpen, onTabChange }: CreatorWalkthroughProps) {
+export function CreatorWalkthrough({ onComplete, isOpen, onTabChange, hasExampleStory }: CreatorWalkthroughProps) {
   const [currentStep, setCurrentStep] = useState(0)
   const [tooltipStyle, setTooltipStyle] = useState<React.CSSProperties>({})
   const [spotlightStyle, setSpotlightStyle] = useState<React.CSSProperties>({})
   const tooltipRef = useRef<HTMLDivElement>(null)
+  const steps = useMemo(() => buildWalkthroughSteps(hasExampleStory), [hasExampleStory])
 
   // Switch to matched tab when step changes
   useEffect(() => {
     if (!isOpen || !onTabChange) return
     
-    const step = walkthroughSteps[currentStep]
+    const step = steps[currentStep]
+    if (!step) return
     if (step.target === "tab-stories" || step.target === "create-button" || step.target === "example-story-card") {
       onTabChange("stories")
     } else if (step.target === "tab-new") {
@@ -356,19 +378,12 @@ export function CreatorWalkthrough({ onComplete, isOpen, onTabChange }: CreatorW
     } else if (step.target === "tab-import") {
       onTabChange("import")
     }
-  }, [currentStep, isOpen, onTabChange])
+  }, [currentStep, isOpen, onTabChange, steps])
 
   const calculatePosition = useCallback(() => {
-    const step = walkthroughSteps[currentStep]
+    const step = steps[currentStep]
+    if (!step) return
     const targetElement = document.querySelector(`[data-walkthrough="${step.target}"]`)
-    
-    // If example-story-card not found, skip to next step
-    if (!targetElement && step.target === "example-story-card") {
-      if (currentStep < walkthroughSteps.length - 1) {
-        setCurrentStep(prev => prev + 1)
-      }
-      return
-    }
     
     if (!targetElement) return
 
@@ -439,7 +454,7 @@ export function CreatorWalkthrough({ onComplete, isOpen, onTabChange }: CreatorW
       left: `${left}px`,
       zIndex: 10002,
     })
-  }, [currentStep])
+  }, [currentStep, steps])
 
   useEffect(() => {
     if (!isOpen) {
@@ -462,8 +477,21 @@ export function CreatorWalkthrough({ onComplete, isOpen, onTabChange }: CreatorW
     }
   }, [isOpen, currentStep, calculatePosition])
 
+  useEffect(() => {
+    if (!isOpen || typeof document === "undefined") return
+    const observer = new MutationObserver(() => calculatePosition())
+    observer.observe(document.body, { childList: true, subtree: true })
+    return () => observer.disconnect()
+  }, [calculatePosition, isOpen])
+
+  useEffect(() => {
+    if (currentStep >= steps.length) {
+      setCurrentStep(Math.max(0, steps.length - 1))
+    }
+  }, [currentStep, steps.length])
+
   const handleNext = () => {
-    if (currentStep < walkthroughSteps.length - 1) {
+    if (currentStep < steps.length - 1) {
       setCurrentStep(currentStep + 1)
     } else {
       // Go to create new story tab when clicking "Get Started"
@@ -486,8 +514,8 @@ export function CreatorWalkthrough({ onComplete, isOpen, onTabChange }: CreatorW
 
   if (!isOpen) return null
 
-  const step = walkthroughSteps[currentStep]
-  const isLastStep = currentStep === walkthroughSteps.length - 1
+  const step = steps[currentStep]
+  const isLastStep = currentStep === steps.length - 1
   const isFirstStep = currentStep === 0
 
   return (
@@ -502,7 +530,7 @@ export function CreatorWalkthrough({ onComplete, isOpen, onTabChange }: CreatorW
             </IconContainer>
             <div>
               <StepIndicator>
-                Step {currentStep + 1} of {walkthroughSteps.length}
+                Step {currentStep + 1} of {steps.length}
               </StepIndicator>
               <StepTitle>{step.title}</StepTitle>
             </div>
@@ -518,7 +546,7 @@ export function CreatorWalkthrough({ onComplete, isOpen, onTabChange }: CreatorW
 
         <ProgressContainer>
           <ProgressBar>
-            {walkthroughSteps.map((_, index) => (
+            {steps.map((_, index) => (
               <ProgressDot key={index} $active={index <= currentStep} />
             ))}
           </ProgressBar>

@@ -143,7 +143,7 @@ const DismissBtn = styled.button`
 const MainContent = styled.div`
   display: flex;
   overflow: hidden;
-  padding: 0 1.5rem 1.5rem;
+  padding: 0 1.5rem 0.75rem;
   flex: 1;
 `;
 
@@ -172,15 +172,15 @@ const Panel = styled.div`
   overflow: hidden;
 `;
 
-const BrowserShell = styled.section`
+const BrowserShell = styled.section<{ $fill?: boolean }>`
   background: rgba(30, 41, 59, 0.35);
   border: 1px solid rgba(51, 65, 85, 0.35);
   border-radius: 1rem;
-  padding: 1.5rem;
+  padding: 1.5rem 1.5rem 0.9rem;
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  height: 100%;
+  height: ${({ $fill }) => ($fill ? '100%' : 'auto')};
 `;
 
 const EmptyPanel = styled.div`
@@ -329,7 +329,7 @@ export default function ScenariosPage() {
           // Split layout: Browser on left, Coming Soon on right
           <SplitLayout>
             <Panel>
-              <BrowserShell>
+              <BrowserShell $fill>
                 <ScenarioBrowser 
                   onScenarioSelect={handleScenarioSelect} 
                   onScenariosLoaded={handleScenariosLoaded}

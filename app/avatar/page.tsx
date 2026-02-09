@@ -17,7 +17,8 @@ import {
   GraduationCap,
   ArrowRight,
   Play,
-  AlertCircle
+  AlertCircle,
+  BookOpen
 } from "lucide-react";
 import type { Avatar } from "@/types/simulation";
 
@@ -87,6 +88,10 @@ const Container = styled.div`
   padding: 3rem 1.5rem 4rem;
   max-width: 80rem;
   margin: 0 auto;
+
+  @media (max-width: 640px) {
+    padding: 2.5rem 1rem 3.5rem;
+  }
 `;
 
 const Hero = styled.header`
@@ -137,27 +142,18 @@ const Notice = styled.div`
 `;
 
 const CardsGrid = styled.div`
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
   gap: 1.5rem;
-  justify-content: center;
   width: 100%;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  justify-items: stretch;
   animation: ${fadeIn} 0.6s ease-out 0.2s both;
 `;
 
 const CardWrapper = styled.div`
   width: 100%;
-  max-width: 360px;
-  
-  @media (min-width: 768px) {
-    width: calc(50% - 0.75rem);
-    max-width: 380px;
-  }
-  
-  @media (min-width: 1024px) {
-    width: calc(33.333% - 1rem);
-    max-width: 380px;
-  }
+  max-width: 420px;
+  justify-self: center;
 `;
 
 const StoryCard = styled(UICard)<{ $isPlayable?: boolean }>`
@@ -244,7 +240,18 @@ const AvatarCircle = styled.div<{ $grad: string }>`
   }
 `;
 
+const AvatarFallback = styled.div`
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+`;
+
 const AvatarImage = styled.img`
+  position: absolute;
+  inset: 0;
   width: 100%;
   height: 100%;
   object-fit: cover;
@@ -310,9 +317,10 @@ const InfoGrid = styled.div`
 `;
 
 const InfoItem = styled.div`
-  display: flex;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
   align-items: center;
-  justify-content: space-between;
+  column-gap: 0.75rem;
   padding: 0.5rem 0;
   border-bottom: 1px solid rgba(71, 85, 105, 0.25);
   
@@ -338,6 +346,9 @@ const InfoValue = styled.span`
   color: #cbd5e1;
   font-size: 0.85rem;
   font-weight: 500;
+  text-align: right;
+  justify-self: end;
+  overflow-wrap: anywhere;
 `;
 
 const ComingSoonOverlay = styled.div`
@@ -482,6 +493,7 @@ const ModalAvatar = styled.div<{ $grad: string }>`
   display: flex;
   align-items: center;
   justify-content: center;
+  position: relative;
   background: ${({ $grad }) => $grad};
   box-shadow: 0 8px 24px -8px rgba(0, 0, 0, 0.4);
   overflow: hidden;
@@ -493,7 +505,18 @@ const ModalAvatar = styled.div<{ $grad: string }>`
   }
 `;
 
+const ModalAvatarFallback = styled.div`
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+`;
+
 const ModalAvatarImage = styled.img`
+  position: absolute;
+  inset: 0;
   width: 100%;
   height: 100%;
   object-fit: cover;
@@ -753,7 +776,7 @@ export default function AvatarPage() {
       setError(null);
       
       try {
-        const response = await fetch("/api/avatars?featured=3&limit=6", { cache: "no-store" });
+        const response = await fetch("/api/avatars?featured=true&limit=3", { cache: "no-store" });
         
         if (!response.ok) {
           const text = await response.text();
@@ -834,10 +857,17 @@ export default function AvatarPage() {
                     <CardInner>
                       <AvatarSection>
                         <AvatarCircle $grad={gradForAvatar(avatar.id)}>
-                          {avatarImage ? (
-                            <AvatarImage src={avatarImage} alt={avatar.name} />
-                          ) : (
-                            <User />
+                          <AvatarFallback aria-hidden>
+                            <BookOpen />
+                          </AvatarFallback>
+                          {avatarImage && (
+                            <AvatarImage
+                              src={avatarImage}
+                              alt={avatar.name}
+                              onError={(e) => {
+                                e.currentTarget.style.display = "none"
+                              }}
+                            />
                           )}
                         </AvatarCircle>
                         <CharacterName>{avatar.name}</CharacterName>
@@ -903,13 +933,17 @@ export default function AvatarPage() {
                 <X size={16} />
               </ModalCloseBtn>
               <ModalAvatar $grad={gradForAvatar(selectedAvatar.id)}>
-                {getAvatarImage(selectedAvatar) ? (
+                <ModalAvatarFallback aria-hidden>
+                  <BookOpen />
+                </ModalAvatarFallback>
+                {getAvatarImage(selectedAvatar) && (
                   <ModalAvatarImage
                     src={getAvatarImage(selectedAvatar)}
                     alt={selectedAvatar.name}
+                    onError={(e) => {
+                      e.currentTarget.style.display = "none"
+                    }}
                   />
-                ) : (
-                  <User />
                 )}
               </ModalAvatar>
               <ModalName>{selectedAvatar.name}</ModalName>

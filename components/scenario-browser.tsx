@@ -1,11 +1,10 @@
 'use client';
 
-import { useEffect, useMemo, useState, useCallback } from 'react';
+import { useEffect, useMemo, useState, useCallback, useLayoutEffect, useRef } from 'react';
 import styled from 'styled-components';
 import {
   Card,
   CardContent,
-  CardDescription,
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
@@ -30,6 +29,7 @@ import {
   Scale,
   Play,
   User,
+  BookOpen,
 } from 'lucide-react';
 
 // Styled Components
@@ -103,13 +103,18 @@ const IssueContent = styled(SelectContent)`
 const Grid = styled.div<{ $count: number }>`
   display: grid;
   gap: 2rem;
-  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  grid-template-columns: 1fr;
   justify-items: stretch;
+  align-items: stretch;
 
-  @media (min-width: 768px) {
+  @media (min-width: 560px) {
     grid-template-columns: ${({ $count }) =>
-      $count >= 2 ? 'repeat(2, minmax(0, 1fr))' : `repeat(${$count || 1}, minmax(320px, 1fr))`};
+      $count >= 2 ? 'repeat(2, minmax(0, 1fr))' : `repeat(${$count || 1}, minmax(260px, 1fr))`};
   }
+`;
+
+const CardMeasureWrap = styled.div`
+  height: 100%;
 `;
 
 const SCard = styled(Card)<{ dim?: boolean }>`
@@ -118,6 +123,9 @@ const SCard = styled(Card)<{ dim?: boolean }>`
   backdrop-filter: blur(6px);
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
   position: relative;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
   ${(p) => p.dim && 'opacity: 0.6;'}
 
   &:hover {
@@ -127,6 +135,9 @@ const SCard = styled(Card)<{ dim?: boolean }>`
 `;
 
 const SHeader = styled(CardHeader)`
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
   padding-bottom: 1rem;
 `;
 
@@ -134,7 +145,6 @@ const TitleRow = styled.div`
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  margin-bottom: 1rem;
 `;
 
 const IconBox = styled.div`
@@ -147,15 +157,24 @@ const IconBox = styled.div`
   justify-content: center;
   overflow: hidden;
   flex-shrink: 0;
+  position: relative;
   
   svg {
     width: 24px;
     height: 24px;
     color: #94a3b8;
   }
+
+  .default-book-icon {
+    width: 18px;
+    height: 18px;
+  }
 `;
 
 const AvatarImage = styled.img`
+  position: absolute;
+  inset: 0;
+  z-index: 1;
   width: 100%;
   height: 100%;
   object-fit: cover;
@@ -163,8 +182,13 @@ const AvatarImage = styled.img`
 
 const STitle = styled(CardTitle)`
   font-size: 1.25rem;
-  line-height: 1.25;
+  line-height: 1.3;
   color: #fff;
+  margin: 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 `;
 
 const BadgeRow = styled.div`
@@ -172,6 +196,7 @@ const BadgeRow = styled.div`
   align-items: center;
   gap: 0.5rem;
   margin-top: 0.5rem;
+  flex-wrap: wrap;
 `;
 
 type Hue = 'blue' | 'purple' | 'amber' | 'indigo' | 'slate' | 'emerald';
@@ -223,31 +248,6 @@ const TypeBadge = styled(Badge)<{ hue: Hue }>`
   letter-spacing: 0.02em;
 `;
 
-type Level = 'beginner' | 'intermediate' | 'advanced';
-
-const LevelBadge = styled(Badge)<{ level: Level }>`
-  background: ${({ level }) =>
-    level === 'beginner'
-      ? 'rgba(16,185,129,.20)'
-      : level === 'intermediate'
-      ? 'rgba(234,179,8,.20)'
-      : 'rgba(239,68,68,.20)'};
-  color: ${({ level }) =>
-    level === 'beginner'
-      ? '#86efac'
-      : level === 'intermediate'
-      ? '#fde68a'
-      : '#fca5a5'};
-  border: 1px solid
-    ${({ level }) =>
-      level === 'beginner'
-        ? 'rgba(16,185,129,.35)'
-        : level === 'intermediate'
-        ? 'rgba(234,179,8,.35)'
-        : 'rgba(239,68,68,.35)'};
-  text-transform: none;
-`;
-
 const InProgressBadge = styled.div`
   position: absolute;
   top: 1rem;
@@ -265,21 +265,31 @@ const InProgressBadge = styled.div`
   z-index: 5;
 `;
 
-const SDescription = styled(CardDescription)`
+const SDescription = styled.div`
   color: #cbd5e1;
   font-size: 1rem;
   line-height: 1.75;
+  margin: 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 8;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  margin-bottom: 0.75rem;
 `;
 
 const SContent = styled(CardContent)`
-  display: grid;
+  display: flex;
+  flex-direction: column;
   gap: 1rem;
+  flex: 1;
 `;
 
 const Highlight = styled.div`
   background: rgba(51, 65, 85, 0.3);
   border-radius: 0.75rem;
   padding: 1rem;
+  margin-top: 0;
+  margin-bottom: 1.25rem;
 `;
 
 const HighlightTitle = styled.h5`
@@ -309,6 +319,7 @@ const MetaLeft = styled.span`
 
 const PrimaryButton = styled(Button)<{ $isResume?: boolean }>`
   width: 100%;
+  margin-top: 0.25rem;
   color: #fff;
   background-image: ${({ $isResume }) =>
     $isResume
@@ -391,7 +402,10 @@ const IssueIcon = (raw: string) => {
 // Get scenario profile image 
 const getScenarioImage = (scenario: Scenario): string | null => {
   // Check metadata for appearance.image
-  const imagePath = (scenario as any)?.metadata?.appearance?.image || "";
+  const imagePath =
+    (scenario as any)?.metadata?.appearance?.image ||
+    (scenario as any)?.metadata?.avatarImage ||
+    "";
   
   // Trust image paths in /scenes/ directory or Cloudinary URLs
   if (imagePath && (
@@ -416,16 +430,6 @@ const getStorySlug = (scenario: Scenario): string => {
   );
 };
 
-const difficultyBadge = (scenario: Scenario): { label: string; level: Level } => {
-  const total = Object.values(scenario.minimumResources || {}).reduce(
-    (s, n) => s + (n as number),
-    0
-  );
-  if (total < 100) return { label: 'Beginner', level: 'beginner' };
-  if (total < 200) return { label: 'Intermediate', level: 'intermediate' };
-  return { label: 'Advanced', level: 'advanced' };
-};
-
 const canPlayScenario = (scenario: Scenario, userResources?: any) => {
   if (!userResources || !scenario.minimumResources) return true;
   return Object.entries(scenario.minimumResources).every(
@@ -444,6 +448,11 @@ export function ScenarioBrowser({
   onScenariosLoaded,
   userResources,
 }: ScenarioBrowserProps) {
+  const gridRef = useRef<HTMLDivElement | null>(null);
+  const cardRefs = useRef<Record<string, HTMLDivElement | null>>({});
+  const descriptionRefs = useRef<Record<string, HTMLDivElement | null>>({});
+  const highlightRefs = useRef<Record<string, HTMLDivElement | null>>({});
+
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedIssueType, setSelectedIssueType] = useState<string>('all');
   const [scenarios, setScenarios] = useState<Scenario[]>([]);
@@ -559,6 +568,136 @@ export function ScenarioBrowser({
     });
   }, [scenarios, searchTerm, selectedIssueType]);
 
+  const setCardRef = useCallback((id: string, element: HTMLDivElement | null) => {
+    cardRefs.current[id] = element;
+  }, []);
+
+  const setDescriptionRef = useCallback((id: string, element: HTMLDivElement | null) => {
+    descriptionRefs.current[id] = element;
+  }, []);
+
+  const setHighlightRef = useCallback((id: string, element: HTMLDivElement | null) => {
+    highlightRefs.current[id] = element;
+  }, []);
+
+  const equalizePrimaryChallengeByRow = useCallback(() => {
+    const ids = filteredScenarios.map((scenario) => scenario.id);
+    if (!ids.length) return;
+
+    const BASE_GAP = 12;
+
+    // Reset measurements to natural height 
+    ids.forEach((id) => {
+      const description = descriptionRefs.current[id];
+      const highlight = highlightRefs.current[id];
+      if (description) description.style.height = 'auto';
+      if (highlight) {
+        highlight.style.marginTop = `${BASE_GAP}px`;
+        highlight.style.height = 'auto';
+      }
+    });
+
+    // Group cards by visual rows based on top position
+    const rows = new Map<number, string[]>();
+    ids.forEach((id) => {
+      const card = cardRefs.current[id];
+      if (!card) return;
+      const top = Math.round(card.getBoundingClientRect().top);
+      let rowKey = top;
+      for (const existingKey of rows.keys()) {
+        if (Math.abs(existingKey - top) <= 2) {
+          rowKey = existingKey;
+          break;
+        }
+      }
+      const row = rows.get(rowKey) ?? [];
+      row.push(id);
+      rows.set(rowKey, row);
+    });
+
+    // Equalize description height per row
+    rows.forEach((rowIds) => {
+      let maxDescriptionHeight = 0;
+      rowIds.forEach((id) => {
+        const description = descriptionRefs.current[id];
+        if (!description) return;
+        maxDescriptionHeight = Math.max(maxDescriptionHeight, description.getBoundingClientRect().height);
+      });
+
+      rowIds.forEach((id) => {
+        const description = descriptionRefs.current[id];
+        if (description) {
+          description.style.height = `${Math.ceil(maxDescriptionHeight)}px`;
+        }
+      });
+    });
+
+    // Align "Primary Challenge" start position per row
+    rows.forEach((rowIds) => {
+      let targetStart = 0;
+      rowIds.forEach((id) => {
+        const card = cardRefs.current[id];
+        const highlight = highlightRefs.current[id];
+        if (!card || !highlight) return;
+        const start = highlight.getBoundingClientRect().top - card.getBoundingClientRect().top;
+        targetStart = Math.max(targetStart, start);
+      });
+
+      rowIds.forEach((id) => {
+        const card = cardRefs.current[id];
+        const highlight = highlightRefs.current[id];
+        if (!card || !highlight) return;
+        const start = highlight.getBoundingClientRect().top - card.getBoundingClientRect().top;
+        const extra = Math.max(0, Math.ceil(targetStart - start));
+        highlight.style.marginTop = `${BASE_GAP + extra}px`;
+      });
+    });
+
+    rows.forEach((rowIds) => {
+      let maxHighlightHeight = 0;
+      rowIds.forEach((id) => {
+        const highlight = highlightRefs.current[id];
+        if (!highlight) return;
+        maxHighlightHeight = Math.max(maxHighlightHeight, highlight.getBoundingClientRect().height);
+      });
+
+      rowIds.forEach((id) => {
+        const highlight = highlightRefs.current[id];
+        if (highlight) {
+          highlight.style.height = `${Math.ceil(maxHighlightHeight)}px`;
+        }
+      });
+    });
+  }, [filteredScenarios]);
+
+  useLayoutEffect(() => {
+    if (!filteredScenarios.length) return;
+
+    let frame = 0;
+    const schedule = () => {
+      cancelAnimationFrame(frame);
+      frame = window.requestAnimationFrame(equalizePrimaryChallengeByRow);
+    };
+
+    schedule();
+    window.addEventListener('resize', schedule);
+
+    const observer =
+      typeof ResizeObserver !== 'undefined' && gridRef.current
+        ? new ResizeObserver(schedule)
+        : null;
+
+    if (observer && gridRef.current) {
+      observer.observe(gridRef.current);
+    }
+
+    return () => {
+      cancelAnimationFrame(frame);
+      window.removeEventListener('resize', schedule);
+      observer?.disconnect();
+    };
+  }, [equalizePrimaryChallengeByRow, filteredScenarios.length]);
+
   const hasSavedProgress = (scenarioId: string) => savedProgress[scenarioId] ?? false;
 
   return (
@@ -611,15 +750,15 @@ export function ScenarioBrowser({
         </EmptyWrap>
       ) : (
         <>
-          <Grid $count={filteredScenarios.length || 1}>
+          <Grid ref={gridRef} $count={filteredScenarios.length || 1}>
             {filteredScenarios.map((scenario) => {
-              const diff = difficultyBadge(scenario);
               const canPlay = canPlayScenario(scenario, userResources);
               const hasProgress = hasSavedProgress(scenario.id);
               const profileImage = getScenarioImage(scenario);
 
               return (
-                <SCard key={scenario.id} dim={!canPlay}>
+                <CardMeasureWrap key={scenario.id} ref={(el) => setCardRef(scenario.id, el)}>
+                <SCard dim={!canPlay}>
                   {/* Show in-progress badge */}
                   {hasProgress && (
                     <InProgressBadge>
@@ -632,10 +771,15 @@ export function ScenarioBrowser({
                     <TitleRow>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
                         <IconBox>
-                          {profileImage ? (
-                            <AvatarImage src={profileImage} alt={scenario.title} />
-                          ) : (
-                            IssueIcon(scenario.socialIssue?.type || '')
+                          <BookOpen className="default-book-icon" aria-hidden />
+                          {profileImage && (
+                            <AvatarImage
+                              src={profileImage}
+                              alt=""
+                              onError={(e) => {
+                                e.currentTarget.style.display = "none"
+                              }}
+                            />
                           )}
                         </IconBox>
                         <div>
@@ -646,17 +790,18 @@ export function ScenarioBrowser({
                                 {toTitleCase(scenario.socialIssue.type)}
                               </TypeBadge>
                             )}
-                            <LevelBadge level={diff.level}>{diff.label}</LevelBadge>
                           </BadgeRow>
                         </div>
                       </div>
                     </TitleRow>
-                    <SDescription>{scenario.description}</SDescription>
                   </SHeader>
 
                   <SContent>
+                    <SDescription ref={(el) => setDescriptionRef(scenario.id, el)}>
+                      {scenario.description}
+                    </SDescription>
                     {scenario.socialIssue?.description && (
-                      <Highlight>
+                      <Highlight ref={(el) => setHighlightRef(scenario.id, el)}>
                         <HighlightTitle>Primary Challenge:</HighlightTitle>
                         <HighlightText>{scenario.socialIssue.description}</HighlightText>
                       </Highlight>
@@ -688,6 +833,7 @@ export function ScenarioBrowser({
                     </PrimaryButton>
                   </SContent>
                 </SCard>
+                </CardMeasureWrap>
               );
             })}
           </Grid>
