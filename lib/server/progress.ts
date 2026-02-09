@@ -257,26 +257,79 @@ async function evaluateAchievements(userId: string) {
     prisma.journeyProgress.findMany({ where: { userId, status: "COMPLETED" }, include: { scenario: true } }),
   ])
 
-  let storyCompletionCount = 0
+  let storyCompletions: Array<{
+    storySlug: string
+    endingId: string
+    createdAt: Date
+    reflectionResponses: unknown
+  }> = []
   try {
-    storyCompletionCount = await prisma.storyCompletion.count({ where: { userId } })
+    storyCompletions = await prisma.storyCompletion.findMany({
+      where: { userId },
+      select: {
+        storySlug: true,
+        endingId: true,
+        createdAt: true,
+        reflectionResponses: true,
+      },
+      orderBy: { createdAt: "desc" },
+    })
   } catch {
     // Ignore if StoryCompletion table does not exist
   }
 
-  const completedCount = Math.max(journeyCompletedCount, storyCompletionCount)
+  const completedCount = Math.max(journeyCompletedCount, storyCompletions.length)
 
   const unlockedCodes = new Set(achievements.map((entry) => entry.achievement.code))
+
+  const uniqueIssueTags = new Set(
+    journeys.map((journey) => journey.scenario?.issueTag).filter((tag): tag is string => Boolean(tag)),
+  )
+
+  const reflectionRequiredIds = ["surprise", "barrier", "tradeoff", "self"]
+  const hasReflection = storyCompletions.some((completion) => {
+    if (!completion.reflectionResponses || typeof completion.reflectionResponses !== "object") return false
+    const responses = completion.reflectionResponses as Record<string, unknown>
+    return reflectionRequiredIds.every((id) => {
+      const value = responses[id]
+      return typeof value === "string" ? value.trim().length > 0 : Boolean(value)
+    })
+  })
+
+  const endingsByStory = new Map<string, Set<string>>()
+  storyCompletions.forEach((completion) => {
+    if (!completion.storySlug || !completion.endingId) return
+    const endings = endingsByStory.get(completion.storySlug) ?? new Set<string>()
+    endings.add(completion.endingId)
+    endingsByStory.set(completion.storySlug, endings)
+  })
+  const hasMultipleEndings = Array.from(endingsByStory.values()).some((endings) => endings.size >= 2)
+
+  const completionDays = new Set<string>()
+  journeys.forEach((journey) => {
+    const date = journey.completedAt ?? journey.startedAt
+    if (date) completionDays.add(date.toISOString().slice(0, 10))
+  })
+  storyCompletions.forEach((completion) => {
+    completionDays.add(completion.createdAt.toISOString().slice(0, 10))
+  })
+  const hasReturnVisit = completionDays.size >= 2
 
   const pending: string[] = []
   if (!unlockedCodes.has("first_scenario") && completedCount >= 1) {
     pending.push("first_scenario")
   }
-  if (!unlockedCodes.has("empathy_builder") && completedCount >= 3) {
+  if (!unlockedCodes.has("empathy_builder") && uniqueIssueTags.size >= 3) {
     pending.push("empathy_builder")
   }
-  if (!unlockedCodes.has("difficult_choices") && journeys.some((journey) => journey.scenario?.difficulty === "high")) {
+  if (!unlockedCodes.has("difficult_choices") && hasMultipleEndings) {
     pending.push("difficult_choices")
+  }
+  if (!unlockedCodes.has("reflection_complete") && hasReflection) {
+    pending.push("reflection_complete")
+  }
+  if (!unlockedCodes.has("returning_listener") && hasReturnVisit) {
+    pending.push("returning_listener")
   }
 
   if (!pending.length) return

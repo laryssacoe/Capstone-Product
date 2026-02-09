@@ -225,61 +225,79 @@ export async function upsertStoryGraph(
     })
   }
 
-  await prisma.storyTransition.deleteMany({ where: { storyId: story.id } })
-  await prisma.storyPath.deleteMany({ where: { storyId: story.id } })
-  await prisma.storyNode.deleteMany({ where: { storyId: story.id } })
+  await prisma.$transaction(async (tx) => {
+    await tx.storyTransition.deleteMany({ where: { storyId: story.id } })
+    await tx.storyPath.deleteMany({ where: { storyId: story.id } })
+    await tx.storyNode.deleteMany({ where: { storyId: story.id } })
 
-  const nodeKeyToId = new Map<string, string>()
-  for (const node of nodes) {
-    const normalizedContent = normalizeContent(node.content)
-    const normalizedMedia = normalizeMedia(node.media)
-    const created = await prisma.storyNode.create({
-      data: {
-        storyId: story.id,
-        key: node.key,
-        title: node.title ?? null,
-        synopsis: node.synopsis ?? null,
-        type: node.type ?? "NARRATIVE",
-        content: normalizedContent ?? undefined,
-        media: normalizedMedia ?? undefined,
-      },
+    await tx.storyNode.createMany({
+      data: nodes.map((node) => {
+        const normalizedContent = normalizeContent(node.content)
+        const normalizedMedia = normalizeMedia(node.media)
+        return {
+          storyId: story.id,
+          key: node.key,
+          title: node.title ?? null,
+          synopsis: node.synopsis ?? null,
+          type: node.type ?? "NARRATIVE",
+          content: normalizedContent ?? undefined,
+          media: normalizedMedia ?? undefined,
+        }
+      }),
     })
-    nodeKeyToId.set(node.key, created.id)
-  }
 
-  const pathKeyToId = new Map<string, string>()
-  for (const path of paths) {
-    const created = await prisma.storyPath.create({
-      data: {
+    const nodeKeyToId = new Map(
+      (
+        await tx.storyNode.findMany({
+          where: { storyId: story.id },
+          select: { id: true, key: true },
+        })
+      ).map((node) => [node.key, node.id]),
+    )
+
+    await tx.storyPath.createMany({
+      data: paths.map((path) => ({
         storyId: story.id,
         key: path.key,
         label: path.label ?? path.key,
         summary: path.summary ?? null,
         metadata: path.metadata ?? undefined,
-      },
+      })),
     })
-    pathKeyToId.set(path.key, created.id)
-  }
 
-  for (const transition of transitions) {
-    const fromId = nodeKeyToId.get(transition.from)
-    if (!fromId) continue
-    const pathId = pathKeyToId.get(transition.path)
-    if (!pathId) continue
-    const toId = transition.to ? nodeKeyToId.get(transition.to) : undefined
+    const pathKeyToId = new Map(
+      (
+        await tx.storyPath.findMany({
+          where: { storyId: story.id },
+          select: { id: true, key: true },
+        })
+      ).map((path) => [path.key, path.id]),
+    )
 
-    await prisma.storyTransition.create({
-      data: {
-        storyId: story.id,
-        fromNodeId: fromId,
-        toNodeId: toId,
-        pathId,
-        ordering: transition.ordering ?? null,
-        condition: transition.condition ?? undefined,
-        effect: transition.effect ?? undefined,
-      },
+    const transitionData = transitions.flatMap((transition) => {
+      const fromId = nodeKeyToId.get(transition.from)
+      if (!fromId) return []
+      const pathId = pathKeyToId.get(transition.path)
+      if (!pathId) return []
+      const toId = transition.to ? nodeKeyToId.get(transition.to) : null
+
+      return [
+        {
+          storyId: story.id,
+          fromNodeId: fromId,
+          toNodeId: toId,
+          pathId,
+          ordering: transition.ordering ?? null,
+          condition: transition.condition ?? undefined,
+          effect: transition.effect ?? undefined,
+        },
+      ]
     })
-  }
+
+    if (transitionData.length) {
+      await tx.storyTransition.createMany({ data: transitionData })
+    }
+  })
 
   return story
 }
