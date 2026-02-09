@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 import { z } from "zod"
 
+import { cachePolicy } from "@/lib/http-cache"
 import { getCurrentSession } from "@/lib/server/auth"
 import { prisma } from "@/lib/server/prisma"
 import { applyStoryApprovalDecision, extractApprovalToken, isStoryApprovalError, type StoryApprovalDecision } from "@/lib/server/story-approval"
@@ -98,7 +99,7 @@ function htmlResponse(message: string, status: number) {
     status,
     headers: {
       "Content-Type": "text/html; charset=utf-8",
-      "Cache-Control": "no-cache, no-store, must-revalidate",
+      "Cache-Control": cachePolicy.strictNoStore,
     },
   })
 }

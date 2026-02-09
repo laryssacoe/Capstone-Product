@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 
 
+import { cachePolicy, setCacheControl } from "@/lib/http-cache"
 import { ensureBaseContent } from "@/lib/server/bootstrap"
 import { getCurrentSession } from "@/lib/server/auth"
 import { prisma } from "@/lib/server/prisma"
@@ -72,10 +73,5 @@ export async function GET(request: Request, { params }: RouteParams) {
   const avatar = avatars.find((a) => a.isPlayable) ?? avatars[0] ?? null
 
   const response = NextResponse.json({ story, nodes, paths, transitions, avatar })
-  if (isPublic) {
-    response.headers.set("Cache-Control", "public, s-maxage=120, stale-while-revalidate=300")
-  } else {
-    response.headers.set("Cache-Control", "private, no-store")
-  }
-  return response
+  return setCacheControl(response, isPublic ? cachePolicy.collectionPublic : cachePolicy.privateNoStore)
 }

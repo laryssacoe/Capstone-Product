@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server"
 
+import { cachePolicy, setCacheControl } from "@/lib/http-cache"
 import { prisma } from "@/lib/server/prisma"
 export const dynamic = "force-dynamic"
 
@@ -237,6 +238,5 @@ export async function GET(request: Request) {
       featured: featuredOnly,
     },
   })
-  response.headers.set("Cache-Control", "public, s-maxage=120, stale-while-revalidate=300")
-  return response
+  return setCacheControl(response, cachePolicy.collectionPublic)
 }

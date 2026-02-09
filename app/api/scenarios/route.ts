@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 
 
+import { cachePolicy, setCacheControl } from "@/lib/http-cache"
 import { prisma } from "@/lib/server/prisma"
 export const dynamic = "force-dynamic"
 
@@ -394,8 +395,7 @@ export async function GET() {
     const scenarios = Array.from(scenarioMap.values()).sort((a, b) => a.title.localeCompare(b.title))
 
     const response = NextResponse.json({ scenarios })
-    response.headers.set("Cache-Control", "public, s-maxage=120, stale-while-revalidate=300")
-    return response
+    return setCacheControl(response, cachePolicy.collectionPublic)
   } catch (error) {
     console.error("[api/scenarios] Failed to load scenarios", error)
     return NextResponse.json(
