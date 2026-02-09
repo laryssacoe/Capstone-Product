@@ -11,12 +11,16 @@ vi.mock("@/lib/server/prisma", () => {
   const storyAuditLog = {
     create: vi.fn(),
   }
+  const avatarProfile = {
+    updateMany: vi.fn(),
+  }
 
   return {
     prisma: {
       storyVersion,
       twineStory,
       storyAuditLog,
+      avatarProfile,
     },
   }
 })
@@ -71,6 +75,9 @@ const prismaMock = prisma as unknown as {
   }
   storyAuditLog: {
     create: ReturnType<typeof vi.fn>
+  }
+  avatarProfile: {
+    updateMany: ReturnType<typeof vi.fn>
   }
 }
 
@@ -128,6 +135,7 @@ describe("applyStoryApprovalDecision", () => {
     })
     prismaMock.twineStory.update.mockResolvedValue({})
     prismaMock.storyAuditLog.create.mockResolvedValue({})
+    prismaMock.avatarProfile.updateMany.mockResolvedValue({ count: 1 })
 
     const result = await applyStoryApprovalDecision({
       versionId: version.id,

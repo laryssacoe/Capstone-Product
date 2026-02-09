@@ -18,6 +18,12 @@ vi.mock("@/lib/server/prisma", () => {
   const achievement = {
     findMany: vi.fn(),
   }
+  const storyCompletion = {
+    findMany: vi.fn(),
+  }
+  const storySave = {
+    findMany: vi.fn(),
+  }
 
   return {
     prisma: {
@@ -25,6 +31,8 @@ vi.mock("@/lib/server/prisma", () => {
       journeyProgress,
       userAchievement,
       achievement,
+      storyCompletion,
+      storySave,
     },
   }
 })
@@ -51,6 +59,12 @@ type PrismaMock = {
   achievement: {
     findMany: ReturnType<typeof vi.fn>
   }
+  storyCompletion: {
+    findMany: ReturnType<typeof vi.fn>
+  }
+  storySave: {
+    findMany: ReturnType<typeof vi.fn>
+  }
 }
 
 let prismaMock: PrismaMock
@@ -63,6 +77,8 @@ beforeAll(async () => {
 
 beforeEach(() => {
   vi.resetAllMocks()
+  prismaMock.storyCompletion.findMany.mockResolvedValue([])
+  prismaMock.storySave.findMany.mockResolvedValue([])
 })
 
 afterEach(() => {

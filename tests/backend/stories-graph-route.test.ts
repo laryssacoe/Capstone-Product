@@ -21,8 +21,11 @@ vi.mock("@/lib/server/prisma", () => {
   const storyTransition = {
     findMany: vi.fn(),
   }
+  const avatarProfile = {
+    findMany: vi.fn(),
+  }
   return {
-    prisma: { twineStory, storyNode, storyPath, storyTransition },
+    prisma: { twineStory, storyNode, storyPath, storyTransition, avatarProfile },
   }
 })
 
@@ -35,12 +38,14 @@ const prismaMock = prisma as unknown as {
   storyNode: { findMany: ReturnType<typeof vi.fn> }
   storyPath: { findMany: ReturnType<typeof vi.fn> }
   storyTransition: { findMany: ReturnType<typeof vi.fn> }
+  avatarProfile: { findMany: ReturnType<typeof vi.fn> }
 }
 
 const sessionMock = getCurrentSession as unknown as ReturnType<typeof vi.fn>
 
 beforeEach(() => {
   vi.resetAllMocks()
+  prismaMock.avatarProfile.findMany.mockResolvedValue([])
 })
 
 afterEach(() => {
@@ -84,6 +89,7 @@ describe("GET /api/stories/[slug]/graph", () => {
     prismaMock.storyNode.findMany.mockResolvedValueOnce([{ id: "n1" }])
     prismaMock.storyPath.findMany.mockResolvedValueOnce([{ id: "p1" }])
     prismaMock.storyTransition.findMany.mockResolvedValueOnce([{ id: "t1" }])
+    prismaMock.avatarProfile.findMany.mockResolvedValueOnce([])
     sessionMock.mockResolvedValue({ user: { id: "owner-1" } })
 
     const res = await GET(new Request("http://localhost/api/stories/story-owner/graph"), {

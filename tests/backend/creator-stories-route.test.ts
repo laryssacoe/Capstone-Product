@@ -11,15 +11,17 @@ vi.mock("@/lib/server/prisma", () => {
   }
   const storyNode = {
     deleteMany: vi.fn(),
-    create: vi.fn(),
+    createMany: vi.fn(),
+    findMany: vi.fn(),
   }
   const storyPath = {
     deleteMany: vi.fn(),
-    create: vi.fn(),
+    createMany: vi.fn(),
+    findMany: vi.fn(),
   }
   const storyTransition = {
     deleteMany: vi.fn(),
-    create: vi.fn(),
+    createMany: vi.fn(),
   }
   const creatorProfile = {
     findUnique: vi.fn(),
@@ -31,17 +33,20 @@ vi.mock("@/lib/server/prisma", () => {
     findUnique: vi.fn(),
   }
 
-  return {
-    prisma: {
-      twineStory,
-      storyNode,
-      storyPath,
-      storyTransition,
-      creatorProfile,
-      userProfile,
-      user,
-    },
+  const prisma = {
+    twineStory,
+    storyNode,
+    storyPath,
+    storyTransition,
+    creatorProfile,
+    userProfile,
+    user,
+    $transaction: vi.fn(),
   }
+
+  prisma.$transaction.mockImplementation(async (callback: (tx: typeof prisma) => Promise<unknown>) => callback(prisma))
+
+  return { prisma }
 })
 
 describe("/api/creator/stories DELETE", () => {
@@ -98,19 +103,22 @@ const prismaMock = prisma as unknown as {
   }
   storyNode: {
     deleteMany: ReturnType<typeof vi.fn>
-    create: ReturnType<typeof vi.fn>
+    createMany: ReturnType<typeof vi.fn>
+    findMany: ReturnType<typeof vi.fn>
   }
   storyPath: {
     deleteMany: ReturnType<typeof vi.fn>
-    create: ReturnType<typeof vi.fn>
+    createMany: ReturnType<typeof vi.fn>
+    findMany: ReturnType<typeof vi.fn>
   }
   storyTransition: {
     deleteMany: ReturnType<typeof vi.fn>
-    create: ReturnType<typeof vi.fn>
+    createMany: ReturnType<typeof vi.fn>
   }
   creatorProfile: { findUnique: ReturnType<typeof vi.fn> }
   userProfile: { findUnique: ReturnType<typeof vi.fn> }
   user: { findUnique: ReturnType<typeof vi.fn> }
+  $transaction: ReturnType<typeof vi.fn>
 }
 
 const getCurrentSessionMock = getCurrentSession as unknown as Mock
@@ -141,6 +149,9 @@ function buildPutRequest(body: unknown) {
 
 beforeEach(() => {
   vi.resetAllMocks()
+  prismaMock.$transaction.mockImplementation(async (callback: (tx: typeof prismaMock) => Promise<unknown>) =>
+    callback(prismaMock),
+  )
   prismaMock.twineStory.findUnique.mockResolvedValue(null)
   prismaMock.twineStory.findFirst.mockResolvedValue(null)
   prismaMock.creatorProfile.findUnique.mockResolvedValue(null)
@@ -157,9 +168,11 @@ beforeEach(() => {
   prismaMock.storyNode.deleteMany.mockResolvedValue({ count: 0 })
   prismaMock.storyPath.deleteMany.mockResolvedValue({ count: 0 })
   prismaMock.storyTransition.deleteMany.mockResolvedValue({ count: 0 })
-  prismaMock.storyNode.create.mockImplementation(async ({ data }) => ({ id: `${data.key}-id` }))
-  prismaMock.storyPath.create.mockImplementation(async ({ data }) => ({ id: `${data.key}-id` }))
-  prismaMock.storyTransition.create.mockImplementation(async () => ({ id: "transition-id" }))
+  prismaMock.storyNode.createMany.mockResolvedValue({ count: 1 })
+  prismaMock.storyPath.createMany.mockResolvedValue({ count: 1 })
+  prismaMock.storyTransition.createMany.mockResolvedValue({ count: 1 })
+  prismaMock.storyNode.findMany.mockResolvedValue([{ id: "node-1", key: "start" }])
+  prismaMock.storyPath.findMany.mockResolvedValue([{ id: "path-1", key: "path-1" }])
 })
 
 afterEach(() => {
@@ -255,9 +268,8 @@ describe("/api/creator/stories POST", () => {
       id: "story-123",
       slug: "new-story",
     })
-    prismaMock.storyNode.create.mockResolvedValueOnce({ id: "node-1" })
-    prismaMock.storyPath.create.mockResolvedValueOnce({ id: "path-1" })
-    prismaMock.storyTransition.create.mockResolvedValueOnce({ id: "transition-1" })
+    prismaMock.storyNode.findMany.mockResolvedValueOnce([{ id: "node-1", key: "start" }])
+    prismaMock.storyPath.findMany.mockResolvedValueOnce([{ id: "path-1", key: "path-1" }])
 
     const response = await POST(buildRequest(validPayload))
 
@@ -279,9 +291,9 @@ describe("/api/creator/stories POST", () => {
     expect(prismaMock.storyNode.deleteMany).toHaveBeenCalledWith({ where: { storyId: "story-123" } })
     expect(prismaMock.storyPath.deleteMany).toHaveBeenCalledWith({ where: { storyId: "story-123" } })
     expect(prismaMock.storyTransition.deleteMany).toHaveBeenCalledWith({ where: { storyId: "story-123" } })
-    expect(prismaMock.storyNode.create).toHaveBeenCalled()
-    expect(prismaMock.storyPath.create).toHaveBeenCalled()
-    expect(prismaMock.storyTransition.create).toHaveBeenCalled()
+    expect(prismaMock.storyNode.createMany).toHaveBeenCalled()
+    expect(prismaMock.storyPath.createMany).toHaveBeenCalled()
+    expect(prismaMock.storyTransition.createMany).toHaveBeenCalled()
   })
 
   it("rejects duplicate titles", async () => {
@@ -406,9 +418,8 @@ describe("/api/creator/stories PUT", () => {
       slug: "story-slug",
     })
     prismaMock.twineStory.findFirst.mockResolvedValueOnce(null)
-    prismaMock.storyNode.create.mockResolvedValueOnce({ id: "node-1" })
-    prismaMock.storyPath.create.mockResolvedValueOnce({ id: "path-1" })
-    prismaMock.storyTransition.create.mockResolvedValueOnce({ id: "transition-1" })
+    prismaMock.storyNode.findMany.mockResolvedValueOnce([{ id: "node-1", key: "start" }])
+    prismaMock.storyPath.findMany.mockResolvedValueOnce([{ id: "path-1", key: "path-1" }])
 
     const response = await PUT(buildPutRequest(basePayload))
     expect(response.status).toBe(200)
