@@ -120,16 +120,26 @@ const fadeIn = keyframes`
   100% { opacity: 1; transform: translateY(0); }
 `
 
+const fadeInOnly = keyframes`
+  0% { opacity: 0; }
+  100% { opacity: 1; }
+`
+
 const textReveal = keyframes`
   0% { opacity: 0; }
   100% { opacity: 1; }
 `
 
-const Container = styled.div`
+const spin = keyframes`
+  to { transform: rotate(360deg); }
+`
+
+const Container = styled.div<{ $autoHeight?: boolean }>`
   position: relative;
   width: 100%;
-  height: 100vh;
-  overflow: hidden;
+  height: ${({ $autoHeight }) => ($autoHeight ? "auto" : "100vh")};
+  min-height: ${({ $autoHeight }) => ($autoHeight ? "100vh" : "auto")};
+  overflow: ${({ $autoHeight }) => ($autoHeight ? "auto" : "hidden")};
   background: #0f172a;
 `
 
@@ -463,13 +473,55 @@ const EffectTag = styled.span<{ $positive: boolean }>`
   }
 `
 
-const ContinueButton = styled.button`
+const ContinueButton = styled.button<{ $disabled?: boolean }>`
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
   padding: 0.8rem 1.75rem;
-  background: linear-gradient(135deg, #8b5cf6, #6366f1);
+  background: ${({ $disabled }) => ($disabled ? "#475569" : "linear-gradient(135deg, #8b5cf6, #6366f1)")};
+  border: none;
+  border-radius: 0.625rem;
+  color: white;
+  font-size: 0.95rem;
+  font-weight: 500;
+  cursor: ${({ $disabled }) => ($disabled ? "not-allowed" : "pointer")};
+  transition: all 0.2s;
+  margin: 0 auto;
+  box-shadow: ${({ $disabled }) => ($disabled ? "none" : "0 4px 16px -4px rgba(139, 92, 246, 0.4)")};
+  
+  &:hover { 
+    transform: ${({ $disabled }) => ($disabled ? "none" : "scale(1.02)")};
+    box-shadow: ${({ $disabled }) => ($disabled ? "none" : "0 8px 24px -8px rgba(139, 92, 246, 0.5)")};
+  }
+`
+
+const ReplayButton = styled.button`
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.875rem 2rem;
+  background: #8b5cf6;
+  border: none;
+  border-radius: 0.75rem;
+  color: white;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+
+  &:hover {
+    background: #7c3aed;
+    transform: scale(1.02);
+  }
+`
+
+const ActionButton = styled.button`
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.75rem;
+  background: #8b5cf6;
   border: none;
   border-radius: 0.625rem;
   color: white;
@@ -477,13 +529,7 @@ const ContinueButton = styled.button`
   font-weight: 500;
   cursor: pointer;
   transition: all 0.2s;
-  margin: 0 auto;
-  box-shadow: 0 4px 16px -4px rgba(139, 92, 246, 0.4);
-  
-  &:hover { 
-    transform: scale(1.02);
-    box-shadow: 0 8px 24px -8px rgba(139, 92, 246, 0.5);
-  }
+  &:hover { background: #7c3aed; transform: scale(1.02); }
 `
 
 const FullScreenBox = styled.div`
@@ -563,40 +609,9 @@ const FinalStatItem = styled.div<{ $color?: string }>`
   }
 `
 
-const ReplayButton = styled.button`
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.875rem 2rem;
-  background: #8b5cf6;
-  border: none;
-  border-radius: 0.75rem;
-  color: white;
-  font-size: 1rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s;
-
-  &:hover {
-    background: #7c3aed;
-    transform: scale(1.02);
-  }
-`
-
-const ActionButton = styled.button`
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.75rem 1.75rem;
-  background: #8b5cf6;
-  border: none;
-  border-radius: 0.625rem;
-  color: white;
-  font-size: 0.95rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s;
-  &:hover { background: #7c3aed; transform: scale(1.02); }
+const IconWrapper = styled.div<{ $color: string; $marginBottom?: string }>`
+  color: ${({ $color }) => $color};
+  margin-bottom: ${({ $marginBottom }) => $marginBottom || "1.25rem"};
 `
 
 const ReflectionBox = styled.div`
@@ -676,33 +691,165 @@ const OpenEndedInput = styled.textarea`
   }
 `
 
-const AnalyticsContainer = styled.div`
+const ReflectionButtonsWrapper = styled.div`
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+  justify-content: center;
+`
+
+const ReflectionHint = styled.p`
+  color: #64748b;
+  font-size: 0.875rem;
+  margin-top: 1rem;
+`
+
+const AnalyticsContainer = styled.div<{ $centered?: boolean }>`
   min-height: 100vh;
   background: linear-gradient(to bottom, #0f172a, #1e1b4b);
   color: #e2e8f0;
   padding: 2rem;
   overflow-y: auto;
+  display: ${({ $centered }) => ($centered ? "flex" : "block")};
+  flex-direction: ${({ $centered }) => ($centered ? "column" : "initial")};
+  align-items: ${({ $centered }) => ($centered ? "center" : "initial")};
+  justify-content: ${({ $centered }) => ($centered ? "center" : "initial")};
 `
 
-const AnalyticsTitle = styled.h1`
-  font-size: 2rem;
+const AnalyticsCenteredContent = styled.div<{ $maxWidth?: string }>`
+  text-align: center;
+  max-width: ${({ $maxWidth }) => $maxWidth || "600px"};
+  animation: ${fadeInOnly} 1s ease;
+`
+
+const AnalyticsTitle = styled.h1<{ $fontSize?: string; $marginBottom?: string }>`
+  font-size: ${({ $fontSize }) => $fontSize || "2rem"};
   font-weight: 700;
   color: #c4b5fd;
-  margin-bottom: 0.75rem;
+  margin-bottom: ${({ $marginBottom }) => $marginBottom || "0.75rem"};
 `
 
-const AnalyticsSubtitle = styled.p`
+const AnalyticsSubtitle = styled.p<{ $fontSize?: string; $marginBottom?: string }>`
   color: #94a3b8;
-  font-size: 1.1rem;
+  font-size: ${({ $fontSize }) => $fontSize || "1.1rem"};
   line-height: 1.6;
+  margin-bottom: ${({ $marginBottom }) => $marginBottom || "0"};
 `
 
-const SectionTitle = styled.h2`
+const AnalyticsIntroIcon = styled.div`
+  color: #8b5cf6;
+  margin-bottom: 1.5rem;
+`
+
+const SectionTitle = styled.h2<{ $marginBottom?: string }>`
   font-size: 1.5rem;
   font-weight: 600;
   color: #e2e8f0;
-  margin-bottom: 1.5rem;
+  margin-bottom: ${({ $marginBottom }) => $marginBottom || "1.5rem"};
   text-align: center;
+`
+
+const StatCarouselWrapper = styled.div`
+  text-align: center;
+  max-width: 500px;
+`
+
+const StatCarouselCounter = styled.div`
+  margin-bottom: 0.75rem;
+  color: #64748b;
+  font-size: 0.875rem;
+`
+
+const StatCard = styled.div<{ $borderColor: string }>`
+  animation: ${fadeInOnly} 0.8s ease;
+  padding: 3rem;
+  background: rgba(30, 41, 59, 0.6);
+  border-radius: 1.5rem;
+  border: 2px solid ${({ $borderColor }) => $borderColor}40;
+`
+
+const StatIconBox = styled.div<{ $bgColor: string }>`
+  width: 80px;
+  height: 80px;
+  border-radius: 1rem;
+  background: ${({ $bgColor }) => $bgColor}20;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 1.5rem auto;
+`
+
+const StatIconInner = styled.div<{ $color: string }>`
+  color: ${({ $color }) => $color};
+`
+
+const StatLabel = styled.div`
+  color: #94a3b8;
+  font-size: 0.875rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin-bottom: 0.5rem;
+`
+
+const StatValue = styled.div`
+  font-size: 4rem;
+  font-weight: 700;
+  color: #e2e8f0;
+  margin-bottom: 1rem;
+`
+
+const StatDescription = styled.p`
+  color: #94a3b8;
+  font-size: 1.1rem;
+  line-height: 1.6;
+  margin-bottom: 1rem;
+`
+
+const StatSource = styled.p`
+  color: #475569;
+  font-size: 0.75rem;
+  font-style: italic;
+`
+
+const StatDots = styled.div`
+  display: flex;
+  gap: 0.5rem;
+  justify-content: center;
+  margin-top: 1.5rem;
+`
+
+const StatDot = styled.div<{ $active: boolean }>`
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: ${({ $active }) => ($active ? "#8b5cf6" : "#334155")};
+  transition: all 0.3s;
+`
+
+const StatNavButtons = styled.div`
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  margin-top: 1.5rem;
+`
+
+const StatNavButton = styled.button<{ $primary?: boolean }>`
+  padding: 0.75rem 1.5rem;
+  background: ${({ $primary }) => ($primary ? "#8b5cf6" : "rgba(51, 65, 85, 0.5)")};
+  border: ${({ $primary }) => ($primary ? "none" : "1px solid rgba(71, 85, 105, 0.5)")};
+  border-radius: 0.5rem;
+  color: ${({ $primary }) => ($primary ? "white" : "#94a3b8")};
+  font-size: 0.875rem;
+  cursor: pointer;
+`
+
+const StatSkipButton = styled.button`
+  margin-top: 1rem;
+  background: transparent;
+  border: none;
+  color: #64748b;
+  font-size: 0.75rem;
+  cursor: pointer;
 `
 
 const ComparisonSection = styled.div`
@@ -716,6 +863,7 @@ const ComparisonCard = styled.div`
   border-radius: 1rem;
   padding: 2rem;
   margin-bottom: 1.5rem;
+  text-align: left;
 `
 
 const ComparisonTitle = styled.h3`
@@ -766,6 +914,49 @@ const InsightText = styled.p`
   line-height: 1.6;
 `
 
+const ActionCardsGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1rem;
+  margin-bottom: 2.5rem;
+  justify-items: center;
+`
+
+const ActionCard = styled.div<{ $rgb: string }>`
+  background: rgba(${({ $rgb }) => $rgb}, 0.1);
+  border: 1px solid rgba(${({ $rgb }) => $rgb}, 0.3);
+  border-radius: 1rem;
+  padding: 1.5rem;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  max-width: 280px;
+`
+
+const ActionCardIcon = styled.div<{ $color: string }>`
+  color: ${({ $color }) => $color};
+  margin-bottom: 0.75rem;
+`
+
+const ActionCardTitle = styled.h3`
+  color: #e2e8f0;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+`
+
+const ActionCardBody = styled.p`
+  color: #94a3b8;
+  font-size: 0.875rem;
+  line-height: 1.5;
+`
+
+const ActionSubtitle = styled.p`
+  color: #94a3b8;
+  margin-bottom: 2.5rem;
+  font-size: 1.1rem;
+`
+
 const ResourcesSection = styled.div`
   max-width: 800px;
   margin: 0 auto 2rem auto;
@@ -773,6 +964,12 @@ const ResourcesSection = styled.div`
   background: rgba(30, 41, 59, 0.6);
   border-radius: 1rem;
   padding: 1.5rem;
+`
+
+const ResourcesSectionTitle = styled.h3`
+  color: #e2e8f0;
+  font-weight: 600;
+  margin-bottom: 1rem;
 `
 
 const ResourcesGrid = styled.div`
@@ -802,11 +999,19 @@ const ResourceLink = styled.a`
 
 const MethodologySection = styled.div`
   max-width: 800px;
-  margin: 0 auto 3rem auto;
+  margin: 0 auto 2rem auto;
   background: rgba(15, 23, 42, 0.6);
   border: 1px solid rgba(71, 85, 105, 0.3);
   border-radius: 1rem;
   padding: 2rem;
+  text-align: left;
+`
+
+const MethodologyTitle = styled.h3`
+  color: #94a3b8;
+  font-weight: 600;
+  margin-bottom: 0.75rem;
+  font-size: 0.875rem;
 `
 
 const MethodologyText = styled.p`
@@ -844,11 +1049,12 @@ const Spinner = styled.div`
   border: 3px solid rgba(139, 92, 246, 0.2);
   border-top-color: #8b5cf6;
   border-radius: 50%;
-  animation: spin 1s linear infinite;
-  
-  @keyframes spin {
-    to { transform: rotate(360deg); }
-  }
+  animation: ${spin} 1s linear infinite;
+`
+
+const LoadingText = styled.p`
+  margin-top: 1rem;
+  color: #94a3b8;
 `
 
 const defaultAppearance: AvatarAppearance = {
@@ -1105,7 +1311,6 @@ function SimulationContent() {
   const [choiceHistory, setChoiceHistory] = useState<ChoiceRecord[]>([])
   const [historyStack, setHistoryStack] = useState<HistoryEntry[]>([])
 
-  // Global background audio: plays when story loads
   useEffect(() => {
     if (!storySlugResolved || !currentStory || isLoading) return
     if (audioInitialized) return 
@@ -1126,22 +1331,15 @@ function SimulationContent() {
       audioRef.current = audio
       
       if (audioEnabled) {
-        audio.play()
-          .catch(() => {
-            // Audio will start on first user interaction.
-          })
+        audio.play().catch(() => {})
       }
       
       setAudioInitialized(true)
     }
 
     startAudio()
-
-    return () => {
-    }
   }, [storySlugResolved, currentStory, isLoading, audioInitialized, audioEnabled, storyRuntimeConfig])
 
-  // Handle audio enable/disable toggle
   useEffect(() => {
     if (!audioRef.current) return
 
@@ -1152,16 +1350,13 @@ function SimulationContent() {
     }
   }, [audioEnabled])
 
-  // Try to play audio on first user interaction (browsers block autoplay)
   useEffect(() => {
     const tryPlayAudio = () => {
       if (audioRef.current && audioEnabled && audioRef.current.paused) {
-        audioRef.current.play()
-          .catch(() => {})
+        audioRef.current.play().catch(() => {})
       }
     }
     
-    // Add listeners for common interactions
     document.addEventListener('click', tryPlayAudio, { once: true })
     document.addEventListener('keydown', tryPlayAudio, { once: true })
     document.addEventListener('touchstart', tryPlayAudio, { once: true })
@@ -1173,7 +1368,6 @@ function SimulationContent() {
     }
   }, [audioEnabled, audioInitialized])
 
-  // Cleanup audio on unmount
   useEffect(() => {
     return () => {
       if (audioRef.current) {
@@ -1183,7 +1377,6 @@ function SimulationContent() {
     }
   }, [])
 
-  // Ensure we have a local session id for anonymous saves
   useEffect(() => {
     if (typeof window === "undefined") return
     const existing = localStorage.getItem("loop_session_id")
@@ -1196,7 +1389,6 @@ function SimulationContent() {
     setSessionId(generated)
   }, [])
 
-  // Load mute preference from localStorage
   useEffect(() => {
     if (typeof window === "undefined") return
     const savedMute = localStorage.getItem("loop_audio_muted")
@@ -1232,9 +1424,7 @@ function SimulationContent() {
             if (!response.ok) {
               data = null
             }
-          } catch {
-            // Continue with avatar fallback.
-          }
+          } catch {}
         }
 
         if (!data && avatarId) {
@@ -1340,7 +1530,6 @@ function SimulationContent() {
                 setVisitedPassages(latest.visitedPassages ?? [initialKey])
                 setChoicesMade(latest.choicesMade ?? [])
                 setChoiceHistory([])
-                // Restore mute state from save if available
                 if (typeof latest.hiddenState?.audioMuted === "boolean") {
                   setAudioEnabled(!latest.hiddenState.audioMuted)
                 }
@@ -1368,13 +1557,11 @@ function SimulationContent() {
     }
   }, [router, sessionId, storySlug])
 
-  // Track visited passages for saving
   useEffect(() => {
     if (!currentPassageId) return
     setVisitedPassages((prev) => (prev.includes(currentPassageId) ? prev : [...prev, currentPassageId]))
   }, [currentPassageId])
 
-  // Auto-save progress once beyond initial load (includes audioMuted state)
   useEffect(() => {
     if (!sessionId || !storySlugResolved || !currentStory) return
     if (!currentPassageId) return
@@ -1389,7 +1576,7 @@ function SimulationContent() {
       resources: stats,
       hiddenState: {
         ...hiddenState,
-        audioMuted: !audioEnabled, // Save mute state
+        audioMuted: !audioEnabled,
       },
       visitedPassages,
       choicesMade,
@@ -1427,11 +1614,10 @@ function SimulationContent() {
     return () => clearTimeout(timer)
   }, [currentPassageId])
 
-  // Stop audio with fade out when story completes
   useEffect(() => {
     if (isComplete && audioRef.current && !audioRef.current.paused) {
       const audio = audioRef.current
-      const fadeOutDuration = 2000 // 2 seconds
+      const fadeOutDuration = 2000
       const fadeSteps = 20
       const stepTime = fadeOutDuration / fadeSteps
       const volumeStep = audio.volume / fadeSteps
@@ -1648,7 +1834,6 @@ function SimulationContent() {
 
   const handleRestart = useCallback(async () => {
     if (currentStory) {
-      // Clear the existing save 
       if (sessionId && storySlugResolved) {
         try {
           await fetch(`/api/saves?storySlug=${encodeURIComponent(storySlugResolved)}&sessionId=${encodeURIComponent(sessionId)}`, {
@@ -1679,7 +1864,6 @@ function SimulationContent() {
       setReflectionsSubmitted(false)
       setHasReportedCompletion(false)
       
-      // Resume audio if enabled 
       if (audioRef.current && audioEnabled) {
         const audioConfig = getAudioConfig(storyRuntimeConfig)
         if (audioConfig) {
@@ -1717,7 +1901,6 @@ function SimulationContent() {
     setSubmittingReflections(true)
     
     try {
-      // Record the completion with reflection data
       await fetch("/api/completions", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -1737,14 +1920,12 @@ function SimulationContent() {
         }),
       })
       
-      // Delete the save after recording completion
       await fetch(`/api/saves?storySlug=${encodeURIComponent(storySlugResolved)}&sessionId=${encodeURIComponent(sessionId)}`, {
         method: "DELETE",
       })
       
       setReflectionsSubmitted(true)
     } catch {
-      // Still mark as submitted so user can navigate
       setReflectionsSubmitted(true)
     } finally {
       setSubmittingReflections(false)
@@ -1777,13 +1958,11 @@ function SimulationContent() {
   const toggleAudio = () => {
     const newState = !audioEnabled
     setAudioEnabled(newState)
-    // Persist mute preference
     if (typeof window !== "undefined") {
       localStorage.setItem("loop_audio_muted", String(!newState))
     }
   }
 
-  // Helper to render effect tags with icons
   const renderEffectTag = (type: 'money' | 'health' | 'time', value: number) => {
     if (value === 0) return null
     
@@ -1821,7 +2000,7 @@ function SimulationContent() {
     return (
       <LoadingContainer>
         <Spinner />
-        <p style={{ marginTop: "1rem", color: "#94a3b8" }}>Loading story...</p>
+        <LoadingText>Loading story...</LoadingText>
       </LoadingContainer>
     )
   }
@@ -1830,7 +2009,7 @@ function SimulationContent() {
     return (
       <LoadingContainer>
         <Spinner />
-        <p style={{ marginTop: "1rem", color: "#94a3b8" }}>Preparing your story...</p>
+        <LoadingText>Preparing your story...</LoadingText>
       </LoadingContainer>
     )
   }
@@ -1839,7 +2018,9 @@ function SimulationContent() {
     return (
       <Container>
         <FullScreenBox>
-          <DollarSign size={56} style={{ color: "#f87171", marginBottom: "1.25rem" }} />
+          <IconWrapper $color="#f87171">
+            <DollarSign size={56} />
+          </IconWrapper>
           <GameOverTitle>Out of Resources</GameOverTitle>
           <ScreenText>
             Without financial resources, the journey cannot continue. This is the reality many people face when
@@ -1858,7 +2039,9 @@ function SimulationContent() {
     return (
       <Container>
         <FullScreenBox>
-          <Heart size={56} style={{ color: "#f87171", marginBottom: "1.25rem" }} />
+          <IconWrapper $color="#f87171">
+            <Heart size={56} />
+          </IconWrapper>
           <GameOverTitle>Health Crisis</GameOverTitle>
           <ScreenText>
             The physical and emotional toll has become too much. Rest and recovery must take priority over everything
@@ -1877,7 +2060,9 @@ function SimulationContent() {
     return (
       <Container>
         <FullScreenBox>
-          <Clock size={56} style={{ color: "#60a5fa", marginBottom: "1.25rem" }} />
+          <IconWrapper $color="#60a5fa">
+            <Clock size={56} />
+          </IconWrapper>
           <GameOverTitle>Out of Time</GameOverTitle>
           <ScreenText>
             There are only so many hours in a day. When every moment is spoken for, something has to give.
@@ -1913,7 +2098,9 @@ function SimulationContent() {
     return (
       <Container>
         <CompletionBox>
-          <Heart size={44} style={{ color: "#c4b5fd", marginBottom: "1rem" }} />
+          <IconWrapper $color="#c4b5fd" $marginBottom="1rem">
+            <Heart size={44} />
+          </IconWrapper>
           <CompletionTitle>Story Complete</CompletionTitle>
           <CompletionText>
             You navigated {currentStory.avatarName}&apos;s journey, making difficult choices that shaped this outcome.
@@ -1948,39 +2135,44 @@ function SimulationContent() {
       icon: postReflectionIconMap[stat.icon] ?? Users,
     }))
 
+    // No stats, skip to resources
     if (analyticsStats.length === 0 && analyticsStep <= 1) {
       return (
-        <AnalyticsContainer style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
-          <div style={{ textAlign: "center", maxWidth: "640px", animation: "fadeIn 0.8s ease" }}>
-            <AnalyticsTitle style={{ marginBottom: "0.75rem" }}>{simulationAnalyticsDefaults.noStats.title}</AnalyticsTitle>
-            <AnalyticsSubtitle style={{ marginBottom: "2rem" }}>
+        <AnalyticsContainer $centered>
+          <AnalyticsCenteredContent $maxWidth="640px">
+            <AnalyticsTitle $marginBottom="0.75rem">
+              {simulationAnalyticsDefaults.noStats.title}
+            </AnalyticsTitle>
+            <AnalyticsSubtitle $marginBottom="2rem">
               {simulationAnalyticsDefaults.noStats.subtitle}
             </AnalyticsSubtitle>
-            <ContinueButton onClick={() => setAnalyticsStep(3)} style={{ margin: "0 auto" }}>
+            <ContinueButton onClick={() => setAnalyticsStep(3)}>
               {simulationAnalyticsDefaults.noStats.continueLabel}
               <ChevronRight size={18} />
             </ContinueButton>
-          </div>
+          </AnalyticsCenteredContent>
         </AnalyticsContainer>
       )
     }
 
     if (analyticsStep === 0) {
       return (
-        <AnalyticsContainer style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
-          <div style={{ textAlign: "center", maxWidth: "600px", animation: "fadeIn 1s ease" }}>
-            <BarChart3 size={64} style={{ color: "#8b5cf6", marginBottom: "1.5rem" }} />
-            <AnalyticsTitle style={{ fontSize: "2.5rem", marginBottom: "1rem" }}>
+        <AnalyticsContainer $centered>
+          <AnalyticsCenteredContent>
+            <AnalyticsIntroIcon>
+              <BarChart3 size={64} />
+            </AnalyticsIntroIcon>
+            <AnalyticsTitle $fontSize="2.5rem" $marginBottom="1rem">
               {simulationAnalyticsDefaults.intro.title}
             </AnalyticsTitle>
-            <AnalyticsSubtitle style={{ fontSize: "1.25rem", marginBottom: "2.5rem" }}>
+            <AnalyticsSubtitle $fontSize="1.25rem" $marginBottom="2.5rem">
               {simulationAnalyticsDefaults.intro.subtitle}
             </AnalyticsSubtitle>
-            <ContinueButton onClick={() => setAnalyticsStep(1)} style={{ margin: "0 auto" }}>
+            <ContinueButton onClick={() => setAnalyticsStep(1)}>
               {simulationAnalyticsDefaults.intro.ctaLabel}
               <ChevronRight size={18} />
             </ContinueButton>
-          </div>
+          </AnalyticsCenteredContent>
         </AnalyticsContainer>
       )
     }
@@ -1989,80 +2181,35 @@ function SimulationContent() {
       const currentStat = analyticsStats[statIndex]
       const IconComponent = currentStat.icon
       return (
-        <AnalyticsContainer style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
-          <div style={{ textAlign: "center", maxWidth: "500px" }}>
-            <div style={{ marginBottom: "0.75rem", color: "#64748b", fontSize: "0.875rem" }}>
+        <AnalyticsContainer $centered>
+          <StatCarouselWrapper>
+            <StatCarouselCounter>
               {statIndex + 1} of {analyticsStats.length}
-            </div>
-            <div
-              key={statIndex}
-              style={{
-                animation: "fadeIn 0.8s ease",
-                padding: "3rem",
-                background: "rgba(30, 41, 59, 0.6)",
-                borderRadius: "1.5rem",
-                border: `2px solid ${currentStat.color}40`,
-              }}
-            >
-              <div
-                style={{
-                  width: "80px",
-                  height: "80px",
-                  borderRadius: "1rem",
-                  background: `${currentStat.color}20`,
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  margin: "0 auto 1.5rem auto",
-                }}
-              >
-                <IconComponent size={40} style={{ color: currentStat.color }} />
-              </div>
-              <div style={{ color: "#94a3b8", fontSize: "0.875rem", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: "0.5rem" }}>
-                {currentStat.title}
-              </div>
-              <div style={{ fontSize: "4rem", fontWeight: "700", color: "#e2e8f0", marginBottom: "1rem" }}>
-                {currentStat.value}
-              </div>
-              <p style={{ color: "#94a3b8", fontSize: "1.1rem", lineHeight: "1.6", marginBottom: "1rem" }}>
-                {currentStat.description}
-              </p>
-              <p style={{ color: "#475569", fontSize: "0.75rem", fontStyle: "italic" }}>
-                Source: {currentStat.source}
-              </p>
-            </div>
-            <div style={{ display: "flex", gap: "0.5rem", justifyContent: "center", marginTop: "1.5rem" }}>
+            </StatCarouselCounter>
+            <StatCard key={statIndex} $borderColor={currentStat.color}>
+              <StatIconBox $bgColor={currentStat.color}>
+                <StatIconInner $color={currentStat.color}>
+                  <IconComponent size={40} />
+                </StatIconInner>
+              </StatIconBox>
+              <StatLabel>{currentStat.title}</StatLabel>
+              <StatValue>{currentStat.value}</StatValue>
+              <StatDescription>{currentStat.description}</StatDescription>
+              <StatSource>Source: {currentStat.source}</StatSource>
+            </StatCard>
+            <StatDots>
               {analyticsStats.map((_, i) => (
-                <div
-                  key={i}
-                  style={{
-                    width: "8px",
-                    height: "8px",
-                    borderRadius: "50%",
-                    background: i === statIndex ? "#8b5cf6" : "#334155",
-                    transition: "all 0.3s",
-                  }}
-                />
+                <StatDot key={i} $active={i === statIndex} />
               ))}
-            </div>
-            <div style={{ display: "flex", gap: "1rem", justifyContent: "center", marginTop: "1.5rem" }}>
+            </StatDots>
+            <StatNavButtons>
               {statIndex > 0 && (
-                <button
-                  onClick={() => setStatIndex((prev) => prev - 1)}
-                  style={{
-                    padding: "0.75rem 1.5rem",
-                    background: "rgba(51, 65, 85, 0.5)",
-                    border: "1px solid rgba(71, 85, 105, 0.5)",
-                    borderRadius: "0.5rem",
-                    color: "#94a3b8",
-                    fontSize: "0.875rem",
-                    cursor: "pointer",
-                  }}
-                >
+                <StatNavButton onClick={() => setStatIndex((prev) => prev - 1)}>
                   Previous
-                </button>
+                </StatNavButton>
               )}
-              <button
+              <StatNavButton
+                $primary
                 onClick={() => {
                   if (statIndex < analyticsStats.length - 1) {
                     setStatIndex((prev) => prev + 1)
@@ -2070,45 +2217,26 @@ function SimulationContent() {
                     setAnalyticsStep(2)
                   }
                 }}
-                style={{
-                  padding: "0.75rem 1.5rem",
-                  background: "#8b5cf6",
-                  border: "none",
-                  borderRadius: "0.5rem",
-                  color: "white",
-                  fontSize: "0.875rem",
-                  cursor: "pointer",
-                }}
               >
                 {statIndex < analyticsStats.length - 1 ? "Next" : "Continue"}
-              </button>
-            </div>
-            <button
-              onClick={() => setAnalyticsStep(2)}
-              style={{
-                marginTop: "1rem",
-                background: "transparent",
-                border: "none",
-                color: "#64748b",
-                fontSize: "0.75rem",
-                cursor: "pointer",
-              }}
-            >
+              </StatNavButton>
+            </StatNavButtons>
+            <StatSkipButton onClick={() => setAnalyticsStep(2)}>
               Skip to Your Results
-            </button>
-          </div>
+            </StatSkipButton>
+          </StatCarouselWrapper>
         </AnalyticsContainer>
       )
     }
 
     if (analyticsStep === 2) {
       return (
-        <AnalyticsContainer style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
-          <div style={{ textAlign: "center", maxWidth: "700px", animation: "fadeIn 1s ease" }}>
-            <SectionTitle style={{ marginBottom: "2rem" }}>Your Choices in Context</SectionTitle>
+        <AnalyticsContainer $centered>
+          <AnalyticsCenteredContent $maxWidth="700px">
+            <SectionTitle $marginBottom="2rem">Your Choices in Context</SectionTitle>
 
             <ComparisonSection>
-              <ComparisonCard style={{ textAlign: "left" }}>
+              <ComparisonCard>
                 <ComparisonTitle>{simulationAnalyticsDefaults.comparison.title}</ComparisonTitle>
 
                 <ComparisonBar>
@@ -2153,56 +2281,43 @@ function SimulationContent() {
               </ComparisonCard>
             </ComparisonSection>
 
-            <ContinueButton onClick={() => setAnalyticsStep(3)} style={{ margin: "2rem auto 0 auto" }}>
+            <ContinueButton onClick={() => setAnalyticsStep(3)}>
               {simulationAnalyticsDefaults.comparison.nextLabel}
               <ChevronRight size={18} />
             </ContinueButton>
-          </div>
+          </AnalyticsCenteredContent>
         </AnalyticsContainer>
       )
     }
 
     if (analyticsStep === 3) {
       return (
-        <AnalyticsContainer style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "2rem" }}>
-          <div style={{ textAlign: "center", maxWidth: "800px", animation: "fadeIn 1s ease" }}>
-            <SectionTitle style={{ marginBottom: "1rem" }}>{simulationAnalyticsDefaults.action.title}</SectionTitle>
-            <p style={{ color: "#94a3b8", marginBottom: "2.5rem", fontSize: "1.1rem" }}>
-              {simulationAnalyticsDefaults.action.subtitle}
-            </p>
+        <AnalyticsContainer $centered>
+          <AnalyticsCenteredContent $maxWidth="800px">
+            <SectionTitle $marginBottom="1rem">{simulationAnalyticsDefaults.action.title}</SectionTitle>
+            <ActionSubtitle>{simulationAnalyticsDefaults.action.subtitle}</ActionSubtitle>
 
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: "1rem", marginBottom: "2.5rem", justifyItems: "center" }}>
+            <ActionCardsGrid>
               {simulationAnalyticsDefaults.action.cards.map((card) => {
                 const Icon = analyticsActionIconMap[card.icon]
                 const rgb =
                   card.color === "#8b5cf6" ? "139, 92, 246" : card.color === "#60a5fa" ? "96, 165, 250" : "74, 222, 128"
                 return (
-                  <div
-                    key={card.title}
-                    style={{
-                      background: `rgba(${rgb}, 0.1)`,
-                      border: `1px solid rgba(${rgb}, 0.3)`,
-                      borderRadius: "1rem",
-                      padding: "1.5rem",
-                      textAlign: "center",
-                      display: "flex",
-                      flexDirection: "column",
-                      alignItems: "center",
-                      maxWidth: 280,
-                    }}
-                  >
-                    <Icon size={24} style={{ color: card.color, marginBottom: "0.75rem" }} />
-                    <h3 style={{ color: "#e2e8f0", fontWeight: "600", marginBottom: "0.5rem" }}>{card.title}</h3>
-                    <p style={{ color: "#94a3b8", fontSize: "0.875rem", lineHeight: "1.5" }}>{card.body}</p>
-                  </div>
+                  <ActionCard key={card.title} $rgb={rgb}>
+                    <ActionCardIcon $color={card.color}>
+                      <Icon size={24} />
+                    </ActionCardIcon>
+                    <ActionCardTitle>{card.title}</ActionCardTitle>
+                    <ActionCardBody>{card.body}</ActionCardBody>
+                  </ActionCard>
                 )
               })}
-            </div>
+            </ActionCardsGrid>
 
             <ResourcesSection>
-              <h3 style={{ color: "#e2e8f0", fontWeight: "600", marginBottom: "1rem" }}>
+              <ResourcesSectionTitle>
                 {simulationAnalyticsDefaults.action.resourcesTitle}
-              </h3>
+              </ResourcesSectionTitle>
               <ResourcesGrid>
                 {(storyRuntimeConfig?.resourceLinks ?? []).map((link) => (
                   <ResourceLink key={link.href} href={link.href} target="_blank" rel="noopener noreferrer">
@@ -2213,10 +2328,10 @@ function SimulationContent() {
             </ResourcesSection>
 
             {storyRuntimeConfig?.methodologyText && (
-              <MethodologySection style={{ marginBottom: "2rem", textAlign: "left" }}>
-                <h3 style={{ color: "#94a3b8", fontWeight: "600", marginBottom: "0.75rem", fontSize: "0.875rem" }}>
+              <MethodologySection>
+                <MethodologyTitle>
                   {simulationAnalyticsDefaults.action.methodologyTitle}
-                </h3>
+                </MethodologyTitle>
                 <MethodologyText>{storyRuntimeConfig.methodologyText}</MethodologyText>
               </MethodologySection>
             )}
@@ -2232,7 +2347,7 @@ function SimulationContent() {
                 <ChevronRight size={18} />
               </ContinueButton>
             </ActionButtons>
-          </div>
+          </AnalyticsCenteredContent>
         </AnalyticsContainer>
       )
     }
@@ -2242,7 +2357,7 @@ function SimulationContent() {
     const canViewAnalytics = allReflectionsAnswered && !submittingReflections
 
     return (
-      <Container style={{ height: "auto", minHeight: "100vh", overflow: "auto" }}>
+      <Container $autoHeight>
         <CompletionBox>
           <CompletionTitle>Take a Moment to Reflect</CompletionTitle>
           <CompletionText>
@@ -2282,7 +2397,7 @@ function SimulationContent() {
             )}
           </ReflectionBox>
 
-          <div style={{ display: "flex", gap: "1rem", flexWrap: "wrap", justifyContent: "center" }}>
+          <ReflectionButtonsWrapper>
             <ReplayButton onClick={handleRestart}>
               <RotateCcw size={18} />
               Try Again
@@ -2290,18 +2405,17 @@ function SimulationContent() {
 
             <ContinueButton
               onClick={handleViewAnalytics}
-              disabled={!canViewAnalytics}
-              style={{ background: canViewAnalytics ? "#8b5cf6" : "#475569" }}
+              $disabled={!canViewAnalytics}
             >
               <BarChart3 size={18} />
               View Real-World Data
             </ContinueButton>
-          </div>
+          </ReflectionButtonsWrapper>
 
           {!allReflectionsAnswered && (
-            <p style={{ color: "#64748b", fontSize: "0.875rem", marginTop: "1rem" }}>
+            <ReflectionHint>
               Please answer all reflection questions to continue ({requiredAnsweredCount} of {requiredTotalCount})
-            </p>
+            </ReflectionHint>
           )}
         </CompletionBox>
       </Container>
@@ -2311,7 +2425,6 @@ function SimulationContent() {
   const textContent = Array.isArray(currentPassage.text) ? currentPassage.text : [currentPassage.text]
   const passageImage = currentPassage.image || ""
 
-  // Support both local paths and Cloudinary URLs for background images
   const hasBackgroundImage = !!passageImage && (
     passageImage.startsWith("/scenes/") ||
     passageImage.includes("cloudinary.com") ||
@@ -2321,7 +2434,6 @@ function SimulationContent() {
 
   return (
     <Container>
-      {/* Background Layer: Full screen, prominent */}
       <BackgroundLayer>
         <BackgroundFallback />
         {hasBackgroundImage && (
@@ -2332,14 +2444,12 @@ function SimulationContent() {
               fill
               priority={shouldPrioritizeBackground}
               sizes="100vw"
-              style={{ objectFit: "cover" }}
             />
           </BackgroundImageLayer>
         )}
         <GradientOverlay />
       </BackgroundLayer>
 
-      {/* Top Bar: Minimal stats */}
       <TopBar>
         <BackButton onClick={() => router.push("/")}>
           <ArrowLeft size={16} />
@@ -2366,7 +2476,6 @@ function SimulationContent() {
         </TopBarRight>
       </TopBar>
 
-      {/* Bottom Content Area: Visual Novel Style */}
       <ContentArea>
         <TextBox key={currentPassageId} $transitioning={isTransitioning}>
           <TextBoxHeader>
@@ -2397,7 +2506,6 @@ function SimulationContent() {
           </NarrativeText>
         </TextBox>
 
-        {/* Choices */}
         {hasChoices && showChoices && (
           <ChoicesContainer $visible={choicesVisible}>
             <ChoicesGrid>
@@ -2422,7 +2530,6 @@ function SimulationContent() {
           </ChoicesContainer>
         )}
 
-        {/* Continue Button */}
         {hasNext && !hasChoices && (
           <ContinueButton onClick={handleContinue}>
             Continue
@@ -2440,7 +2547,7 @@ export default function SimulationPage() {
       fallback={
         <LoadingContainer>
           <Spinner />
-          <p style={{ marginTop: "1rem", color: "#94a3b8" }}>Loading...</p>
+          <LoadingText>Loading...</LoadingText>
         </LoadingContainer>
       }
     >

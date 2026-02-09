@@ -437,6 +437,39 @@ const NodePreview = styled.div`
   overflow: hidden;
 `
 
+const FlowHandle = styled(Handle)<{ $color: string }>`
+  background: ${({ $color }) => $color};
+  border: none;
+  width: 12px;
+  height: 12px;
+`
+
+const EdgeLabelBubble = styled.div<{ $x: number; $y: number }>`
+  position: absolute;
+  transform: ${({ $x, $y }) => `translate(-50%, -50%) translate(${$x}px, ${$y}px)`};
+  max-width: 240px;
+  white-space: normal;
+  line-height: 1.2;
+  font-size: 10px;
+  color: rgb(226, 232, 240);
+  background: rgba(15, 23, 42, 0.9);
+  border: 1px solid rgba(139, 92, 246, 0.6);
+  border-radius: 6px;
+  padding: 4px 8px;
+  text-align: center;
+  overflow-wrap: anywhere;
+`
+
+const FlowBaseEdge = styled(BaseEdge).attrs<{ $edgeStyle?: React.CSSProperties }>(
+  ({ $edgeStyle }) => ({
+    style: $edgeStyle,
+  }),
+)``
+
+const StyledMiniMap = styled(MiniMap)`
+  background-color: rgba(15, 23, 42, 0.8);
+`
+
 function StoryNodeCard({ data, selected }: NodeProps<FlowNodeData>) {
   const accentByType: Record<StoryNodeType, string> = {
     NARRATIVE: "#38bdf8",
@@ -453,15 +486,15 @@ function StoryNodeCard({ data, selected }: NodeProps<FlowNodeData>) {
 
   return (
     <NodeCard $selected={selected} $accent={accent}>
-      <Handle
+      <FlowHandle
         type="target"
         position={Position.Left}
-        style={{ background: "#38bdf8", border: "none", width: 12, height: 12 }}
+        $color="#38bdf8"
       />
-      <Handle
+      <FlowHandle
         type="source"
         position={Position.Right}
-        style={{ background: "#a855f7", border: "none", width: 12, height: 12 }}
+        $color="#a855f7"
       />
       <NodeHeader $accent={accent}>
         <NodeHeaderLeft>
@@ -507,29 +540,12 @@ function StoryEdge({
 
   return (
     <>
-      <BaseEdge path={path} markerEnd={markerEnd} style={style} />
+      <FlowBaseEdge path={path} markerEnd={markerEnd} $edgeStyle={style} />
       {label ? (
         <EdgeLabelRenderer>
-          <div
-            className="nodrag nopan"
-            style={{
-              position: "absolute",
-              transform: `translate(-50%, -50%) translate(${labelX}px, ${labelY}px)`,
-              maxWidth: 240,
-              whiteSpace: "normal",
-              lineHeight: 1.2,
-              fontSize: 10,
-              color: "rgb(226, 232, 240)",
-              background: "rgba(15, 23, 42, 0.9)",
-              border: "1px solid rgba(139, 92, 246, 0.6)",
-              borderRadius: 6,
-              padding: "4px 8px",
-              textAlign: "center",
-              overflowWrap: "anywhere",
-            }}
-          >
+          <EdgeLabelBubble className="nodrag nopan" $x={labelX} $y={labelY}>
             {label}
-          </div>
+          </EdgeLabelBubble>
         </EdgeLabelRenderer>
       ) : null}
     </>
@@ -1177,10 +1193,9 @@ export default function StoryFlowBuilder({
           <Background gap={16} size={1} color="rgba(71, 85, 105, 0.35)" />
           <FlowViewportBridge onReady={onViewportControls} />
           {showMiniMap && (
-            <MiniMap
+            <StyledMiniMap
               nodeColor={() => "rgba(59, 130, 246, 0.8)"}
               maskColor="rgba(15, 23, 42, 0.65)"
-              style={{ backgroundColor: "rgba(15, 23, 42, 0.8)" }}
             />
           )}
           {showControls && <Controls />}

@@ -22,6 +22,7 @@ import {
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useAuth } from "@/hooks/use-auth"
+import { loop_logo_url } from "@/lib/brand-assets"
 
 const Container = styled.div`
   min-height: 100vh;
@@ -59,6 +60,10 @@ const LogoImage = styled.div`
   position: relative;
   width: 120px;
   height: 40px;
+
+  img {
+    object-fit: contain;
+  }
 `
 
 const Nav = styled.nav`
@@ -631,10 +636,18 @@ const Toast = styled.div<{ $bg: string; $bd: string; $fg: string }>`
   gap: 0.75rem;
 `
 
-const Dot = styled.div`
+const Dot = styled.div<{ $color?: string }>`
   width: 0.6rem;
   height: 0.6rem;
   border-radius: 9999px;
+  background: ${({ $color }) => $color || "currentColor"};
+`
+
+const ToastContent = styled.div``
+
+const ToastSubtext = styled.div<{ $color: string }>`
+  font-size: 0.9rem;
+  color: ${({ $color }) => $color};
 `
 
 const LoadingSpinner = styled.div`
@@ -648,6 +661,68 @@ const LoadingSpinner = styled.div`
 
   @keyframes spin {
     to { transform: rotate(360deg); }
+  }
+`
+
+const ActionButtonWrapper = styled.div`
+  text-align: center;
+  margin-top: 2rem;
+`
+
+const IconRight = styled.span`
+  margin-left: 0.5rem;
+  display: inline-flex;
+  align-items: center;
+`
+
+const IconLeft = styled.span`
+  margin-right: 0.5rem;
+  display: inline-flex;
+  align-items: center;
+`
+
+const PlainLink = styled(Link)`
+  text-decoration: none;
+`
+
+const SendingContent = styled.span`
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+`
+
+const SpinningSvg = styled.svg`
+  animation: spin 1s linear infinite;
+  
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+`
+
+const FallbackContainer = styled.div`
+  min-height: 100vh;
+  background: #0f172a;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #94a3b8;
+`
+
+const FallbackContent = styled.div`
+  text-align: center;
+`
+
+const FallbackDot = styled.div`
+  width: 1rem;
+  height: 1rem;
+  border-radius: 50%;
+  background: #3b82f6;
+  margin: 0 auto 1rem;
+  animation: pulse 1.5s ease-in-out infinite;
+  
+  @keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.5; transform: scale(0.95); }
   }
 `
 
@@ -685,7 +760,7 @@ function HeroExamplePageContent() {
 
   const ProfileBubbleChip = require("@/components/profile-bubble-chip").ProfileBubbleChip
 
-  // Fetch featured scenario (Katrina's story - fixed for now)
+  // Fetch featured scenario
   useEffect(() => {
     async function fetchFeaturedScenario() {
       setLoadingScenario(true)
@@ -694,26 +769,23 @@ function HeroExamplePageContent() {
         if (res.ok) {
           const data = await res.json()
           const scenarios = data?.scenarios ?? []
-          
-          // Find Katrina's story (or first available scenario)
-          const katrina = scenarios.find((s: any) => 
-            s.id?.toLowerCase().includes("katrina") || 
-            s.title?.toLowerCase().includes("katrina") ||
-            (s.metadata?.storySlug || s.storySlug || s.slug || "").toLowerCase().includes("katrina")
-          )
-          
-          const scenario = katrina || scenarios[0]
+
+          const scenario = scenarios[0]
           
           if (scenario) {
             const slug = scenario.metadata?.storySlug || scenario.storySlug || scenario.slug || scenario.id
-            const isKatrina = slug.toLowerCase().includes("katrina") || scenario.title?.toLowerCase().includes("katrina")
+            const avatarImage =
+              (typeof scenario.metadata?.avatarImage === "string" && scenario.metadata.avatarImage) ||
+              (typeof scenario.metadata?.appearance?.image === "string" && scenario.metadata.appearance.image) ||
+              (typeof scenario.imageUrl === "string" && scenario.imageUrl) ||
+              ""
             
             setFeaturedScenario({
               id: scenario.id,
               title: scenario.title || "Featured Scenario",
               description: scenario.description || scenario.socialIssue?.description || "",
               slug,
-              imageUrl: isKatrina ? "/scenes/katrina-profile.png" : "",
+              imageUrl: avatarImage,
               tags: [
                 scenario.socialIssue?.type || "Social Issue",
                 ...(scenario.tags || []),
@@ -803,7 +875,7 @@ function HeroExamplePageContent() {
         <HeaderInner>
           <Brand href="/">
             <LogoImage>
-              <Image src="/images/logo.png" alt="Loop Logo" fill sizes="120px" priority style={{ objectFit: "contain" }} />
+              <Image src={loop_logo_url} alt="Loop Logo" fill sizes="120px" priority />
             </LogoImage>
           </Brand>
           <Nav>
@@ -859,13 +931,13 @@ function HeroExamplePageContent() {
                 <ModalActions>
                   <SendBtn type="submit" disabled={sending}>
                     {sending ? (
-                      <span style={{ display: "inline-flex", alignItems: "center", gap: "0.5rem" }}>
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" style={{ animation: "spin 1s linear infinite" }}>
+                      <SendingContent>
+                        <SpinningSvg width="18" height="18" viewBox="0 0 24 24" fill="none">
                           <circle cx="12" cy="12" r="10" stroke="#fff" strokeWidth="4" opacity="0.2" />
                           <path d="M12 2a10 10 0 1 1-9.95 9" stroke="#fff" strokeWidth="4" strokeLinecap="round" />
-                        </svg>
+                        </SpinningSvg>
                         Sending...
-                      </span>
+                      </SendingContent>
                     ) : (
                       "Send Message"
                     )}
@@ -883,22 +955,22 @@ function HeroExamplePageContent() {
       {/* Toasts */}
       {showSuccessMessage && (
         <Toast $bg="#ecfdf5" $bd="#6ee7b7" $fg="#065f46">
-          <Dot style={{ background: "#10b981" }} />
-          <div>
+          <Dot $color="#10b981" />
+          <ToastContent>
             <strong>Message sent successfully!</strong>
-            <div style={{ fontSize: ".9rem", color: "#047857" }}>
+            <ToastSubtext $color="#047857">
               {user?.email ? "We'll get back to you soon." : "Thanks for reaching out."}
-            </div>
-          </div>
+            </ToastSubtext>
+          </ToastContent>
         </Toast>
       )}
       {showErrorMessage && (
         <Toast $bg="#fef2f2" $bd="#fecaca" $fg="#991b1b">
-          <Dot style={{ background: "#ef4444" }} />
-          <div>
+          <Dot $color="#ef4444" />
+          <ToastContent>
             <strong>Error</strong>
-            <div style={{ fontSize: ".9rem", color: "#b91c1c" }}>{errorMessage}</div>
-          </div>
+            <ToastSubtext $color="#b91c1c">{errorMessage}</ToastSubtext>
+          </ToastContent>
         </Toast>
       )}
 
@@ -990,12 +1062,12 @@ function HeroExamplePageContent() {
                 </StepList>
               </Card>
 
-              <div style={{ textAlign: "center", marginTop: "2rem" }}>
+              <ActionButtonWrapper>
                 <ActionButton onClick={() => handleTabChange("play")}>
                   Try the Example Scenario
-                  <ChevronRight size={18} style={{ marginLeft: "0.5rem" }} />
+                  <IconRight><ChevronRight size={18} /></IconRight>
                 </ActionButton>
-              </div>
+              </ActionButtonWrapper>
             </>
           )}
 
@@ -1023,12 +1095,12 @@ function HeroExamplePageContent() {
                             <Tag key={i}>{tag.charAt(0).toUpperCase() + tag.slice(1).replace(/-/g, " ")}</Tag>
                           ))}
                         </TagRow>
-                        <Link href={getScenarioLink()} style={{ textDecoration: "none" }}>
+                        <PlainLink href={getScenarioLink()}>
                           <ActionButton>
-                            <Play size={18} style={{ marginRight: "0.5rem" }} />
+                            <IconLeft><Play size={18} /></IconLeft>
                             Start {featuredScenario.title}
                           </ActionButton>
-                        </Link>
+                        </PlainLink>
                       </ScenarioContent>
                     </ScenarioPreview>
                   </>
@@ -1062,12 +1134,12 @@ function HeroExamplePageContent() {
                 </FeatureGrid>
               </Card>
 
-              <div style={{ textAlign: "center", marginTop: "2rem" }}>
+              <ActionButtonWrapper>
                 <ActionButton onClick={() => handleTabChange("create")}>
                   Learn How to Create Your Own
-                  <ChevronRight size={18} style={{ marginLeft: "0.5rem" }} />
+                  <IconRight><ChevronRight size={18} /></IconRight>
                 </ActionButton>
-              </div>
+              </ActionButtonWrapper>
             </>
           )}
 
@@ -1167,19 +1239,19 @@ function HeroExamplePageContent() {
             <CTAButtons>
               <Link href={getScenarioLink()}>
                 <PrimaryButton>
-                  <Play size={18} style={{ marginRight: "0.5rem" }} />
+                  <IconLeft><Play size={18} /></IconLeft>
                   {featuredScenario ? `Play ${featuredScenario.title}` : "Play Featured Scenario"}
                 </PrimaryButton>
               </Link>
               <Link href="/creator?walkthrough=true">
                 <SecondaryButton>
-                  <Wrench size={18} style={{ marginRight: "0.5rem" }} />
+                  <IconLeft><Wrench size={18} /></IconLeft>
                   Start Creating
                 </SecondaryButton>
               </Link>
               <Link href="/scenarios">
                 <SecondaryButton>
-                  <BookOpen size={18} style={{ marginRight: "0.5rem" }} />
+                  <IconLeft><BookOpen size={18} /></IconLeft>
                   Browse All Scenarios
                 </SecondaryButton>
               </Link>
@@ -1195,12 +1267,12 @@ export default function HeroExamplePage() {
   return (
     <Suspense
       fallback={
-        <div style={{ minHeight: "100vh", background: "#0f172a", display: "flex", alignItems: "center", justifyContent: "center", color: "#94a3b8" }}>
-          <div style={{ textAlign: "center" }}>
-            <div style={{ width: "1rem", height: "1rem", borderRadius: "50%", background: "#3b82f6", margin: "0 auto 1rem", animation: "pulse 1.5s ease-in-out infinite" }} />
+        <FallbackContainer>
+          <FallbackContent>
+            <FallbackDot />
             <p>Loading...</p>
-          </div>
-        </div>
+          </FallbackContent>
+        </FallbackContainer>
       }
     >
       <HeroExamplePageContent />

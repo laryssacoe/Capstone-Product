@@ -11,8 +11,8 @@ import emailjs from '@emailjs/browser';
 
 import { Button as UIButton } from "@/components/ui/button";
 import { Badge as UIBadge } from "@/components/ui/badge";
-import { Input as UIInput } from "@/components/ui/input";
 import { TutorialPrompt } from "@/components/tutorial-prompt"
+import { loop_logo_url } from "@/lib/brand-assets";
 
 import { Globe, Heart, Brain, ChevronDown, Mail } from "lucide-react";
 
@@ -62,7 +62,7 @@ function InteractiveGlobe() {
         <sphereGeometry args={[0.08, 16, 16]} />
         <meshStandardMaterial color="#ef4444" emissive="#ef4444" emissiveIntensity={0.5} />
       </mesh>
-      <Html position={[1.8, 0.8, 1.2]} style={{ pointerEvents: "none" }}>
+      <Html position={[1.8, 0.8, 1.2]}>
         <Tooltip>Housing Crisis</Tooltip>
       </Html>
 
@@ -70,7 +70,7 @@ function InteractiveGlobe() {
         <sphereGeometry args={[0.08, 16, 16]} />
         <meshStandardMaterial color="#f59e0b" emissive="#f59e0b" emissiveIntensity={0.5} />
       </mesh>
-      <Html position={[-1.5, 1.2, 1.5]} style={{ pointerEvents: "none" }}>
+      <Html position={[-1.5, 1.2, 1.5]}>
         <Tooltip>Workplace Bias</Tooltip>
       </Html>
 
@@ -78,7 +78,7 @@ function InteractiveGlobe() {
         <sphereGeometry args={[0.08, 16, 16]} />
         <meshStandardMaterial color="#10b981" emissive="#10b981" emissiveIntensity={0.5} />
       </mesh>
-      <Html position={[1.1, -1.5, 1.8]} style={{ pointerEvents: "none" }}>
+      <Html position={[1.1, -1.5, 1.8]}>
         <Tooltip>Economic Hardship</Tooltip>
       </Html>
 
@@ -86,7 +86,7 @@ function InteractiveGlobe() {
         <sphereGeometry args={[0.08, 16, 16]} />
         <meshStandardMaterial color="#8b5cf6" emissive="#8b5cf6" emissiveIntensity={0.5} />
       </mesh>
-      <Html position={[0, -2.3, 0]} style={{ pointerEvents: "none" }}>
+      <Html position={[0, -2.3, 0]}>
         <Tooltip>Social Isolation</Tooltip>
       </Html>
 
@@ -94,7 +94,7 @@ function InteractiveGlobe() {
         <sphereGeometry args={[0.08, 16, 16]} />
         <meshStandardMaterial color="#06b6d4" emissive="#06b6d4" emissiveIntensity={0.5} />
       </mesh>
-      <Html position={[0.2, 2.1, -1.5]} style={{ pointerEvents: "none" }}>
+      <Html position={[0.2, 2.1, -1.5]}>
         <Tooltip>Healthcare Access</Tooltip>
       </Html>
 
@@ -164,6 +164,10 @@ const LogoImage = styled.div`
   position: relative;
   width: 120px;
   height: 40px;
+
+  img {
+    object-fit: contain;
+  }
 `;
 
 const Nav = styled.nav`
@@ -186,6 +190,14 @@ const NavLink = styled(Link)`
 
 const Dot = styled.div`
   width: .6rem; height: .6rem; border-radius: 9999px;
+`;
+
+const SuccessDot = styled(Dot)`
+  background: #10b981;
+`;
+
+const ErrorDot = styled(Dot)`
+  background: #ef4444;
 `;
 
 const ContactBtn = styled(UIButton)`
@@ -358,6 +370,31 @@ const Toast = styled.div<{ $bg: string; $bd: string; $fg: string }>`
   display: flex; align-items: center; gap: .75rem;
 `;
 
+const SuccessSubtext = styled.div`
+  font-size: 0.9rem;
+  color: #047857;
+`;
+
+const ErrorSubtext = styled.div`
+  font-size: 0.9rem;
+  color: #b91c1c;
+`;
+
+const SpinnerWrapper = styled.span`
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+`;
+
+const SpinnerSvg = styled.svg`
+  animation: spin 1s linear infinite;
+
+  @keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+`;
+
 const Hero = styled.section`
   position: relative;
   height: 100vh;
@@ -465,6 +502,7 @@ const FooterText = styled.p` color: #cbd5e1; margin: 0; `;
 const Tooltip = styled.div`
   padding: .25rem .5rem; border-radius: .375rem; font-size: .75rem;
   color: #fff; white-space: nowrap; background: rgba(0,0,0,.9);
+  pointer-events: none;
 `;
 
 const PageLoader = styled.div<{ $loaded: boolean }>`
@@ -566,7 +604,7 @@ export default function HomePage() {
         <HeaderInner>
           <Brand>
             <LogoImage>
-              <Image src="/images/logo.png" alt="Loop Logo" fill sizes="120px" priority style={{ objectFit: "contain" }} />
+              <Image src={loop_logo_url} alt="Loop Logo" fill sizes="120px" priority />
             </LogoImage>
           </Brand>
           <Nav>
@@ -613,13 +651,13 @@ export default function HomePage() {
                 <ModalActions>
                   <SendBtn type="submit" disabled={sending}>
                     {sending ? (
-                      <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem' }}>
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ animation: 'spin 1s linear infinite' }}>
+                      <SpinnerWrapper>
+                        <SpinnerSvg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                           <circle cx="12" cy="12" r="10" stroke="#fff" strokeWidth="4" opacity="0.2" />
                           <path d="M12 2a10 10 0 1 1-9.95 9" stroke="#fff" strokeWidth="4" strokeLinecap="round" />
-                        </svg>
+                        </SpinnerSvg>
                         Sending...
-                      </span>
+                      </SpinnerWrapper>
                     ) : (
                       'Send Message'
                     )}
@@ -637,23 +675,23 @@ export default function HomePage() {
       {/* Toasts */}
       {showSuccessMessage && (
         <Toast $bg="#ecfdf5" $bd="#6ee7b7" $fg="#065f46">
-          <Dot style={{ background: "#10b981" }} />
+          <SuccessDot />
           <div>
             <strong>Message sent successfully!</strong>
-            <div style={{ fontSize: ".9rem", color: "#047857" }}>
+            <SuccessSubtext>
               {user?.email
                 ? "We'll get back to you soon."
                 : "Thanks for reaching out. Anonymous messages don't include contact info, so we won't be able to reply directly."}
-            </div>
+            </SuccessSubtext>
           </div>
         </Toast>
       )}
       {showErrorMessage && (
         <Toast $bg="#fef2f2" $bd="#fecaca" $fg="#991b1b">
-          <Dot style={{ background: "#ef4444" }} />
+          <ErrorDot />
           <div>
             <strong>Error</strong>
-            <div style={{ fontSize: ".9rem", color: "#b91c1c" }}>{errorMessage}</div>
+            <ErrorSubtext>{errorMessage}</ErrorSubtext>
           </div>
         </Toast>
       )}
@@ -739,7 +777,7 @@ export default function HomePage() {
         <FooterInner>
           <FooterBrand>
             <LogoImage>
-              <Image src="/images/logo.png" alt="Loop Logo" fill sizes="120px" style={{ objectFit: "contain" }} />
+              <Image src={loop_logo_url} alt="Loop Logo" fill sizes="120px" />
             </LogoImage>
           </FooterBrand>
           <FooterText>Building empathy through immersive experiences</FooterText>

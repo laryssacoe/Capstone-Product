@@ -430,6 +430,10 @@ const EffectTag = styled.span<{ $positive: boolean }>`
   }
 `
 
+const ChoiceArrow = styled(ChevronRight)`
+  color: #64748b;
+`
+
 const ContinueButton = styled.button`
   display: flex;
   align-items: center;
@@ -552,6 +556,14 @@ const ErrorScreen = styled.div`
   padding: 2rem;
   text-align: center;
   gap: 1.5rem;
+`
+
+const HiddenAudio = styled.audio`
+  display: none;
+`
+
+const EndBranchWrapper = styled.div`
+  text-align: center;
 `
 
 // Helper to check if a URL is valid media (local or Cloudinary)
@@ -871,10 +883,9 @@ export default function CreatorStoryPreviewPage() {
 
   return (
     <Container>
-      <audio 
+      <HiddenAudio 
         ref={audioRef} 
         preload="auto"
-        style={{ display: 'none' }}
       />
 
       <BackgroundLayer>
@@ -948,7 +959,7 @@ export default function CreatorStoryPreviewPage() {
                     {choice.effects?.time !== undefined && renderEffectTag('time', choice.effects.time)}
                     {(!choice.effects || (
                       !choice.effects.money && !choice.effects.health && !choice.effects.time
-                    )) && <ChevronRight size={16} style={{ color: "#64748b" }} />}
+                    )) && <ChoiceArrow size={16} />}
                   </ChoiceEffects>
                 </ChoiceButton>
               ))}
@@ -963,7 +974,7 @@ export default function CreatorStoryPreviewPage() {
         )}
 
         {!hasNext && !hasChoices && (
-          <div style={{ textAlign: "center" }}>
+          <EndBranchWrapper>
             <EndSubtitle>End of this branch</EndSubtitle>
             <ButtonGroup>
               <RestartButton onClick={handleRestart}>
@@ -973,7 +984,7 @@ export default function CreatorStoryPreviewPage() {
                 Back to Creator<ChevronRight size={18} />
               </ContinueButton>
             </ButtonGroup>
-          </div>
+          </EndBranchWrapper>
         )}
       </ContentArea>
       

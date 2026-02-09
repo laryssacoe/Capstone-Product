@@ -112,13 +112,24 @@ const CardGradientBar = styled.div`
   animation: ${shimmer} 3s linear infinite;
 `
 
-const FloatingParticle = styled.div`
+const FloatingParticle = styled.div<{
+  $top?: string
+  $left?: string
+  $right?: string
+  $bottom?: string
+  $delay?: string
+}>`
   position: absolute;
+  top: ${({ $top }) => $top ?? "auto"};
+  left: ${({ $left }) => $left ?? "auto"};
+  right: ${({ $right }) => $right ?? "auto"};
+  bottom: ${({ $bottom }) => $bottom ?? "auto"};
   width: 6px;
   height: 6px;
   border-radius: 50%;
   background: rgba(139, 92, 246, 0.5);
   animation: ${float} 3s ease-in-out infinite;
+  animation-delay: ${({ $delay }) => $delay ?? "0s"};
   pointer-events: none;
 `
 
@@ -403,9 +414,9 @@ export function TutorialPrompt({ href = "/hero-example" }: TutorialPromptProps) 
           <CenterCard onClick={(e) => e.stopPropagation()}>
             <CardGradientBar />
 
-            <FloatingParticle style={{ top: '15%', left: '10%', animationDelay: '0s' }} />
-            <FloatingParticle style={{ top: '25%', right: '15%', animationDelay: '0.5s' }} />
-            <FloatingParticle style={{ bottom: '20%', left: '20%', animationDelay: '1s' }} />
+            <FloatingParticle $top="15%" $left="10%" $delay="0s" />
+            <FloatingParticle $top="25%" $right="15%" $delay="0.5s" />
+            <FloatingParticle $bottom="20%" $left="20%" $delay="1s" />
             
             <CloseButton onClick={handleDismiss}>
               <X size={18} />

@@ -2,6 +2,7 @@
 
 import * as React from 'react'
 import * as RechartsPrimitive from 'recharts'
+import styled from 'styled-components'
 
 import { cn } from '@/lib/utils'
 
@@ -200,7 +201,7 @@ function ChartTooltipContent({
                     <itemConfig.icon />
                   ) : (
                     !hideIndicator && (
-                      <div
+                      <TooltipIndicator
                         className={cn(
                           'shrink-0 rounded-[2px] border-(--color-border) bg-(--color-bg)',
                           {
@@ -211,12 +212,7 @@ function ChartTooltipContent({
                             'my-0.5': nestLabel && indicator === 'dashed',
                           },
                         )}
-                        style={
-                          {
-                            '--color-bg': indicatorColor,
-                            '--color-border': indicatorColor,
-                          } as React.CSSProperties
-                        }
+                        $indicatorColor={indicatorColor}
                       />
                     )
                   )}
@@ -249,6 +245,19 @@ function ChartTooltipContent({
 }
 
 const ChartLegend = RechartsPrimitive.Legend
+
+const TooltipIndicator = styled.div<{ $indicatorColor?: string }>`
+  --color-bg: ${({ $indicatorColor }) => $indicatorColor ?? 'transparent'};
+  --color-border: ${({ $indicatorColor }) => $indicatorColor ?? 'transparent'};
+`
+
+const LegendColorSwatch = styled.div<{ $color?: string }>`
+  height: 0.5rem;
+  width: 0.5rem;
+  flex-shrink: 0;
+  border-radius: 2px;
+  background-color: ${({ $color }) => $color ?? "currentColor"};
+`
 
 function ChartLegendContent({
   className,
@@ -289,12 +298,7 @@ function ChartLegendContent({
             {itemConfig?.icon && !hideIcon ? (
               <itemConfig.icon />
             ) : (
-              <div
-                className="h-2 w-2 shrink-0 rounded-[2px]"
-                style={{
-                  backgroundColor: item.color,
-                }}
-              />
+              <LegendColorSwatch className="h-2 w-2 shrink-0 rounded-[2px]" $color={item.color} />
             )}
             {itemConfig?.label}
           </div>

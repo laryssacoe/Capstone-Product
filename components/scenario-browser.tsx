@@ -117,6 +117,12 @@ const CardMeasureWrap = styled.div`
   height: 100%;
 `;
 
+const TitleMainRow = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+`;
+
 const SCard = styled(Card)<{ dim?: boolean }>`
   background: rgba(30, 41, 59, 0.5);
   border-color: rgba(51, 65, 85, 0.5);
@@ -769,7 +775,7 @@ export function ScenarioBrowser({
 
                   <SHeader>
                     <TitleRow>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                      <TitleMainRow>
                         <IconBox>
                           <BookOpen className="default-book-icon" aria-hidden />
                           {profileImage && (
@@ -792,7 +798,7 @@ export function ScenarioBrowser({
                             )}
                           </BadgeRow>
                         </div>
-                      </div>
+                      </TitleMainRow>
                     </TitleRow>
                   </SHeader>
 

@@ -1,6 +1,7 @@
 "use client"
 
 import type React from "react"
+import styled from "styled-components"
 import { Avatar, AvatarImage, AvatarFallback } from "./ui/avatar"
 
 interface ProfileBubbleChipProps {
@@ -10,15 +11,18 @@ interface ProfileBubbleChipProps {
   onClick?: () => void
 }
 
+const ChipButton = styled.button`
+  min-width: 0;
+`
+
 export const ProfileBubbleChip: React.FC<ProfileBubbleChipProps> = ({ avatarUrl, displayName, className, onClick }) => {
   const initial = displayName ? displayName[0].toUpperCase() : "?"
 
   return (
-    <button
+    <ChipButton
       type="button"
       className={`flex items-center gap-2 px-3 py-1 rounded-full bg-purple-600 hover:bg-purple-700 border border-purple-500 hover:border-purple-400 text-white transition-all duration-200 hover:shadow-lg hover:shadow-purple-500/20 ${className ?? ""}`}
       onClick={onClick}
-      style={{ minWidth: 0 }}
     >
       <Avatar className="size-7 border-2 border-purple-300">
         {avatarUrl ? (
@@ -28,6 +32,6 @@ export const ProfileBubbleChip: React.FC<ProfileBubbleChipProps> = ({ avatarUrl,
         )}
       </Avatar>
       <span className="font-medium text-sm truncate max-w-[8rem]">{displayName ?? "Profile"}</span>
-    </button>
+    </ChipButton>
   )
 }

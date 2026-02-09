@@ -73,6 +73,16 @@ const TooltipContainer = styled.div`
   overflow: hidden;
 `
 
+const PositionedTooltipContainer = styled(TooltipContainer)<{
+  $top: number
+  $left: number
+}>`
+  position: fixed;
+  top: ${({ $top }) => $top}px;
+  left: ${({ $left }) => $left}px;
+  z-index: 10002;
+`
+
 const TooltipHeader = styled.div`
   padding: 20px 20px 12px 20px;
   display: flex;
@@ -351,6 +361,24 @@ const ModalFooterText = styled.p`
   margin: 24px 0 0 0;
 `
 
+const IconGapLeft = styled.span`
+  display: inline-flex;
+  align-items: center;
+  margin-right: 4px;
+`
+
+const IconGapRight = styled.span`
+  display: inline-flex;
+  align-items: center;
+  margin-left: 4px;
+`
+
+const StartIconWrap = styled.span`
+  display: inline-flex;
+  align-items: center;
+  margin-right: 8px;
+`
+
 interface CreatorWalkthroughProps {
   onComplete: () => void
   isOpen: boolean
@@ -358,10 +386,18 @@ interface CreatorWalkthroughProps {
   hasExampleStory: boolean
 }
 
+type TooltipPosition = { top: number; left: number }
+type SpotlightRect = { top: number; left: number; width: number; height: number }
+
 export function CreatorWalkthrough({ onComplete, isOpen, onTabChange, hasExampleStory }: CreatorWalkthroughProps) {
   const [currentStep, setCurrentStep] = useState(0)
-  const [tooltipStyle, setTooltipStyle] = useState<React.CSSProperties>({})
-  const [spotlightStyle, setSpotlightStyle] = useState<React.CSSProperties>({})
+  const [tooltipPosition, setTooltipPosition] = useState<TooltipPosition>({ top: 0, left: 0 })
+  const [spotlightRect, setSpotlightRect] = useState<SpotlightRect>({
+    top: 0,
+    left: 0,
+    width: 0,
+    height: 0,
+  })
   const tooltipRef = useRef<HTMLDivElement>(null)
   const steps = useMemo(() => buildWalkthroughSteps(hasExampleStory), [hasExampleStory])
 
@@ -393,13 +429,11 @@ export function CreatorWalkthrough({ onComplete, isOpen, onTabChange, hasExample
     const highlightPadding = 8
 
     // Update spotlight position
-    setSpotlightStyle({
-      position: "fixed",
-      top: `${targetRect.top - highlightPadding}px`,
-      left: `${targetRect.left - highlightPadding}px`,
-      width: `${targetRect.width + highlightPadding * 2}px`,
-      height: `${targetRect.height + highlightPadding * 2}px`,
-      zIndex: 10001,
+    setSpotlightRect({
+      top: targetRect.top - highlightPadding,
+      left: targetRect.left - highlightPadding,
+      width: targetRect.width + highlightPadding * 2,
+      height: targetRect.height + highlightPadding * 2,
     })
 
     // Scroll target into view
@@ -448,11 +482,9 @@ export function CreatorWalkthrough({ onComplete, isOpen, onTabChange, hasExample
       top = viewportHeight - tooltipRect.height - padding
     }
 
-    setTooltipStyle({
-      position: "fixed",
-      top: `${top}px`,
-      left: `${left}px`,
-      zIndex: 10002,
+    setTooltipPosition({
+      top,
+      left,
     })
   }, [currentStep, steps])
 
@@ -520,9 +552,9 @@ export function CreatorWalkthrough({ onComplete, isOpen, onTabChange, hasExample
 
   return (
     <>
-      <SpotlightOverlay style={spotlightStyle} onClose={handleSkip} />
+      <SpotlightOverlay rect={spotlightRect} onClose={handleSkip} />
 
-      <TooltipContainer ref={tooltipRef} style={tooltipStyle}>
+      <PositionedTooltipContainer ref={tooltipRef} $top={tooltipPosition.top} $left={tooltipPosition.left}>
         <TooltipHeader>
           <HeaderContent>
             <IconContainer>
@@ -557,50 +589,55 @@ export function CreatorWalkthrough({ onComplete, isOpen, onTabChange, hasExample
           <ButtonGroup>
             {!isFirstStep && (
               <NavButton onClick={handlePrev}>
-                <ChevronLeft size={16} style={{ marginRight: 4 }} />
+                <IconGapLeft>
+                  <ChevronLeft size={16} />
+                </IconGapLeft>
                 Back
               </NavButton>
             )}
             <NavButton $primary onClick={handleNext}>
               {isLastStep ? "Get Started" : "Next"}
-              {!isLastStep && <ChevronRight size={16} style={{ marginLeft: 4 }} />}
+              {!isLastStep && (
+                <IconGapRight>
+                  <ChevronRight size={16} />
+                </IconGapRight>
+              )}
             </NavButton>
           </ButtonGroup>
         </ActionsContainer>
-      </TooltipContainer>
+      </PositionedTooltipContainer>
     </>
   )
 }
 
 // Spotlight overlay with "cutout" effect around the target
 function SpotlightOverlay({ 
-  style, 
+  rect,
   onClose 
 }: { 
-  style: React.CSSProperties
+  rect: SpotlightRect
   onClose: () => void 
 }) {
-  const top = parseFloat(style.top as string) || 0
-  const left = parseFloat(style.left as string) || 0
-  const width = parseFloat(style.width as string) || 0
-  const height = parseFloat(style.height as string) || 0
-  const shadowSize = Math.max(window.innerWidth, window.innerHeight) * 2
+  const shadowSize =
+    typeof window === "undefined"
+      ? 0
+      : Math.max(window.innerWidth, window.innerHeight) * 2
 
   return (
     <>
       <OverlayBackdrop onClick={onClose} />
       <SpotlightCutout 
-        $top={top} 
-        $left={left} 
-        $width={width} 
-        $height={height} 
+        $top={rect.top}
+        $left={rect.left}
+        $width={rect.width}
+        $height={rect.height}
         $shadowSize={shadowSize} 
       />
       <SpotlightBorder 
-        $top={top} 
-        $left={left} 
-        $width={width} 
-        $height={height} 
+        $top={rect.top}
+        $left={rect.left}
+        $width={rect.width}
+        $height={rect.height}
       />
     </>
   )
@@ -635,7 +672,9 @@ export function WelcomeModal({ onStart, onSkip, isOpen }: WelcomeModalProps) {
 
             <ModalButtonGroup>
               <ModalButton $primary onClick={onStart}>
-                <PenLine size={16} style={{ marginRight: 8 }} />
+                <StartIconWrap>
+                  <PenLine size={16} />
+                </StartIconWrap>
                 Take the Tour
               </ModalButton>
               <ModalButton onClick={onSkip}>

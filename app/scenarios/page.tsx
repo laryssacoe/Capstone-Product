@@ -9,7 +9,7 @@ import { ArrowLeft, X, BookOpen, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import type { Scenario } from '@/types/simulation';
 
-const NEW_USER_STORAGE_KEY = 'loop-scenarios-visited';
+const newUserStorageKey = 'loop-scenarios-visited';
 
 const Page = styled.div`
   color: #fff;
@@ -252,20 +252,24 @@ const FooterText = styled.div`
   strong { color: #a78bfa; }
 `;
 
+const PlainLink = styled(Link)`
+  text-decoration: none;
+`;
+
 export default function ScenariosPage() {
   const router = useRouter();
   const [showNewUserBanner, setShowNewUserBanner] = useState(false);
   const [scenarioCount, setScenarioCount] = useState<number | null>(null);
 
   useEffect(() => {
-    const hasVisited = localStorage.getItem(NEW_USER_STORAGE_KEY);
+    const hasVisited = localStorage.getItem(newUserStorageKey);
     if (!hasVisited) {
       setShowNewUserBanner(true);
     }
   }, []);
 
   const handleDismissBanner = () => {
-    localStorage.setItem(NEW_USER_STORAGE_KEY, 'true');
+    localStorage.setItem(newUserStorageKey, 'true');
     setShowNewUserBanner(false);
   };
 
@@ -308,13 +312,13 @@ export default function ScenariosPage() {
                 </BannerText>
               </BannerLeft>
               <BannerActions>
-                <Link href="/hero-example?tab=learn" style={{ textDecoration: 'none' }}>
+                <PlainLink href="/hero-example?tab=learn">
                   <TutorialBtn onClick={handleDismissBanner}>
                     <BookOpen size={16} />
                     Start Tutorial
                     <ChevronRight size={16} />
                   </TutorialBtn>
-                </Link>
+                </PlainLink>
                 <DismissBtn onClick={handleDismissBanner} aria-label="Dismiss">
                   <X size={16} />
                 </DismissBtn>
@@ -343,9 +347,9 @@ export default function ScenariosPage() {
                 <EmptyText>
                   We&apos;re working on new immersive experiences. Want to contribute your own story?
                 </EmptyText>
-                <Link href="/creator" style={{ textDecoration: 'none' }}>
+                <PlainLink href="/creator">
                   <CreateBtn>Become a Creator</CreateBtn>
-                </Link>
+                </PlainLink>
               </EmptyPanel>
             </Panel>
           </SplitLayout>
@@ -363,9 +367,9 @@ export default function ScenariosPage() {
               <FooterText>
                 <strong>Want to share your story?</strong> Create your own scenario and help others understand different perspectives.
               </FooterText>
-              <Link href="/creator" style={{ textDecoration: 'none' }}>
+              <PlainLink href="/creator">
                 <CreateBtn>Become a Creator</CreateBtn>
-              </Link>
+              </PlainLink>
             </FooterCTA>
           </FullWidthLayout>
         )}

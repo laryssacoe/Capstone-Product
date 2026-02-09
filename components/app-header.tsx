@@ -3,6 +3,7 @@ import Image from "next/image";
 // @ts-ignore
 const ProfileBubbleChip = require("@/components/profile-bubble-chip").ProfileBubbleChip;
 import { useAuth } from "@/hooks/use-auth";
+import { loop_logo_url } from "@/lib/brand-assets";
 
 export default function AppHeader() {
   const { user } = useAuth();
@@ -11,7 +12,7 @@ export default function AppHeader() {
       <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
         <div className="flex items-center gap-3">
           <Link href="/">
-            <Image src="/images/logo.png" alt="Loop Logo" width={120} height={40} priority style={{ cursor: "pointer" }} />
+            <Image src={loop_logo_url} alt="Loop Logo" width={120} height={40} priority className="cursor-pointer" />
           </Link>
         </div>
         <nav className="flex items-center gap-6">

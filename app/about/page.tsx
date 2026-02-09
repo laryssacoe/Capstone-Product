@@ -1,14 +1,26 @@
+"use client"
+
 import Link from "next/link"
+import styled from "styled-components"
 import { Button } from "@/components/ui/button"
 import { ArrowLeft, BookOpen, Database, Users, Target } from "lucide-react"
 
+const PageContainer = styled.div`
+  min-height: 100vh;
+  color: white;
+  background-color: #0f172a;
+`
+
+const Header = styled.header`
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(12px);
+  background-color: rgba(15, 23, 42, 0.8);
+`
+
 export default function AboutPage() {
   return (
-    <div className="min-h-screen text-white" style={{ backgroundColor: "#0f172a" }}>
-      <header
-        className="border-b border-white/10 backdrop-blur-md"
-        style={{ backgroundColor: "rgba(15, 23, 42, 0.8)" }}
-      >
+    <PageContainer>
+      <Header>
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <Link href="/" className="flex items-center space-x-3 text-gray-300 hover:text-white transition-colors">
@@ -18,7 +30,7 @@ export default function AboutPage() {
             <h1 className="text-2xl font-bold text-purple-300">About Loop</h1>
           </div>
         </div>
-      </header>
+      </Header>
 
       <div className="container mx-auto px-4 py-12">
         <div className="max-w-4xl mx-auto">
@@ -125,6 +137,6 @@ export default function AboutPage() {
           </div>
         </div>
       </div>
-    </div>
+    </PageContainer>
   )
 }

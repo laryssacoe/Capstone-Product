@@ -90,9 +90,18 @@ const Row = styled.div`
   gap: 0.75rem;
 `;
 
+const RowWithBottom = styled(Row)`
+  margin-bottom: 0.75rem;
+`;
+
 const Avatar = styled(SAvatar)`
   width: 48px;
   height: 48px;
+`;
+
+const LargeAvatar = styled(Avatar)`
+  width: 64px;
+  height: 64px;
 `;
 
 const AvatarImage = styled(SAvatarImage)``;
@@ -162,6 +171,21 @@ const SectionTitle = styled.h4`
   color: #e2e8f0;
 `;
 
+const DetailTitle = styled(SCardTitle)`
+  font-size: 1.15rem;
+  color: #e5e7eb;
+  margin: 0;
+`;
+
+const DetailLead = styled(Lead)`
+  max-width: unset;
+  color: #9aa7bd;
+`;
+
+const DetailLeadSmall = styled(DetailLead)`
+  font-size: 0.9rem;
+`;
+
 const Separator = styled(SSeparator)`
   background: rgba(71, 85, 105, 0.5);
 `;
@@ -200,6 +224,49 @@ const PrimaryBadgeRow = styled.div`
   justify-content: space-between;
   gap: 0.5rem;
   margin-bottom: 0.35rem;
+`;
+
+const DetailGrid = styled.div`
+  display: grid;
+  gap: 1rem;
+`;
+
+const ResourceList = styled.div`
+  display: grid;
+  gap: 0.75rem;
+`;
+
+const ResourceItem = styled.div`
+  display: grid;
+  gap: 0.35rem;
+`;
+
+const ChallengeList = styled.div`
+  display: grid;
+  gap: 0.5rem;
+`;
+
+const ChallengeCard = styled.div`
+  padding: 0.75rem;
+  border-radius: 0.75rem;
+  background: rgba(30, 41, 59, 0.45);
+  border: 1px solid rgba(71, 85, 105, 0.55);
+`;
+
+const EmptyDetailsState = styled(SCardContent)`
+  display: grid;
+  place-items: center;
+  height: 16rem;
+  color: #94a3b8;
+`;
+
+const Centered = styled.div`
+  text-align: center;
+`;
+
+const EmptyUserIcon = styled(User)`
+  margin-bottom: 1rem;
+  opacity: 0.8;
 `;
 
 const OutlineBadge = styled(SBadge)`
@@ -388,37 +455,33 @@ export function AvatarCreator({ onAvatarSelect }: AvatarCreatorProps) {
         {selectedAvatar ? (
           <DetailsCard>
             <SCardHeader>
-              <Row style={{ marginBottom: ".75rem" }}>
-                <Avatar style={{ width: 64, height: 64 }}>
+              <RowWithBottom>
+                <LargeAvatar>
                   <AvatarImage src={`/abstract-geometric-shapes.png?height=64&width=64&query=${selectedAvatar.name} portrait`} />
                   <AvatarFallback>
                     <User size={28} />
                   </AvatarFallback>
-                </Avatar>
+                </LargeAvatar>
                 <div>
-                  <SCardTitle style={{ fontSize: "1.15rem", color: "#e5e7eb", margin: 0 }}>
-                    {selectedAvatar.name}
-                  </SCardTitle>
+                  <DetailTitle>{selectedAvatar.name}</DetailTitle>
                   <Muted>Age {selectedAvatar.age}</Muted>
                 </div>
-              </Row>
+              </RowWithBottom>
             </SCardHeader>
 
             <SCardContent className="space-y-4">
               <div>
                 <SectionTitle>Background</SectionTitle>
-                <Lead as="p" style={{ maxWidth: "unset", color: "#9aa7bd" }}>
-                  {selectedAvatar.background}
-                </Lead>
+                <DetailLead as="p">{selectedAvatar.background}</DetailLead>
               </div>
 
               <Separator />
 
               <div>
                 <SectionTitle>Starting Resources</SectionTitle>
-                <div style={{ display: "grid", gap: "0.75rem" }}>
+                <ResourceList>
                   {Object.entries(selectedAvatar.initialResources).map(([key, value]) => (
-                    <div key={key} style={{ display: "grid", gap: "0.35rem" }}>
+                    <ResourceItem key={key}>
                       <ResourceRow>
                         <ResourceLeft>
                           {getIcon(key as keyof Resources)}
@@ -427,38 +490,28 @@ export function AvatarCreator({ onAvatarSelect }: AvatarCreatorProps) {
                         <ResourceValue $v={value}>{value}%</ResourceValue>
                       </ResourceRow>
                       <Progress value={value} />
-                    </div>
+                    </ResourceItem>
                   ))}
-                </div>
+                </ResourceList>
               </div>
 
               <Separator />
 
               <div>
                 <SectionTitle>Primary Challenges</SectionTitle>
-                <div style={{ display: "grid", gap: ".5rem" }}>
+                <ChallengeList>
                   {selectedAvatar.socialContext.socialIssues.map((issue) => (
-                    <div
-                      key={issue.id}
-                      style={{
-                        padding: "0.75rem",
-                        borderRadius: "0.75rem",
-                        background: "rgba(30,41,59,.45)",
-                        border: "1px solid rgba(71,85,105,.55)",
-                      }}
-                    >
+                    <ChallengeCard key={issue.id}>
                       <PrimaryBadgeRow>
                         <OutlineBadge variant="outline">
                           {issue.type.replace("-", " ")}
                         </OutlineBadge>
                         <SeverityBadge $sev={issue.severity}>{issue.severity}</SeverityBadge>
                       </PrimaryBadgeRow>
-                      <Lead as="p" style={{ color: "#9aa7bd", maxWidth: "unset", fontSize: ".9rem" }}>
-                        {issue.description}
-                      </Lead>
-                    </div>
+                      <DetailLeadSmall as="p">{issue.description}</DetailLeadSmall>
+                    </ChallengeCard>
                   ))}
-                </div>
+                </ChallengeList>
               </div>
 
               <CTA onClick={() => onAvatarSelect(selectedAvatar)}>
@@ -468,19 +521,12 @@ export function AvatarCreator({ onAvatarSelect }: AvatarCreatorProps) {
           </DetailsCard>
         ) : (
           <DetailsCard>
-            <SCardContent
-              style={{
-                display: "grid",
-                placeItems: "center",
-                height: "16rem",
-                color: "#94a3b8",
-              }}
-            >
-              <div style={{ textAlign: "center" }}>
-                <User size={48} style={{ marginBottom: "1rem", opacity: 0.8 }} />
+            <EmptyDetailsState>
+              <Centered>
+                <EmptyUserIcon size={48} />
                 <div>Select an avatar to see their details</div>
-              </div>
-            </SCardContent>
+              </Centered>
+            </EmptyDetailsState>
           </DetailsCard>
         )}
       </Grid>

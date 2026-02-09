@@ -1,12 +1,21 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import styled from "styled-components"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import type { Decision, Resources } from "@/types/simulation"
 import { AlertTriangle, Heart, Brain, Scale, Timer } from "lucide-react"
+
+const CostThreshold = styled.div<{ $widthPercent: number }>`
+  height: 100%;
+  width: ${({ $widthPercent }) => `${$widthPercent}%`};
+  background: rgb(239 68 68);
+  border-radius: 9999px;
+  position: absolute;
+`
 
 interface DecisionTreeProps {
   decisions: Decision[]
@@ -200,9 +209,8 @@ export function DecisionTree({
                             className={`h-1 ${!hasEnough ? "bg-red-100" : ""}`}
                           />
                           <div className="h-1 bg-red-200 rounded-full relative">
-                            <div
-                              className="h-full bg-red-500 rounded-full absolute"
-                              style={{ width: `${(cost / 100) * 100}%` }}
+                            <CostThreshold
+                              $widthPercent={(cost / 100) * 100}
                             />
                           </div>
                         </div>

@@ -4,6 +4,7 @@ import * as React from 'react'
 import { Slot } from '@radix-ui/react-slot'
 import { cva, VariantProps } from 'class-variance-authority'
 import { PanelLeftIcon } from 'lucide-react'
+import styled from 'styled-components'
 
 import { useIsMobile } from '@/hooks/use-mobile'
 import { cn } from '@/lib/utils'
@@ -31,6 +32,23 @@ const SIDEBAR_WIDTH = '16rem'
 const SIDEBAR_WIDTH_MOBILE = '18rem'
 const SIDEBAR_WIDTH_ICON = '3rem'
 const SIDEBAR_KEYBOARD_SHORTCUT = 'b'
+
+const SidebarWrapper = styled.div.attrs<{ $customStyle?: React.CSSProperties }>(
+  ({ $customStyle }) => ({
+    style: $customStyle,
+  }),
+)`
+  --sidebar-width: ${SIDEBAR_WIDTH};
+  --sidebar-width-icon: ${SIDEBAR_WIDTH_ICON};
+`
+
+const MobileSidebarSheetContent = styled(SheetContent)`
+  --sidebar-width: ${SIDEBAR_WIDTH_MOBILE};
+`
+
+const SidebarMenuSkeletonText = styled(Skeleton)<{ $width: string }>`
+  --skeleton-width: ${({ $width }) => $width};
+`
 
 type SidebarContextProps = {
   state: 'expanded' | 'collapsed'
@@ -129,15 +147,9 @@ function SidebarProvider({
   return (
     <SidebarContext.Provider value={contextValue}>
       <TooltipProvider delayDuration={0}>
-        <div
+        <SidebarWrapper
           data-slot="sidebar-wrapper"
-          style={
-            {
-              '--sidebar-width': SIDEBAR_WIDTH,
-              '--sidebar-width-icon': SIDEBAR_WIDTH_ICON,
-              ...style,
-            } as React.CSSProperties
-          }
+          $customStyle={style as React.CSSProperties | undefined}
           className={cn(
             'group/sidebar-wrapper has-data-[variant=inset]:bg-sidebar flex min-h-svh w-full',
             className,
@@ -145,7 +157,7 @@ function SidebarProvider({
           {...props}
         >
           {children}
-        </div>
+        </SidebarWrapper>
       </TooltipProvider>
     </SidebarContext.Provider>
   )
@@ -183,16 +195,11 @@ function Sidebar({
   if (isMobile) {
     return (
       <Sheet open={openMobile} onOpenChange={setOpenMobile} {...props}>
-        <SheetContent
+        <MobileSidebarSheetContent
           data-sidebar="sidebar"
           data-slot="sidebar"
           data-mobile="true"
           className="bg-sidebar text-sidebar-foreground w-(--sidebar-width) p-0 [&>button]:hidden"
-          style={
-            {
-              '--sidebar-width': SIDEBAR_WIDTH_MOBILE,
-            } as React.CSSProperties
-          }
           side={side}
         >
           <SheetHeader className="sr-only">
@@ -200,7 +207,7 @@ function Sidebar({
             <SheetDescription>Displays the mobile sidebar.</SheetDescription>
           </SheetHeader>
           <div className="flex h-full w-full flex-col">{children}</div>
-        </SheetContent>
+        </MobileSidebarSheetContent>
       </Sheet>
     )
   }
@@ -624,14 +631,10 @@ function SidebarMenuSkeleton({
           data-sidebar="menu-skeleton-icon"
         />
       )}
-      <Skeleton
+      <SidebarMenuSkeletonText
         className="h-4 max-w-(--skeleton-width) flex-1"
         data-sidebar="menu-skeleton-text"
-        style={
-          {
-            '--skeleton-width': width,
-          } as React.CSSProperties
-        }
+        $width={width}
       />
     </div>
   )

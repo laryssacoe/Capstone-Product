@@ -93,6 +93,17 @@ const TinyBadge = styled(UIBadge)`
   border: 1px solid rgba(148,163,184,.35);
 `;
 
+const SectionContent = styled.div`
+  display: grid;
+  gap: 1rem;
+`;
+
+const SectionTitle = styled.h4`
+  margin: 0;
+  font-weight: 700;
+  color: #e2e8f0;
+`;
+
 const ResourceGrid = styled.div`
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -265,9 +276,9 @@ export function AvatarDisplay({
           )}
         </HeaderRow>
 
-        <div style={{ display: "grid", gap: "1rem" }}>
+        <SectionContent>
           <SectionTop>
-            <h4 style={{ margin: 0, fontWeight: 700, color: "#e2e8f0" }}>Current Resources</h4>
+            <SectionTitle>Current Resources</SectionTitle>
             {showResourceDashboard && <TinyBadge>Dashboard Active</TinyBadge>}
           </SectionTop>
 
@@ -285,7 +296,7 @@ export function AvatarDisplay({
               </ResourceCell>
             ))}
           </ResourceGrid>
-        </div>
+        </SectionContent>
       </Content>
     </Card>
   );

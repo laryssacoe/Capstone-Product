@@ -212,6 +212,10 @@ const Container = styled.div<{ $embedded?: boolean }>`
   background: #0f172a;
 `
 
+const HiddenAudio = styled.audio`
+  display: none;
+`
+
 const BackgroundLayer = styled.div`
   position: absolute;
   inset: 0;
@@ -536,6 +540,10 @@ const ChoiceEffects = styled.div`
   flex-wrap: wrap;
   justify-content: flex-end;
   align-items: center;
+`
+
+const MutedChevron = styled(ChevronRight)`
+  color: #64748b;
 `
 
 const EffectTag = styled.span<{ $positive: boolean }>`
@@ -1230,7 +1238,7 @@ export function StoryPreviewPlayer({
 
   return (
     <Container $embedded={embedded}>
-      <audio ref={audioRef} preload="auto" style={{ display: "none" }} />
+      <HiddenAudio ref={audioRef} preload="auto" />
 
       <BackgroundLayer>
         {blurredPassageImage && (
@@ -1338,7 +1346,7 @@ export function StoryPreviewPlayer({
                       (!choice.effects.money &&
                         !choice.effects.health &&
                         !choice.effects.time &&
-                        !choice.effects.support)) && <ChevronRight size={16} style={{ color: "#64748b" }} />}
+                        !choice.effects.support)) && <MutedChevron size={16} />}
                   </ChoiceEffects>
                 </ChoiceButton>
               ))}

@@ -195,6 +195,12 @@ const CardContent = styled.div`
   padding: 24px;
 `
 
+const CardContentFlex = styled(CardContent)`
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+`
+
 const EmptyState = styled.div`
   border-radius: 16px;
   border: 1px solid rgba(51, 65, 85, 0.5);
@@ -500,6 +506,12 @@ const ButtonLink = styled(Link)<{ $variant?: 'primary' | 'secondary' | 'outline'
   }}
 `
 
+const WarningButtonLink = styled(ButtonLink)`
+  margin-top: 12px;
+  border-color: rgba(253, 186, 116, 0.6);
+  color: rgb(254, 249, 195);
+`
+
 // Form Elements
 const FormGrid = styled.div`
   display: grid;
@@ -630,6 +642,19 @@ const InfoBox = styled.div<{ $color: 'blue' | 'purple' | 'emerald' | 'amber' }>`
   }}
 `
 
+const InfoBoxWithMargin = styled(InfoBox)`
+  margin-bottom: 24px;
+`
+
+const InfoBoxPadded = styled(InfoBox)`
+  padding: 20px;
+`
+
+const InfoBoxCompact = styled(InfoBox)`
+  padding: 8px 12px;
+  margin-bottom: 12px;
+`
+
 const InfoBoxHeader = styled.div`
   display: flex;
   align-items: flex-start;
@@ -649,6 +674,10 @@ const InfoBoxContent = styled.div`
   gap: 8px;
 `
 
+const InfoBoxContentBlue = styled(InfoBoxContent)`
+  color: rgb(191, 219, 254);
+`
+
 const InfoBoxTitle = styled.p`
   font-weight: 500;
   margin: 0;
@@ -663,6 +692,10 @@ const InfoBoxList = styled.ul`
   display: flex;
   flex-direction: column;
   gap: 4px;
+`
+
+const InfoBoxListBlue = styled(InfoBoxList)`
+  color: rgba(147, 197, 253, 0.9);
 `
 
 // Section with header and checkbox
@@ -704,10 +737,26 @@ const SectionTitle = styled.p`
   margin: 0;
 `
 
+const SectionTitlePurple = styled(SectionTitle)`
+  color: rgb(243, 232, 255);
+`
+
+const SectionTitleEmerald = styled(SectionTitle)`
+  color: rgb(209, 250, 229);
+`
+
 const SectionSubtitle = styled.p`
   font-size: 12px;
   opacity: 0.8;
   margin: 0;
+`
+
+const SectionSubtitlePurple = styled(SectionSubtitle)`
+  color: rgba(216, 180, 254, 0.8);
+`
+
+const SectionSubtitleEmerald = styled(SectionSubtitle)`
+  color: rgba(110, 231, 183, 0.8);
 `
 
 const ToggleLabel = styled.label`
@@ -716,6 +765,10 @@ const ToggleLabel = styled.label`
   gap: 8px;
   cursor: pointer;
   font-size: 14px;
+`
+
+const ToggleLabelPurple = styled(ToggleLabel)`
+  color: rgb(233, 213, 255);
 `
 
 // Media Library
@@ -772,6 +825,10 @@ const MediaSelect = styled(Select)`
   padding: 4px 8px;
 `
 
+const MediaSelectFlex = styled(MediaSelect)`
+  flex: 1;
+`
+
 const MediaPath = styled.div`
   font-size: 10px;
   color: rgb(100, 116, 139);
@@ -789,11 +846,20 @@ const MediaLabel = styled.span`
   flex-shrink: 0;
 `
 
+const MediaInputWrapper = styled.div`
+  flex: 1;
+  min-width: 0;
+`
+
 // Button Row
 const ButtonRow = styled.div`
   display: flex;
   flex-wrap: wrap;
   gap: 12px;
+`
+
+const ButtonRowPadded = styled(ButtonRow)`
+  padding-top: 8px;
 `
 
 const SaveHintWrapper = styled.div`
@@ -841,6 +907,24 @@ const SaveHint = styled.div`
     border-top: 6px solid rgba(15, 23, 42, 0.95);
     z-index: 1;
   }
+`
+
+const SaveHintTitle = styled.div`
+  font-weight: 600;
+  margin-bottom: 4px;
+`
+
+const SaveHintDismiss = styled.div`
+  margin-top: 8px;
+`
+
+const SaveHintButton = styled.button`
+  background: transparent;
+  border: none;
+  color: rgb(148, 197, 253);
+  cursor: pointer;
+  font-size: 11px;
+  padding: 0;
 `
 
 const SmallButtonRow = styled.div`
@@ -1015,6 +1099,10 @@ const ChecklistCheckbox = styled.input.attrs({ type: 'checkbox' })`
   }
 `
 
+const ChecklistItemText = styled.span`
+  line-height: 1.5;
+`
+
 // Dialogs
 const DialogOverlay = styled.div`
   position: fixed;
@@ -1112,6 +1200,243 @@ const UnauthText = styled.p`
 const UnauthButtons = styled.div`
   display: flex;
   gap: 12px;
+`
+
+// Additional styled components for inline styles
+const FormFlex = styled.form`
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+`
+
+const ConflictText = styled.span`
+  font-size: 14px;
+  color: rgb(252, 165, 165);
+`
+
+const HiddenInput = styled.input`
+  display: none;
+`
+
+const AvatarUploadBox = styled.div`
+  margin-top: 12px;
+  border-radius: 12px;
+  border: 1px dashed rgba(192, 132, 252, 0.4);
+  padding: 12px;
+  background: rgba(76, 29, 149, 0.15);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+`
+
+const AvatarUploadTitle = styled.div`
+  font-size: 13px;
+  font-weight: 600;
+  color: rgb(233, 213, 255);
+`
+
+const AvatarUploadDescription = styled.div`
+  font-size: 12px;
+  color: rgba(216, 180, 254, 0.8);
+`
+
+const AvatarUploadError = styled.span`
+  color: rgb(252, 165, 165);
+  font-size: 12px;
+`
+
+const AvatarUploadRow = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+`
+
+const AvatarPreviewContainer = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 8px;
+`
+
+const AvatarPreviewImage = styled.img`
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 1px solid rgba(216, 180, 254, 0.6);
+`
+
+const AvatarPreviewPath = styled.span`
+  font-size: 11px;
+  color: rgba(216, 180, 254, 0.8);
+  max-width: 220px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+`
+
+const PurpleOutlineButton = styled(Button)`
+  border-color: rgba(192, 132, 252, 0.6);
+  color: rgb(216, 180, 254);
+`
+
+const EmeraldOutlineButton = styled(Button)`
+  border-color: rgba(16, 185, 129, 0.5);
+  color: rgb(167, 243, 208);
+`
+
+const EmeraldOutlineButtonSelfStart = styled(EmeraldOutlineButton)`
+  align-self: flex-start;
+`
+
+const ResourcesBox = styled.div`
+  margin-top: 8px;
+  margin-bottom: 12px;
+  border-radius: 12px;
+  border: 1px solid rgba(96, 165, 250, 0.25);
+  padding: 12px;
+  background: rgba(15, 23, 42, 0.35);
+`
+
+const ResourcesTitle = styled.div`
+  font-size: 13px;
+  font-weight: 600;
+  color: rgb(191, 219, 254);
+  margin-bottom: 6px;
+`
+
+const ResourcesDescription = styled.div`
+  font-size: 12px;
+  color: rgba(148, 163, 184, 0.9);
+  margin-bottom: 10px;
+`
+
+const ResourcesError = styled.span`
+  color: rgb(252, 165, 165);
+  font-size: 12px;
+`
+
+const MediaLibraryError = styled.span`
+  color: rgb(252, 165, 165);
+  font-size: 12px;
+  background-color: rgba(127, 29, 29, 0.2);
+  border: 1px solid rgb(127, 29, 29);
+  border-radius: 4px;
+  padding: 8px;
+`
+
+const MediaListContainer = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+`
+
+const MediaListTitle = styled.span`
+  font-size: 12px;
+  color: rgb(110, 231, 183);
+  font-weight: 500;
+`
+
+const MediaNote = styled.span`
+  font-size: 12px;
+  color: rgb(100, 116, 139);
+`
+
+const CopyButton = styled(Button)`
+  color: rgb(147, 197, 253);
+  padding: 4px;
+`
+
+const DeleteButton = styled(Button)`
+  color: rgb(248, 113, 113);
+  padding: 4px;
+`
+
+const IconWrapper = styled.span`
+  margin-right: 8px;
+  display: inline-flex;
+  align-items: center;
+`
+
+const ImportInfoHeader = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding-bottom: 12px;
+`
+
+const ImportInfoTitle = styled.h3`
+  font-size: 16px;
+  font-weight: 600;
+  color: white;
+  margin: 0;
+`
+
+const ImportInfoContent = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  font-size: 14px;
+  color: rgb(191, 219, 254);
+`
+
+const ImportInfoParagraph = styled.p`
+  margin: 0;
+`
+
+const ImportMappingList = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-size: 12px;
+`
+
+const ImportMappingRow = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 8px;
+`
+
+const ImportMappingSource = styled.span`
+  color: rgb(216, 180, 254);
+  font-family: monospace;
+`
+
+const ImportMappingArrow = styled.span`
+  color: rgb(100, 116, 139);
+`
+
+const ImportMappingTarget = styled.span`
+  color: rgb(147, 197, 253);
+`
+
+const TwisonFormatBox = styled.div`
+  border-radius: 16px;
+  border: 1px solid rgba(51, 65, 85, 0.7);
+  background-color: rgba(15, 23, 42, 0.4);
+  padding: 20px;
+`
+
+const CLIDescription = styled.p`
+  font-size: 12px;
+  color: rgb(167, 243, 208);
+  margin: 0 0 12px 0;
+`
+
+const AmberNoteText = styled.p`
+  font-size: 12px;
+  color: rgb(254, 243, 199);
+  margin: 0;
+`
+
+const ClearChecklistButton = styled(Button)`
+  margin-top: 12px;
+  font-size: 12px;
+  color: rgb(148, 163, 184);
+`
+
+const DialogCheckbox = styled(Checkbox)`
+  margin-top: 2px;
 `
 
 // Interfaces (same as original)
@@ -2912,9 +3237,9 @@ function CreatorDashboardContent() {
         {(creatorStatus !== "ACTIVE") && (
           <WarningBanner>
             <WarningText>Finish your creator profile before submitting stories for approval.</WarningText>
-            <ButtonLink href="/profile#creator" $variant="outline" style={{ marginTop: 12, borderColor: 'rgba(253, 186, 116, 0.6)', color: 'rgb(254, 249, 195)' }}>
+            <WarningButtonLink href="/profile#creator" $variant="outline">
               Update creator profile
-            </ButtonLink>
+            </WarningButtonLink>
           </WarningBanner>
         )}
 
@@ -3008,9 +3333,11 @@ function CreatorDashboardContent() {
                   $size="lg"
                   onClick={() => { resetStoryFormToNew(); setActiveTab("new") }}
                 >
-                  <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ marginRight: 8 }}>
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                  </svg>
+                  <IconWrapper>
+                    <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                    </svg>
+                  </IconWrapper>
                   Create New Story
                 </Button>
               </CreateButtonContainer>
@@ -3026,22 +3353,22 @@ function CreatorDashboardContent() {
                 </CardHeader>
                 <CardContent>
                   {/* Structure Guide */}
-                  <InfoBox $color="blue" style={{ marginBottom: 24 }}>
+                  <InfoBoxWithMargin $color="blue">
                     <InfoBoxHeader>
                       <InfoBoxIcon $color="#60a5fa"><Info size={20} /></InfoBoxIcon>
-                      <InfoBoxContent style={{ color: 'rgb(191, 219, 254)' }}>
+                      <InfoBoxContentBlue>
                         <InfoBoxTitle>Story Structure Guide</InfoBoxTitle>
-                        <InfoBoxList style={{ color: 'rgba(147, 197, 253, 0.9)' }}>
+                        <InfoBoxListBlue>
                           <li><strong>nodes:</strong> Array of passages (key, title, type, content, media)</li>
                           <li><strong>initialResources:</strong> Starting Money, Time, Health values</li>
                           <li><strong>content.text:</strong> Array of paragraph strings</li>
                           <li><strong>content.choices:</strong> Array with id, text, leads_to, effects</li>
                           <li><strong>content.next:</strong> Target node for Continue button</li>
                           <li><strong>effects:</strong> {`{ money: ±n, health: ±n, time: -n }`}</li>
-                        </InfoBoxList>
-                      </InfoBoxContent>
+                        </InfoBoxListBlue>
+                      </InfoBoxContentBlue>
                     </InfoBoxHeader>
-                  </InfoBox>
+                  </InfoBoxWithMargin>
 
                   {editingStoryId && (
                     <EditingBanner>
@@ -3053,14 +3380,14 @@ function CreatorDashboardContent() {
                     </EditingBanner>
                   )}
 
-                  <form onSubmit={handleCreateStory} style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+                  <FormFlex onSubmit={handleCreateStory}>
                     {formError && <ErrorMessage ref={formErrorRef} tabIndex={-1}>{formError}</ErrorMessage>}
 
                     <FormGrid>
                       <FormGroup>
                         <Label>Story code</Label>
                         <Input value={slug} onChange={(e) => setSlug(e.target.value)} onBlur={(e) => setSlug(normalizeSlug(e.target.value))} required placeholder="my-story-code" />
-                        {storyCodeConflictMessage && <span style={{ fontSize: 14, color: 'rgb(252, 165, 165)' }}>{storyCodeConflictMessage}</span>}
+                        {storyCodeConflictMessage && <ConflictText>{storyCodeConflictMessage}</ConflictText>}
                       </FormGroup>
                       <FormGroup>
                         <Label>Title</Label>
@@ -3094,62 +3421,59 @@ function CreatorDashboardContent() {
                         <SectionHeaderLeft>
                           <SectionIcon $color="#c084fc"><User size={20} /></SectionIcon>
                           <div>
-                            <SectionTitle style={{ color: 'rgb(243, 232, 255)' }}>Character Profile (Avatar)</SectionTitle>
-                            <SectionSubtitle style={{ color: 'rgba(216, 180, 254, 0.8)' }}>Protagonist with resources</SectionSubtitle>
+                            <SectionTitlePurple>Character Profile (Avatar)</SectionTitlePurple>
+                            <SectionSubtitlePurple>Protagonist with resources</SectionSubtitlePurple>
                           </div>
                         </SectionHeaderLeft>
-                        <ToggleLabel style={{ color: 'rgb(233, 213, 255)' }}>
+                        <ToggleLabelPurple>
                           <Checkbox checked={includeAvatar} onChange={(e) => setIncludeAvatar(e.target.checked)} />
                           <span>Include</span>
-                        </ToggleLabel>
+                        </ToggleLabelPurple>
                       </SectionHeader>
                       {includeAvatar && (
                         <>
                           <MonoTextarea value={avatarJson} onChange={(e) => setAvatarJson(e.target.value)} rows={12} />
-                          <div style={{ marginTop: 12, borderRadius: 12, border: "1px dashed rgba(192, 132, 252, 0.4)", padding: 12, background: "rgba(76, 29, 149, 0.15)", display: "flex", flexDirection: "column", gap: 10 }}>
-                            <div style={{ fontSize: 13, fontWeight: 600, color: "rgb(233, 213, 255)" }}>
+                          <AvatarUploadBox>
+                            <AvatarUploadTitle>
                               Character Profile Image
-                            </div>
-                            <div style={{ fontSize: 12, color: "rgba(216, 180, 254, 0.8)" }}>
+                            </AvatarUploadTitle>
+                            <AvatarUploadDescription>
                               Upload a profile image for the protagonist. Supported formats: JPG, PNG, GIF. Max size: 5MB.
-                            </div>
+                            </AvatarUploadDescription>
                             {avatarImageUploadError && (
-                              <span style={{ color: "rgb(252, 165, 165)", fontSize: 12 }}>
+                              <AvatarUploadError>
                                 {avatarImageUploadError}
-                              </span>
+                              </AvatarUploadError>
                             )}
-                            <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
-                              <input
+                            <AvatarUploadRow>
+                              <HiddenInput
                                 ref={avatarImageInputRef}
                                 type="file"
                                 accept="image/*"
-                                style={{ display: "none" }}
                                 onChange={handleAvatarImageUpload}
                               />
-                              <Button
+                              <PurpleOutlineButton
                                 type="button"
                                 $variant="outline"
                                 $size="sm"
                                 onClick={() => avatarImageInputRef.current?.click()}
                                 disabled={avatarImageUploading}
-                                style={{ borderColor: "rgba(192, 132, 252, 0.6)", color: "rgb(216, 180, 254)" }}
                               >
                                 {avatarImageUploading ? "Uploading…" : "Upload Profile Image"}
-                              </Button>
+                              </PurpleOutlineButton>
                               {avatarImagePreview && (
-                                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                                  <img
+                                <AvatarPreviewContainer>
+                                  <AvatarPreviewImage
                                     src={avatarImagePreview}
                                     alt="Character profile"
-                                    style={{ width: 40, height: 40, borderRadius: "50%", objectFit: "cover", border: "1px solid rgba(216, 180, 254, 0.6)" }}
                                   />
-                                  <span style={{ fontSize: 11, color: "rgba(216, 180, 254, 0.8)", maxWidth: 220, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                                  <AvatarPreviewPath>
                                     {avatarImagePreview}
-                                  </span>
-                                </div>
+                                  </AvatarPreviewPath>
+                                </AvatarPreviewContainer>
                               )}
-                            </div>
-                          </div>
+                            </AvatarUploadRow>
+                          </AvatarUploadBox>
                         </>
                       )}
                     </SectionBox>
@@ -3157,17 +3481,17 @@ function CreatorDashboardContent() {
                     {/* Story Graph */}
                     <FormGroup>
                       <Label>Story Graph JSON</Label>
-                      <div style={{ marginTop: 8, marginBottom: 12, borderRadius: 12, border: "1px solid rgba(96, 165, 250, 0.25)", padding: 12, background: "rgba(15, 23, 42, 0.35)" }}>
-                        <div style={{ fontSize: 13, fontWeight: 600, color: "rgb(191, 219, 254)", marginBottom: 6 }}>
+                      <ResourcesBox>
+                        <ResourcesTitle>
                           Initial Resources (Top Bar Stats)
-                        </div>
-                        <div style={{ fontSize: 12, color: "rgba(148, 163, 184, 0.9)", marginBottom: 10 }}>
+                        </ResourcesTitle>
+                        <ResourcesDescription>
                           These values live in the story graph and control the starting Money, Time, and Health.
-                        </div>
+                        </ResourcesDescription>
                         {graphResourceError && (
-                          <span style={{ color: "rgb(252, 165, 165)", fontSize: 12 }}>
+                          <ResourcesError>
                             {graphResourceError}
-                          </span>
+                          </ResourcesError>
                         )}
                         <FormGrid>
                           <FormGroup>
@@ -3195,7 +3519,7 @@ function CreatorDashboardContent() {
                             />
                           </FormGroup>
                         </FormGrid>
-                      </div>
+                      </ResourcesBox>
                       <GraphEditorRow>
                         <Button
                           type="button"
@@ -3218,34 +3542,34 @@ function CreatorDashboardContent() {
                         <SectionHeaderLeft>
                           <SectionIcon $color="#34d399"><FolderOpen size={20} /></SectionIcon>
                           <div>
-                            <SectionTitle style={{ color: 'rgb(209, 250, 229)' }}>Media Library</SectionTitle>
-                            <SectionSubtitle style={{ color: 'rgba(110, 231, 183, 0.8)' }}>Upload images and audio, then map them to story nodes</SectionSubtitle>
+                            <SectionTitleEmerald>Media Library</SectionTitleEmerald>
+                            <SectionSubtitleEmerald>Upload images and audio, then map them to story nodes</SectionSubtitleEmerald>
                           </div>
                         </SectionHeaderLeft>
                       </SectionHeader>
 
                       {mediaUploadError && (
-                        <span style={{ color: 'rgb(252, 165, 165)', fontSize: 12, backgroundColor: 'rgba(127, 29, 29, 0.2)', border: '1px solid rgb(127, 29, 29)', borderRadius: 4, padding: 8 }}>{mediaUploadError}</span>
+                        <MediaLibraryError>{mediaUploadError}</MediaLibraryError>
                       )}
 
                       <SmallButtonRow>
-                        <input ref={imageInputRef} type="file" accept="image/*" multiple style={{ display: 'none' }} onChange={(e) => handleMediaUpload(e.target.files, "image")} />
-                        <input ref={audioInputRef} type="file" accept="audio/*" multiple style={{ display: 'none' }} onChange={(e) => handleMediaUpload(e.target.files, "audio")} />
+                        <HiddenInput ref={imageInputRef} type="file" accept="image/*" multiple onChange={(e) => handleMediaUpload(e.target.files, "image")} />
+                        <HiddenInput ref={audioInputRef} type="file" accept="audio/*" multiple onChange={(e) => handleMediaUpload(e.target.files, "audio")} />
                         
-                        <Button type="button" $variant="outline" $size="sm" onClick={() => imageInputRef.current?.click()} style={{ borderColor: 'rgba(16, 185, 129, 0.5)', color: 'rgb(167, 243, 208)' }}>
-                          <ImageIcon size={16} style={{ marginRight: 8 }} />
+                        <EmeraldOutlineButton type="button" $variant="outline" $size="sm" onClick={() => imageInputRef.current?.click()}>
+                          <IconWrapper><ImageIcon size={16} /></IconWrapper>
                           Upload Images
-                        </Button>
-                        <Button type="button" $variant="outline" $size="sm" onClick={() => audioInputRef.current?.click()} style={{ borderColor: 'rgba(16, 185, 129, 0.5)', color: 'rgb(167, 243, 208)' }}>
-                          <Music size={16} style={{ marginRight: 8 }} />
+                        </EmeraldOutlineButton>
+                        <EmeraldOutlineButton type="button" $variant="outline" $size="sm" onClick={() => audioInputRef.current?.click()}>
+                          <IconWrapper><Music size={16} /></IconWrapper>
                           Upload Audio
-                        </Button>
+                        </EmeraldOutlineButton>
                       </SmallButtonRow>
 
                       {/* Uploaded Media List */}
                       {uploadedMedia.length > 0 && (
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                          <span style={{ fontSize: 12, color: 'rgb(110, 231, 183)', fontWeight: 500 }}>Uploaded Files ({uploadedMedia.length})</span>
+                        <MediaListContainer>
+                          <MediaListTitle>Uploaded Files ({uploadedMedia.length})</MediaListTitle>
                           <MediaGrid>
                             {uploadedMedia.map((media) => (
                               <MediaItem key={media.id}>
@@ -3265,41 +3589,38 @@ function CreatorDashboardContent() {
                                       <Music size={24} color="rgb(148, 163, 184)" />
                                     </MediaThumbnail>
                                   )}
-                                  <div style={{ flex: 1, minWidth: 0 }}>
+                                  <MediaInputWrapper>
                                     <MediaInput
                                       value={media.name}
                                       onChange={(e) => handleMediaNameChange(media.id, e.target.value)}
                                       placeholder="filename.png"
                                     />
-                                  </div>
-                                  <Button 
+                                  </MediaInputWrapper>
+                                  <CopyButton 
                                     type="button" 
                                     $variant="ghost" 
                                     $size="sm" 
                                     onClick={() => handleDuplicateMedia(media.id)} 
-                                    style={{ color: 'rgb(147, 197, 253)', padding: 4 }}
                                     title="Duplicate for another node"
                                   >
                                     <Copy size={16} />
-                                  </Button>
+                                  </CopyButton>
                                   
-                                  <Button 
+                                  <DeleteButton 
                                     type="button" 
                                     $variant="ghost" 
                                     $size="sm" 
                                     onClick={() => handleRemoveMedia(media.id)} 
-                                    style={{ color: 'rgb(248, 113, 113)', padding: 4 }}
                                   >
                                     <Trash2 size={16} />
-                                  </Button>
+                                  </DeleteButton>
                                 </MediaItemHeader>
                                 
                                 <MediaRow>
                                   <MediaLabel>Map to:</MediaLabel>
-                                  <MediaSelect
+                                  <MediaSelectFlex
                                     value={media.mappedToNode || ""}
                                     onChange={(e) => handleMediaNodeMapping(media.id, e.target.value)}
-                                    style={{ flex: 1 }}
                                   >
                                     <option value="">Select Node</option>
                                     {media.type === "audio" && (
@@ -3308,7 +3629,7 @@ function CreatorDashboardContent() {
                                     {nodeKeys.map((n: NodeKeyInfo) => (
                                       <option key={n.key} value={n.key}>{n.title}</option>
                                     ))}
-                                  </MediaSelect>
+                                  </MediaSelectFlex>
                                 </MediaRow>
 
                                 <MediaPath>
@@ -3323,46 +3644,37 @@ function CreatorDashboardContent() {
                             ))}
                           </MediaGrid>
 
-                          <Button 
+                          <EmeraldOutlineButtonSelfStart 
                             type="button" 
                             $variant="outline" 
                             $size="sm" 
                             onClick={applyMediaMappingsToGraph} 
-                            style={{ borderColor: 'rgba(16, 185, 129, 0.5)', color: 'rgb(167, 243, 208)', alignSelf: 'flex-start' }}
                           >
-                            <Upload size={16} style={{ marginRight: 8 }} />
+                            <IconWrapper><Upload size={16} /></IconWrapper>
                             Apply Mappings to Story Graph
-                          </Button>
+                          </EmeraldOutlineButtonSelfStart>
 
-                          <span style={{ fontSize: 12, color: 'rgb(100, 116, 139)' }}>
+                          <MediaNote>
                             Note: Uploaded files are stored in Cloudinary. Use the generated URLs in your story graph to reference the media assets.
-                          </span>
-                        </div>
+                          </MediaNote>
+                        </MediaListContainer>
                       )}
                     </SectionBox>
 
-                    <ButtonRow style={{ paddingTop: 8 }}>
+                    <ButtonRowPadded>
                       <SaveHintWrapper>
                         {showSaveHint && (
                           <SaveHint role="status">
-                            <div style={{ fontWeight: 600, marginBottom: 4 }}>Almost there</div>
+                            <SaveHintTitle>Almost there</SaveHintTitle>
                             <div>If everything is finalized, save the story.</div>
-                            <div style={{ marginTop: 8 }}>
-                              <button
+                            <SaveHintDismiss>
+                              <SaveHintButton
                                 type="button"
                                 onClick={() => setShowSaveHint(false)}
-                                style={{
-                                  background: "transparent",
-                                  border: "none",
-                                  color: "rgb(148, 197, 253)",
-                                  cursor: "pointer",
-                                  fontSize: 11,
-                                  padding: 0,
-                                }}
                               >
                                 Got it
-                              </button>
-                            </div>
+                              </SaveHintButton>
+                            </SaveHintDismiss>
                           </SaveHint>
                         )}
                         <Button
@@ -3377,11 +3689,11 @@ function CreatorDashboardContent() {
                       <Button type="button" $variant="secondary" disabled={publishing || hasStoryCodeConflict} onClick={requestPublishNewStory}>
                         {publishing ? "Submitting…" : "Publish for Approval"}
                       </Button>
-                    </ButtonRow>
+                    </ButtonRowPadded>
 
                     {publishError && <ErrorMessage ref={publishErrorRef} tabIndex={-1}>{publishError}</ErrorMessage>}
                     {publishSuccess && <SuccessMessage>{publishSuccess}</SuccessMessage>}
-                  </form>
+                  </FormFlex>
                 </CardContent>
               </Card>
             </TabContent>
@@ -3394,57 +3706,57 @@ function CreatorDashboardContent() {
                   <CardTitle>Import from Twine</CardTitle>
                   <CardDescription>Upload a Twine .zip, .json, or .html export to convert into a Loop story.</CardDescription>
                 </CardHeader>
-                <CardContent style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+                <CardContentFlex>
                   <ImportGrid>
                     <ImportColumn>
-                      <InfoBox $color="blue" style={{ padding: 20 }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 12, paddingBottom: 12 }}>
+                      <InfoBoxPadded $color="blue">
+                        <ImportInfoHeader>
                           <Info size={20} color="rgb(147, 197, 253)" />
-                          <h3 style={{ fontSize: 16, fontWeight: 600, color: 'white', margin: 0 }}>How Twine Import Works</h3>
-                        </div>
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: 12, fontSize: 14, color: 'rgb(191, 219, 254)' }}>
-                          <p style={{ margin: 0 }}>Export your Twine story using the <strong>Twison</strong> story format, which outputs a JSON file that Loop can parse.</p>
-                          <div style={{ display: 'flex', flexDirection: 'column', gap: 8, fontSize: 12 }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                              <span style={{ color: 'rgb(216, 180, 254)', fontFamily: 'monospace' }}>passage.name</span>
-                              <span style={{ color: 'rgb(100, 116, 139)' }}>→</span>
-                              <span style={{ color: 'rgb(147, 197, 253)' }}>node.key</span>
-                            </div>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                              <span style={{ color: 'rgb(216, 180, 254)', fontFamily: 'monospace' }}>passage.text</span>
-                              <span style={{ color: 'rgb(100, 116, 139)' }}>→</span>
-                              <span style={{ color: 'rgb(147, 197, 253)' }}>content.text[]</span>
-                            </div>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                              <span style={{ color: 'rgb(216, 180, 254)', fontFamily: 'monospace' }}>[[Choice→target]]</span>
-                              <span style={{ color: 'rgb(100, 116, 139)' }}>→</span>
-                              <span style={{ color: 'rgb(147, 197, 253)' }}>content.choices[]</span>
-                            </div>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                              <span style={{ color: 'rgb(216, 180, 254)', fontFamily: 'monospace' }}>[image:path.png]</span>
-                              <span style={{ color: 'rgb(100, 116, 139)' }}>→</span>
-                              <span style={{ color: 'rgb(147, 197, 253)' }}>media.image</span>
-                            </div>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                              <span style={{ color: 'rgb(216, 180, 254)', fontFamily: 'monospace' }}>[effect:money:-50]</span>
-                              <span style={{ color: 'rgb(100, 116, 139)' }}>→</span>
-                              <span style={{ color: 'rgb(147, 197, 253)' }}>choice.effects</span>
-                            </div>
-                          </div>
-                        </div>
-                      </InfoBox>
+                          <ImportInfoTitle>How Twine Import Works</ImportInfoTitle>
+                        </ImportInfoHeader>
+                        <ImportInfoContent>
+                          <ImportInfoParagraph>Export your Twine story using the <strong>Twison</strong> story format, which outputs a JSON file that Loop can parse.</ImportInfoParagraph>
+                          <ImportMappingList>
+                            <ImportMappingRow>
+                              <ImportMappingSource>passage.name</ImportMappingSource>
+                              <ImportMappingArrow>→</ImportMappingArrow>
+                              <ImportMappingTarget>node.key</ImportMappingTarget>
+                            </ImportMappingRow>
+                            <ImportMappingRow>
+                              <ImportMappingSource>passage.text</ImportMappingSource>
+                              <ImportMappingArrow>→</ImportMappingArrow>
+                              <ImportMappingTarget>content.text[]</ImportMappingTarget>
+                            </ImportMappingRow>
+                            <ImportMappingRow>
+                              <ImportMappingSource>[[Choice→target]]</ImportMappingSource>
+                              <ImportMappingArrow>→</ImportMappingArrow>
+                              <ImportMappingTarget>content.choices[]</ImportMappingTarget>
+                            </ImportMappingRow>
+                            <ImportMappingRow>
+                              <ImportMappingSource>[image:path.png]</ImportMappingSource>
+                              <ImportMappingArrow>→</ImportMappingArrow>
+                              <ImportMappingTarget>media.image</ImportMappingTarget>
+                            </ImportMappingRow>
+                            <ImportMappingRow>
+                              <ImportMappingSource>[effect:money:-50]</ImportMappingSource>
+                              <ImportMappingArrow>→</ImportMappingArrow>
+                              <ImportMappingTarget>choice.effects</ImportMappingTarget>
+                            </ImportMappingRow>
+                          </ImportMappingList>
+                        </ImportInfoContent>
+                      </InfoBoxPadded>
 
                       {/* Twison JSON Format Example */}
-                      <div style={{ borderRadius: 16, border: '1px solid rgba(51, 65, 85, 0.7)', backgroundColor: 'rgba(15, 23, 42, 0.4)', padding: 20 }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 12, paddingBottom: 12 }}>
+                      <TwisonFormatBox>
+                        <ImportInfoHeader>
                           <FileJson size={20} color="rgb(216, 180, 254)" />
-                          <h3 style={{ fontSize: 16, fontWeight: 600, color: 'white', margin: 0 }}>Twison Export Format</h3>
-                        </div>
-                        <InfoBox $color="amber" style={{ padding: '8px 12px', marginBottom: 12 }}>
-                          <p style={{ fontSize: 12, color: 'rgb(254, 243, 199)', margin: 0 }}>
+                          <ImportInfoTitle>Twison Export Format</ImportInfoTitle>
+                        </ImportInfoHeader>
+                        <InfoBoxCompact $color="amber">
+                          <AmberNoteText>
                             <strong>Note:</strong> This is the format Twine exports. Upload the file below and Loop converts it automatically. Note that if you paste directly into the &quot;Create/Update&quot; tab, it will not accept this format and instead use Loop&apos;s native format.
-                          </p>
-                        </InfoBox>
+                          </AmberNoteText>
+                        </InfoBoxCompact>
                         <CodeBlock>{twineJsonExample}</CodeBlock>
                         <LinkRow>
                           <ExternalLink href="https://github.com/lazerwalker/twison" target="_blank" rel="noreferrer" $color="purple">
@@ -3454,32 +3766,32 @@ function CreatorDashboardContent() {
                             Twine Editor
                           </ExternalLink>
                         </LinkRow>
-                      </div>
+                      </TwisonFormatBox>
                     </ImportColumn>
 
                     <ImportColumn>
                       {/* CLI Upload */}
-                      <InfoBox $color="emerald" style={{ padding: 20 }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 12, paddingBottom: 12 }}>
+                      <InfoBoxPadded $color="emerald">
+                        <ImportInfoHeader>
                           <UploadCloud size={20} color="rgb(110, 231, 183)" />
-                          <h3 style={{ fontSize: 16, fontWeight: 600, color: 'white', margin: 0 }}>CLI Upload</h3>
-                        </div>
-                        <p style={{ fontSize: 12, color: 'rgb(167, 243, 208)', margin: '0 0 12px 0' }}>
+                          <ImportInfoTitle>CLI Upload</ImportInfoTitle>
+                        </ImportInfoHeader>
+                        <CLIDescription>
                           Skip manual uploads and run the Loop CLI helper against your Twison export:
-                        </p>
+                        </CLIDescription>
                         <SmallCodeBlock>
 {`npx tsx twine/upload-to-loop.ts ./story.json \\
   --cookie "loop.session=VALUE" \\
   --avatar ./avatar.json`}
                         </SmallCodeBlock>
-                      </InfoBox>
+                      </InfoBoxPadded>
 
                       {/* Inline Checklist */}
-                      <InfoBox $color="purple" style={{ padding: 20 }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 12, paddingBottom: 12 }}>
+                      <InfoBoxPadded $color="purple">
+                        <ImportInfoHeader>
                           <ClipboardCheck size={20} color="rgb(216, 180, 254)" />
-                          <h3 style={{ fontSize: 16, fontWeight: 600, color: 'white', margin: 0 }}>Import Checklist</h3>
-                        </div>
+                          <ImportInfoTitle>Import Checklist</ImportInfoTitle>
+                        </ImportInfoHeader>
                         <ChecklistContainer>
                           {twineChecklistSections.map((section, sectionIndex) => (
                             <ChecklistSection key={section.title}>
@@ -3491,21 +3803,21 @@ function CreatorDashboardContent() {
                                       checked={twineChecklistState[sectionIndex][itemIndex]}
                                       onChange={(e) => handleTwineChecklistToggle(sectionIndex, itemIndex, e.target.checked)}
                                     />
-                                    <span style={{ lineHeight: 1.5 }}>{item}</span>
+                                    <ChecklistItemText>{item}</ChecklistItemText>
                                   </ChecklistItem>
                                 ))}
                               </ChecklistItems>
                             </ChecklistSection>
                           ))}
                         </ChecklistContainer>
-                        <Button type="button" $variant="ghost" $size="sm" onClick={resetTwineChecklist} style={{ marginTop: 12, fontSize: 12, color: 'rgb(148, 163, 184)' }}>
+                        <ClearChecklistButton type="button" $variant="ghost" $size="sm" onClick={resetTwineChecklist}>
                           Clear checklist
-                        </Button>
-                      </InfoBox>
+                        </ClearChecklistButton>
+                      </InfoBoxPadded>
                     </ImportColumn>
                   </ImportGrid>
 
-                  <form onSubmit={handleImportSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+                  <FormFlex onSubmit={handleImportSubmit}>
                     {importError && <ErrorMessage ref={importErrorRef} tabIndex={-1}>{importError}</ErrorMessage>}
                     {importSuccess && <SuccessMessage>{importSuccess}</SuccessMessage>}
 
@@ -3557,62 +3869,59 @@ function CreatorDashboardContent() {
                         <SectionHeaderLeft>
                           <SectionIcon $color="#c084fc"><User size={20} /></SectionIcon>
                           <div>
-                            <SectionTitle style={{ color: 'rgb(243, 232, 255)' }}>Character Profile</SectionTitle>
-                            <SectionSubtitle style={{ color: 'rgba(216, 180, 254, 0.8)' }}>Add protagonist metadata</SectionSubtitle>
+                            <SectionTitlePurple>Character Profile</SectionTitlePurple>
+                            <SectionSubtitlePurple>Add protagonist metadata</SectionSubtitlePurple>
                           </div>
                         </SectionHeaderLeft>
-                        <ToggleLabel style={{ color: 'rgb(233, 213, 255)' }}>
+                        <ToggleLabelPurple>
                           <Checkbox checked={importIncludeAvatar} onChange={(e) => setImportIncludeAvatar(e.target.checked)} />
                           <span>Include</span>
-                        </ToggleLabel>
+                        </ToggleLabelPurple>
                       </SectionHeader>
                       {importIncludeAvatar && (
                         <>
                           <MonoTextarea value={importAvatarJson} onChange={(e) => setImportAvatarJson(e.target.value)} rows={10} />
-                          <div style={{ marginTop: 12, borderRadius: 12, border: "1px dashed rgba(192, 132, 252, 0.4)", padding: 12, background: "rgba(76, 29, 149, 0.15)", display: "flex", flexDirection: "column", gap: 10 }}>
-                            <div style={{ fontSize: 13, fontWeight: 600, color: "rgb(233, 213, 255)" }}>
+                          <AvatarUploadBox>
+                            <AvatarUploadTitle>
                               Character Profile Image
-                            </div>
-                            <div style={{ fontSize: 12, color: "rgba(216, 180, 254, 0.8)" }}>
+                            </AvatarUploadTitle>
+                            <AvatarUploadDescription>
                               Upload a profile image for the protagonist (stored in Cloudinary). This is separate from the Media Library.
-                            </div>
+                            </AvatarUploadDescription>
                             {importAvatarImageUploadError && (
-                              <span style={{ color: "rgb(252, 165, 165)", fontSize: 12 }}>
+                              <AvatarUploadError>
                                 {importAvatarImageUploadError}
-                              </span>
+                              </AvatarUploadError>
                             )}
-                            <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
-                              <input
+                            <AvatarUploadRow>
+                              <HiddenInput
                                 ref={importAvatarImageInputRef}
                                 type="file"
                                 accept="image/*"
-                                style={{ display: "none" }}
                                 onChange={handleImportAvatarImageUpload}
                               />
-                              <Button
+                              <PurpleOutlineButton
                                 type="button"
                                 $variant="outline"
                                 $size="sm"
                                 onClick={() => importAvatarImageInputRef.current?.click()}
                                 disabled={importAvatarImageUploading}
-                                style={{ borderColor: "rgba(192, 132, 252, 0.6)", color: "rgb(216, 180, 254)" }}
                               >
                                 {importAvatarImageUploading ? "Uploading…" : "Upload Profile Image"}
-                              </Button>
+                              </PurpleOutlineButton>
                               {importAvatarImagePreview && (
-                                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                                  <img
+                                <AvatarPreviewContainer>
+                                  <AvatarPreviewImage
                                     src={importAvatarImagePreview}
                                     alt="Character profile"
-                                    style={{ width: 40, height: 40, borderRadius: "50%", objectFit: "cover", border: "1px solid rgba(216, 180, 254, 0.6)" }}
                                   />
-                                  <span style={{ fontSize: 11, color: "rgba(216, 180, 254, 0.8)", maxWidth: 220, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                                  <AvatarPreviewPath>
                                     {importAvatarImagePreview}
-                                  </span>
-                                </div>
+                                  </AvatarPreviewPath>
+                                </AvatarPreviewContainer>
                               )}
-                            </div>
-                          </div>
+                            </AvatarUploadRow>
+                          </AvatarUploadBox>
                         </>
                       )}
                     </SectionBox>
@@ -3634,8 +3943,8 @@ function CreatorDashboardContent() {
                         Reset
                       </Button>
                     </ButtonRow>
-                  </form>
-                </CardContent>
+                  </FormFlex>
+                </CardContentFlex>
               </Card>
             </TabContent>
           )}
@@ -3649,11 +3958,11 @@ function CreatorDashboardContent() {
               <DialogDescription>Approved stories move into Loop&apos;s shared catalogue with permanent credit.</DialogDescription>
               <DialogBody>
                 <CheckboxLabel>
-                  <Checkbox checked={ownershipAck.transfer} onChange={(e) => setOwnershipAck((prev) => ({ ...prev, transfer: e.target.checked }))} style={{ marginTop: 2 }} />
+                  <DialogCheckbox checked={ownershipAck.transfer} onChange={(e) => setOwnershipAck((prev) => ({ ...prev, transfer: e.target.checked }))} />
                   <span>I understand Loop becomes the hosting owner while keeping my credit visible.</span>
                 </CheckboxLabel>
                 <CheckboxLabel>
-                  <Checkbox checked={ownershipAck.contact} onChange={(e) => setOwnershipAck((prev) => ({ ...prev, contact: e.target.checked }))} style={{ marginTop: 2 }} />
+                  <DialogCheckbox checked={ownershipAck.contact} onChange={(e) => setOwnershipAck((prev) => ({ ...prev, contact: e.target.checked }))} />
                   <span>I know removal after approval requires a Contact Us request.</span>
                 </CheckboxLabel>
               </DialogBody>
