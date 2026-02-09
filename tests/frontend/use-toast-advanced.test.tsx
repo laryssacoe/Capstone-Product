@@ -6,14 +6,16 @@ describe("useToast advanced", () => {
   it("allows updating and dismissing toasts", () => {
     const { result } = renderHook(() => useToast())
     let id = ""
+    let updateToast: ((props: { title?: string }) => void) | null = null
     act(() => {
       const t = result.current.toast({ title: "First" })
       id = t?.id ?? ""
+      updateToast = t?.update ?? null
     })
     expect(result.current.toasts.length).toBe(1)
 
     act(() => {
-      result.current.toast({ id, title: "Updated" })
+      updateToast?.({ title: "Updated" })
     })
     expect(result.current.toasts[0].title).toBe("Updated")
 
