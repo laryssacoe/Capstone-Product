@@ -12,6 +12,7 @@ import { BookOpen, ClipboardCheck, UploadCloud, Info, User, Image as ImageIcon, 
 import { useAuth } from "@/hooks/use-auth"
 import { useToast } from "@/hooks/use-toast"
 import { CreatorWalkthrough, WelcomeModal } from "@/components/creator-walkthrough"
+import FlowStudioPage from "@/components/creator/flow-studio-page"
 import {
   avatarTemplateJson,
   storyGraphTemplateJson,
@@ -272,18 +273,26 @@ const StoryAvatar = styled.div`
   display: flex;
   align-items: center;
   justify-content: center;
+  position: relative;
   border: 1px solid rgba(71, 85, 105, 0.5);
   background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #a855f7 100%);
 `
 
 const StoryAvatarImage = styled.img`
+  position: absolute;
+  inset: 0;
   width: 100%;
   height: 100%;
   object-fit: cover;
 `
 
-const StoryAvatarEmoji = styled.span`
-  font-size: 20px;
+const StoryAvatarFallback = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  color: #f8fafc;
 `
 
 const StoryInfo = styled.div`
@@ -787,10 +796,70 @@ const ButtonRow = styled.div`
   gap: 12px;
 `
 
+const SaveHintWrapper = styled.div`
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+`
+
+const SaveHint = styled.div`
+  position: absolute;
+  left: 0;
+  bottom: calc(100% + 12px);
+  max-width: 240px;
+  background: rgba(15, 23, 42, 0.95);
+  border: 1px solid rgba(96, 165, 250, 0.6);
+  color: rgb(226, 232, 240);
+  border-radius: 10px;
+  padding: 10px 12px;
+  font-size: 12px;
+  line-height: 1.4;
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.5);
+  z-index: 10;
+
+  &::after {
+    content: "";
+    position: absolute;
+    left: 16px;
+    bottom: -6px;
+    width: 0;
+    height: 0;
+    border-left: 6px solid transparent;
+    border-right: 6px solid transparent;
+    border-top: 6px solid rgba(96, 165, 250, 0.6);
+  }
+
+  &::before {
+    content: "";
+    position: absolute;
+    left: 16px;
+    bottom: -5px;
+    width: 0;
+    height: 0;
+    border-left: 6px solid transparent;
+    border-right: 6px solid transparent;
+    border-top: 6px solid rgba(15, 23, 42, 0.95);
+    z-index: 1;
+  }
+`
+
 const SmallButtonRow = styled.div`
   display: flex;
   gap: 12px;
   flex-wrap: wrap;
+`
+
+const GraphEditorRow = styled.div`
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+  margin-top: 8px;
+`
+
+const GraphEditorHint = styled.span`
+  font-size: 12px;
+  color: rgb(148, 163, 184);
 `
 
 // Editing Banner
@@ -1109,9 +1178,10 @@ interface AvatarMetadata {
   initialResources: {
     money: number
     time: number
-    socialSupport: number
-    mentalHealth: number
-    physicalHealth: number
+    health?: number
+    socialSupport?: number
+    mentalHealth?: number
+    physicalHealth?: number
   }
   socialContext?: {
     socioeconomicStatus?: string
@@ -1241,6 +1311,44 @@ function validateGraph(graph: any): { ok: true } | { ok: false; message: string 
   return { ok: true }
 }
 
+const defaultGraphResources = {
+  money: 500,
+  time: 100,
+  health: 100,
+}
+
+function extractGraphInitialResources(graph: any) {
+  const resources = graph?.initialResources ?? {}
+  return {
+    money: typeof resources.money === "number" ? resources.money : defaultGraphResources.money,
+    time: typeof resources.time === "number" ? resources.time : defaultGraphResources.time,
+    health: typeof resources.health === "number" ? resources.health : defaultGraphResources.health,
+  }
+}
+
+function applyGraphInitialResourcesToAvatar(
+  avatar: AvatarMetadata,
+  graphInitialResources: ReturnType<typeof extractGraphInitialResources>,
+): AvatarMetadata {
+  const baseResources: Partial<AvatarMetadata["initialResources"]> =
+    avatar.initialResources && typeof avatar.initialResources === "object"
+      ? avatar.initialResources
+      : {}
+
+  return {
+    ...avatar,
+    initialResources: {
+      ...baseResources,
+      money: graphInitialResources.money,
+      time: graphInitialResources.time,
+      health: graphInitialResources.health,
+      socialSupport: typeof baseResources.socialSupport === "number" ? baseResources.socialSupport : 50,
+      mentalHealth: typeof baseResources.mentalHealth === "number" ? baseResources.mentalHealth : 70,
+      physicalHealth: typeof baseResources.physicalHealth === "number" ? baseResources.physicalHealth : 80,
+    },
+  }
+}
+
 function validateAvatarMetadata(avatar: any): { ok: true } | { ok: false; message: string } {
   if (!avatar || typeof avatar !== "object") {
     return { ok: false, message: "Avatar metadata is missing or invalid." }
@@ -1258,6 +1366,9 @@ function validateAvatarMetadata(avatar: any): { ok: true } | { ok: false; messag
   if (typeof resources.money !== "number" || typeof resources.time !== "number") {
     return { ok: false, message: "Avatar initialResources must include money and time as numbers." }
   }
+  if (resources.health != null && typeof resources.health !== "number") {
+    return { ok: false, message: "Avatar initialResources health must be a number." }
+  }
   return { ok: true }
 }
 
@@ -1266,6 +1377,13 @@ const parseTagsString = (input: string) =>
     .split(",")
     .map((tag) => tag.trim())
     .filter(Boolean)
+
+const exampleStory = {
+  slug: "my-first-story",
+  title: "My First Story (Example)",
+  summary: "A simple example showing how Loop stories work. Edit or delete this anytime!",
+  tag: "example",
+}
 
 function CreatorDashboardContent() {
   const { toast } = useToast()
@@ -1285,6 +1403,10 @@ function CreatorDashboardContent() {
   const [tags, setTags] = useState("community, empathy")
   const [visibility, setVisibility] = useState<"PRIVATE" | "UNLISTED" | "PUBLIC">("PRIVATE")
   const [graphJson, setGraphJson] = useState(storyGraphTemplateJson)
+  const [graphResourceError, setGraphResourceError] = useState<string | null>(null)
+  const [showFlowStudio, setShowFlowStudio] = useState(false)
+  const [showSaveHint, setShowSaveHint] = useState(false)
+  const saveButtonRef = useRef<HTMLButtonElement | null>(null)
   const [avatarJson, setAvatarJson] = useState(avatarTemplateJson)
   const [includeAvatar, setIncludeAvatar] = useState(true)
   const [publishing, setPublishing] = useState(false)
@@ -1300,6 +1422,9 @@ function CreatorDashboardContent() {
   const [mediaUploadError, setMediaUploadError] = useState<string | null>(null)
   const imageInputRef = useRef<HTMLInputElement>(null)
   const audioInputRef = useRef<HTMLInputElement>(null)
+  const avatarImageInputRef = useRef<HTMLInputElement>(null)
+  const [avatarImageUploading, setAvatarImageUploading] = useState(false)
+  const [avatarImageUploadError, setAvatarImageUploadError] = useState<string | null>(null)
 
   // Twine import state
   const [importFile, setImportFile] = useState<File | null>(null)
@@ -1313,6 +1438,9 @@ function CreatorDashboardContent() {
   const [importing, setImporting] = useState(false)
   const [importError, setImportError] = useState<string | null>(null)
   const [importSuccess, setImportSuccess] = useState<string | null>(null)
+  const importAvatarImageInputRef = useRef<HTMLInputElement>(null)
+  const [importAvatarImageUploading, setImportAvatarImageUploading] = useState(false)
+  const [importAvatarImageUploadError, setImportAvatarImageUploadError] = useState<string | null>(null)
   
   // Twine checklist state
   const [twineChecklistState, setTwineChecklistState] = useState<boolean[][]>(() =>
@@ -1360,6 +1488,8 @@ function CreatorDashboardContent() {
     setPublishError(null)
     setPublishSuccess(null)
     setMediaUploadError(null)
+    setAvatarImageUploadError(null)
+    setGraphResourceError(null)
   }, [])
 
   const handleTwineChecklistToggle = useCallback((sectionIndex: number, itemIndex: number, next: boolean) => {
@@ -1397,6 +1527,165 @@ function CreatorDashboardContent() {
       description: `Select a node for the duplicated ${original.name}`,
     })
   }, [uploadedMedia, toast])
+
+  const updateAvatarJsonImage = useCallback((imageUrl: string) => {
+    try {
+      const parsed = JSON.parse(avatarJson)
+      const appearance = parsed?.appearance && typeof parsed.appearance === "object" ? parsed.appearance : {}
+      const updated = {
+        ...parsed,
+        appearance: {
+          ...appearance,
+          image: imageUrl,
+        },
+      }
+      setAvatarJson(JSON.stringify(updated, null, 2))
+      setAvatarImageUploadError(null)
+    } catch {
+      setAvatarImageUploadError("Avatar JSON is invalid. Fix it before updating the profile image.")
+    }
+  }, [avatarJson])
+
+  const updateImportAvatarJsonImage = useCallback((imageUrl: string) => {
+    try {
+      const parsed = JSON.parse(importAvatarJson)
+      const appearance = parsed?.appearance && typeof parsed.appearance === "object" ? parsed.appearance : {}
+      const updated = {
+        ...parsed,
+        appearance: {
+          ...appearance,
+          image: imageUrl,
+        },
+      }
+      setImportAvatarJson(JSON.stringify(updated, null, 2))
+      setImportAvatarImageUploadError(null)
+    } catch {
+      setImportAvatarImageUploadError("Avatar JSON is invalid. Fix it before updating the profile image.")
+    }
+  }, [importAvatarJson])
+
+  const updateGraphResource = useCallback((key: "money" | "time" | "health", rawValue: string) => {
+    const numericValue = rawValue === "" ? 0 : Number(rawValue)
+    if (!Number.isFinite(numericValue)) {
+      setGraphResourceError("Resource values must be numbers.")
+      return
+    }
+
+    try {
+      const parsed = JSON.parse(graphJson)
+      const initialResources =
+        parsed?.initialResources && typeof parsed.initialResources === "object" ? parsed.initialResources : {}
+      const updated = {
+        ...parsed,
+        initialResources: {
+          ...initialResources,
+          [key]: numericValue,
+        },
+      }
+      setGraphJson(JSON.stringify(updated, null, 2))
+      setGraphResourceError(null)
+    } catch {
+      setGraphResourceError("Story graph JSON is invalid. Fix it before editing resource amounts.")
+    }
+  }, [graphJson])
+
+  const handleAvatarImageUpload = useCallback(async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    if (!file) return
+
+    setAvatarImageUploadError(null)
+
+    const allowedImageTypes = ["image/png", "image/jpeg", "image/jpg", "image/webp", "image/gif"]
+    if (!allowedImageTypes.includes(file.type)) {
+      setAvatarImageUploadError(`Invalid image type: ${file.name}`)
+      event.target.value = ""
+      return
+    }
+    if (file.size > 10 * 1024 * 1024) {
+      setAvatarImageUploadError(`File too large: ${file.name}`)
+      event.target.value = ""
+      return
+    }
+
+    setAvatarImageUploading(true)
+    const formData = new FormData()
+    formData.append("file", file)
+    formData.append("type", "image")
+
+    try {
+      const res = await fetch("/api/creator/upload", {
+        method: "POST",
+        credentials: "include",
+        body: formData,
+      })
+      const data = await res.json()
+
+      if (!res.ok) {
+        setAvatarImageUploadError(data.error || "Failed to upload profile image.")
+        return
+      }
+
+      updateAvatarJsonImage(data.path)
+      toast({
+        title: "Profile image uploaded",
+        description: "Saved to Cloudinary and linked to this character profile.",
+      })
+    } catch (error) {
+      setAvatarImageUploadError(error instanceof Error ? error.message : "Upload failed.")
+    } finally {
+      setAvatarImageUploading(false)
+      event.target.value = ""
+    }
+  }, [toast, updateAvatarJsonImage])
+
+  const handleImportAvatarImageUpload = useCallback(async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    if (!file) return
+
+    setImportAvatarImageUploadError(null)
+
+    const allowedImageTypes = ["image/png", "image/jpeg", "image/jpg", "image/webp", "image/gif"]
+    if (!allowedImageTypes.includes(file.type)) {
+      setImportAvatarImageUploadError(`Invalid image type: ${file.name}`)
+      event.target.value = ""
+      return
+    }
+    if (file.size > 10 * 1024 * 1024) {
+      setImportAvatarImageUploadError(`File too large: ${file.name}`)
+      event.target.value = ""
+      return
+    }
+
+    setImportAvatarImageUploading(true)
+    const formData = new FormData()
+    formData.append("file", file)
+    formData.append("type", "image")
+
+    try {
+      const res = await fetch("/api/creator/upload", {
+        method: "POST",
+        credentials: "include",
+        body: formData,
+      })
+      const data = await res.json()
+
+      if (!res.ok) {
+        setImportAvatarImageUploadError(data.error || "Failed to upload profile image.")
+        return
+      }
+
+      updateImportAvatarJsonImage(data.path)
+      toast({
+        title: "Profile image uploaded",
+        description: "Saved to Cloudinary and linked to this character profile.",
+      })
+    } catch (error) {
+      setImportAvatarImageUploadError(error instanceof Error ? error.message : "Upload failed.")
+    } finally {
+      setImportAvatarImageUploading(false)
+      event.target.value = ""
+    }
+  }, [toast, updateImportAvatarJsonImage])
 
   // Media upload handlers
   const handleMediaUpload = useCallback(async (files: FileList | null, type: "image" | "audio") => {
@@ -1655,6 +1944,39 @@ function CreatorDashboardContent() {
     })
   }, [graphJson, uploadedMedia, toast])
 
+  const handleFlowStudioMediaUpload = useCallback(
+    (item: { name: string; type: "image" | "audio"; url: string; serverPath: string; mappedToNode?: string }) => {
+      setUploadedMedia((prev) => {
+        const alreadyAdded = prev.some(
+          (media) => media.serverPath === item.serverPath && media.mappedToNode === item.mappedToNode,
+        )
+        if (alreadyAdded) return prev
+        return [
+          ...prev,
+          {
+            id: `flow-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`,
+            name: item.name,
+            type: item.type,
+            url: item.url,
+            serverPath: item.serverPath,
+            mappedToNode: item.mappedToNode,
+          },
+        ]
+      })
+    },
+    [],
+  )
+
+  const handleFlowStudioDone = useCallback(() => {
+    setShowFlowStudio(false)
+    setActiveTab("new")
+    setShowSaveHint(true)
+    requestAnimationFrame(() => {
+      saveButtonRef.current?.scrollIntoView({ behavior: "smooth", block: "center" })
+      saveButtonRef.current?.focus({ preventScroll: true })
+    })
+  }, [])
+
   // Walkthrough handlers
   const handleStartWalkthrough = () => {
     setShowWelcome(false)
@@ -1694,6 +2016,17 @@ function CreatorDashboardContent() {
     if (!normalizedStoryCode) return null
     return stories.find((story) => story.slug === normalizedStoryCode && story.id !== editingStoryId) ?? null
   }, [stories, normalizedStoryCode, editingStoryId])
+  const hasExampleStory = useMemo(() => {
+    const example = stories.find((story) => story.slug === exampleStory.slug)
+    if (!example) return false
+    const hasTag = Array.isArray(example.tags) && example.tags.includes(exampleStory.tag)
+    return (
+      example.title === exampleStory.title &&
+      example.summary === exampleStory.summary &&
+      hasTag &&
+      example.createdAt === example.updatedAt
+    )
+  }, [stories])
   const parsedGraph = useMemo(() => {
     try {
       const parsed = JSON.parse(graphJson)
@@ -1830,17 +2163,20 @@ function CreatorDashboardContent() {
     setSummary(story.summary ?? "")
     setTags(story.tags.join(", "))
     setVisibility((story.visibility as "PRIVATE" | "UNLISTED" | "PUBLIC") ?? "PRIVATE")
-    setGraphJson(
-      JSON.stringify(
-        {
-          nodes: story.nodes,
-          paths: story.paths,
-          transitions: story.transitions,
-        },
-        null,
-        2,
-      ),
-    )
+    const graphPayload: Record<string, unknown> = {
+      nodes: story.nodes,
+      paths: story.paths,
+      transitions: story.transitions,
+    }
+    if (story.metadata?.avatar?.initialResources) {
+      const resources = story.metadata.avatar.initialResources as Record<string, unknown>
+      graphPayload.initialResources = {
+        money: typeof resources.money === "number" ? resources.money : 0,
+        time: typeof resources.time === "number" ? resources.time : 0,
+        health: typeof resources.health === "number" ? resources.health : 100,
+      }
+    }
+    setGraphJson(JSON.stringify(graphPayload, null, 2))
     if (story.metadata?.avatar) {
       setAvatarJson(JSON.stringify(story.metadata.avatar, null, 2))
       setIncludeAvatar(true)
@@ -1946,10 +2282,13 @@ function CreatorDashboardContent() {
         throw new Error(validation.message)
       }
 
+      const graphInitialResources = extractGraphInitialResources(graph)
+
       let avatarMetadata: AvatarMetadata | undefined
       if (includeAvatar) {
         try {
-          avatarMetadata = JSON.parse(avatarJson)
+          const parsedAvatar = JSON.parse(avatarJson) as AvatarMetadata
+          avatarMetadata = applyGraphInitialResourcesToAvatar(parsedAvatar, graphInitialResources)
         } catch (parseError) {
           throw new Error("Avatar metadata JSON is invalid. Please ensure it is valid JSON.")
         }
@@ -2011,6 +2350,7 @@ function CreatorDashboardContent() {
         setPublishError(null)
         setPublishSuccess(null)
         setMediaUploadError(null)
+        setGraphResourceError(null)
       }
 
       try {
@@ -2058,11 +2398,14 @@ function CreatorDashboardContent() {
         throw new Error(validation.message)
       }
 
+      const graphInitialResources = extractGraphInitialResources(graph)
+
       // Validate avatar if included
       let avatarMetadata: AvatarMetadata | undefined
       if (includeAvatar) {
         try {
-          avatarMetadata = JSON.parse(avatarJson)
+          const parsedAvatar = JSON.parse(avatarJson) as AvatarMetadata
+          avatarMetadata = applyGraphInitialResourcesToAvatar(parsedAvatar, graphInitialResources)
         } catch (parseError) {
           throw new Error("Avatar metadata JSON is invalid. Please ensure it is valid JSON.")
         }
@@ -2411,6 +2754,7 @@ function CreatorDashboardContent() {
       setImportTags("")
       setImportAvatarJson(avatarTemplateJson)
       setImportIncludeAvatar(true)
+      setImportAvatarImageUploadError(null)
 
       try {
         await refreshStories()
@@ -2434,6 +2778,42 @@ function CreatorDashboardContent() {
       })),
     [stories],
   )
+
+  const avatarImagePreview = useMemo(() => {
+    if (!includeAvatar) return ""
+    try {
+      const parsed = JSON.parse(avatarJson)
+      const image = parsed?.appearance?.image
+      return typeof image === "string" ? image : ""
+    } catch {
+      return ""
+    }
+  }, [avatarJson, includeAvatar])
+
+  const importAvatarImagePreview = useMemo(() => {
+    if (!importIncludeAvatar) return ""
+    try {
+      const parsed = JSON.parse(importAvatarJson)
+      const image = parsed?.appearance?.image
+      return typeof image === "string" ? image : ""
+    } catch {
+      return ""
+    }
+  }, [importAvatarJson, importIncludeAvatar])
+
+  const graphResourceValues = useMemo(() => {
+    try {
+      const parsed = JSON.parse(graphJson)
+      const resources = parsed?.initialResources ?? {}
+      return {
+        money: typeof resources.money === "number" ? resources.money : "",
+        time: typeof resources.time === "number" ? resources.time : "",
+        health: typeof resources.health === "number" ? resources.health : "",
+      }
+    } catch {
+      return { money: "", time: "", health: "" }
+    }
+  }, [graphJson])
 
   // Helper to validate image path
   const getStoryImage = (story: typeof storiesPreview[0]): string | null => {
@@ -2515,6 +2895,19 @@ function CreatorDashboardContent() {
     )
   }
 
+  if (showFlowStudio) {
+    return (
+      <FlowStudioPage
+        graphJson={graphJson}
+        onGraphJsonChange={setGraphJson}
+        storyTitle={title}
+        onClose={() => setShowFlowStudio(false)}
+        onMediaUploaded={handleFlowStudioMediaUpload}
+        onDone={handleFlowStudioDone}
+      />
+    )
+  }
+
   return (
     <PageContainer>
       <AppHeader />
@@ -2572,20 +2965,17 @@ function CreatorDashboardContent() {
                       <StoryCard key={story.id} {...(isExampleStory ? { "data-walkthrough": "example-story-card" } : {})}>
                         <StoryHeader>
                           <StoryAvatar>
-                            {storyImage ? (
-                              <StoryAvatarImage 
-                                src={storyImage} 
+                            <StoryAvatarFallback aria-hidden>
+                              <BookOpen size={20} />
+                            </StoryAvatarFallback>
+                            {storyImage && (
+                              <StoryAvatarImage
+                                src={storyImage}
                                 alt=""
                                 onError={(e) => {
-                                  e.currentTarget.style.display = 'none'
-                                  const parent = e.currentTarget.parentElement
-                                  if (parent) {
-                                    parent.innerHTML = '<span style="font-size: 20px;">📖</span>'
-                                  }
+                                  e.currentTarget.style.display = "none"
                                 }}
                               />
-                            ) : (
-                              <StoryAvatarEmoji role="img" aria-label="story">📖</StoryAvatarEmoji>
                             )}
                           </StoryAvatar>
                           <StoryInfo>
@@ -2657,6 +3047,7 @@ function CreatorDashboardContent() {
                         <InfoBoxTitle>Story Structure Guide</InfoBoxTitle>
                         <InfoBoxList style={{ color: 'rgba(147, 197, 253, 0.9)' }}>
                           <li><strong>nodes:</strong> Array of passages (key, title, type, content, media)</li>
+                          <li><strong>initialResources:</strong> Starting Money, Time, Health values</li>
                           <li><strong>content.text:</strong> Array of paragraph strings</li>
                           <li><strong>content.choices:</strong> Array with id, text, leads_to, effects</li>
                           <li><strong>content.next:</strong> Target node for Continue button</li>
@@ -2727,14 +3118,113 @@ function CreatorDashboardContent() {
                         </ToggleLabel>
                       </SectionHeader>
                       {includeAvatar && (
-                        <MonoTextarea value={avatarJson} onChange={(e) => setAvatarJson(e.target.value)} rows={12} />
+                        <>
+                          <MonoTextarea value={avatarJson} onChange={(e) => setAvatarJson(e.target.value)} rows={12} />
+                          <div style={{ marginTop: 12, borderRadius: 12, border: "1px dashed rgba(192, 132, 252, 0.4)", padding: 12, background: "rgba(76, 29, 149, 0.15)", display: "flex", flexDirection: "column", gap: 10 }}>
+                            <div style={{ fontSize: 13, fontWeight: 600, color: "rgb(233, 213, 255)" }}>
+                              Character Profile Image
+                            </div>
+                            <div style={{ fontSize: 12, color: "rgba(216, 180, 254, 0.8)" }}>
+                              Upload a profile image for the protagonist. Supported formats: JPG, PNG, GIF. Max size: 5MB.
+                            </div>
+                            {avatarImageUploadError && (
+                              <span style={{ color: "rgb(252, 165, 165)", fontSize: 12 }}>
+                                {avatarImageUploadError}
+                              </span>
+                            )}
+                            <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
+                              <input
+                                ref={avatarImageInputRef}
+                                type="file"
+                                accept="image/*"
+                                style={{ display: "none" }}
+                                onChange={handleAvatarImageUpload}
+                              />
+                              <Button
+                                type="button"
+                                $variant="outline"
+                                $size="sm"
+                                onClick={() => avatarImageInputRef.current?.click()}
+                                disabled={avatarImageUploading}
+                                style={{ borderColor: "rgba(192, 132, 252, 0.6)", color: "rgb(216, 180, 254)" }}
+                              >
+                                {avatarImageUploading ? "Uploading…" : "Upload Profile Image"}
+                              </Button>
+                              {avatarImagePreview && (
+                                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                                  <img
+                                    src={avatarImagePreview}
+                                    alt="Character profile"
+                                    style={{ width: 40, height: 40, borderRadius: "50%", objectFit: "cover", border: "1px solid rgba(216, 180, 254, 0.6)" }}
+                                  />
+                                  <span style={{ fontSize: 11, color: "rgba(216, 180, 254, 0.8)", maxWidth: 220, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                                    {avatarImagePreview}
+                                  </span>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        </>
                       )}
                     </SectionBox>
 
-                    {/* Story Graph JSON */}
+                    {/* Story Graph */}
                     <FormGroup>
                       <Label>Story Graph JSON</Label>
-                      <MonoTextarea value={graphJson} onChange={(e) => setGraphJson(e.target.value)} rows={16} />
+                      <div style={{ marginTop: 8, marginBottom: 12, borderRadius: 12, border: "1px solid rgba(96, 165, 250, 0.25)", padding: 12, background: "rgba(15, 23, 42, 0.35)" }}>
+                        <div style={{ fontSize: 13, fontWeight: 600, color: "rgb(191, 219, 254)", marginBottom: 6 }}>
+                          Initial Resources (Top Bar Stats)
+                        </div>
+                        <div style={{ fontSize: 12, color: "rgba(148, 163, 184, 0.9)", marginBottom: 10 }}>
+                          These values live in the story graph and control the starting Money, Time, and Health.
+                        </div>
+                        {graphResourceError && (
+                          <span style={{ color: "rgb(252, 165, 165)", fontSize: 12 }}>
+                            {graphResourceError}
+                          </span>
+                        )}
+                        <FormGrid>
+                          <FormGroup>
+                            <Label>Money</Label>
+                            <Input
+                              type="number"
+                              value={graphResourceValues.money}
+                              onChange={(e) => updateGraphResource("money", e.target.value)}
+                            />
+                          </FormGroup>
+                          <FormGroup>
+                            <Label>Time (hours)</Label>
+                            <Input
+                              type="number"
+                              value={graphResourceValues.time}
+                              onChange={(e) => updateGraphResource("time", e.target.value)}
+                            />
+                          </FormGroup>
+                          <FormGroup>
+                            <Label>Health</Label>
+                            <Input
+                              type="number"
+                              value={graphResourceValues.health}
+                              onChange={(e) => updateGraphResource("health", e.target.value)}
+                            />
+                          </FormGroup>
+                        </FormGrid>
+                      </div>
+                      <GraphEditorRow>
+                        <Button
+                          type="button"
+                          $size="sm"
+                          $variant="secondary"
+                          onClick={() => {
+                            setShowSaveHint(false)
+                            setShowFlowStudio(true)
+                          }}
+                        >
+                          Open Flow Studio
+                        </Button>
+                        <GraphEditorHint>Use Flow Studio to build visually, then save here.</GraphEditorHint>
+                      </GraphEditorRow>
+                      <MonoTextarea value={graphJson} onChange={(e) => setGraphJson(e.target.value)} rows={12} />
                     </FormGroup>
 
                     <SectionBox $color="emerald">
@@ -2860,16 +3350,45 @@ function CreatorDashboardContent() {
                           </Button>
 
                           <span style={{ fontSize: 12, color: 'rgb(100, 116, 139)' }}>
-                            Note: After applying mappings, manually upload the actual files to your /public/scenes/ and /public/audio/ directories.
+                            Note: Uploaded files are stored in Cloudinary. Use the generated URLs in your story graph to reference the media assets.
                           </span>
                         </div>
                       )}
                     </SectionBox>
 
                     <ButtonRow style={{ paddingTop: 8 }}>
-                      <Button type="submit" disabled={creating || hasStoryCodeConflict}>
-                        {creating ? "Saving…" : "Save Story"}
-                      </Button>
+                      <SaveHintWrapper>
+                        {showSaveHint && (
+                          <SaveHint role="status">
+                            <div style={{ fontWeight: 600, marginBottom: 4 }}>Almost there</div>
+                            <div>If everything is finalized, save the story.</div>
+                            <div style={{ marginTop: 8 }}>
+                              <button
+                                type="button"
+                                onClick={() => setShowSaveHint(false)}
+                                style={{
+                                  background: "transparent",
+                                  border: "none",
+                                  color: "rgb(148, 197, 253)",
+                                  cursor: "pointer",
+                                  fontSize: 11,
+                                  padding: 0,
+                                }}
+                              >
+                                Got it
+                              </button>
+                            </div>
+                          </SaveHint>
+                        )}
+                        <Button
+                          ref={saveButtonRef}
+                          type="submit"
+                          disabled={creating || hasStoryCodeConflict}
+                          onClick={() => setShowSaveHint(false)}
+                        >
+                          {creating ? "Saving…" : "Save Story"}
+                        </Button>
+                      </SaveHintWrapper>
                       <Button type="button" $variant="secondary" disabled={publishing || hasStoryCodeConflict} onClick={requestPublishNewStory}>
                         {publishing ? "Submitting…" : "Publish for Approval"}
                       </Button>
@@ -2938,7 +3457,7 @@ function CreatorDashboardContent() {
                         </div>
                         <InfoBox $color="amber" style={{ padding: '8px 12px', marginBottom: 12 }}>
                           <p style={{ fontSize: 12, color: 'rgb(254, 243, 199)', margin: 0 }}>
-                            <strong>Note:</strong> This is the format Twine exports. Upload the file below and Loop converts it automatically. Don't paste this into the "Create/Update" tab—that uses Loop's native format.
+                            <strong>Note:</strong> This is the format Twine exports. Upload the file below and Loop converts it automatically. Note that if you paste directly into the &quot;Create/Update&quot; tab, it will not accept this format and instead use Loop&apos;s native format.
                           </p>
                         </InfoBox>
                         <CodeBlock>{twineJsonExample}</CodeBlock>
@@ -2958,7 +3477,7 @@ function CreatorDashboardContent() {
                       <InfoBox $color="emerald" style={{ padding: 20 }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 12, paddingBottom: 12 }}>
                           <UploadCloud size={20} color="rgb(110, 231, 183)" />
-                          <h3 style={{ fontSize: 16, fontWeight: 600, color: 'white', margin: 0 }}>CLI Upload (Advanced)</h3>
+                          <h3 style={{ fontSize: 16, fontWeight: 600, color: 'white', margin: 0 }}>CLI Upload</h3>
                         </div>
                         <p style={{ fontSize: 12, color: 'rgb(167, 243, 208)', margin: '0 0 12px 0' }}>
                           Skip manual uploads and run the Loop CLI helper against your Twison export:
@@ -3063,7 +3582,53 @@ function CreatorDashboardContent() {
                         </ToggleLabel>
                       </SectionHeader>
                       {importIncludeAvatar && (
-                        <MonoTextarea value={importAvatarJson} onChange={(e) => setImportAvatarJson(e.target.value)} rows={10} />
+                        <>
+                          <MonoTextarea value={importAvatarJson} onChange={(e) => setImportAvatarJson(e.target.value)} rows={10} />
+                          <div style={{ marginTop: 12, borderRadius: 12, border: "1px dashed rgba(192, 132, 252, 0.4)", padding: 12, background: "rgba(76, 29, 149, 0.15)", display: "flex", flexDirection: "column", gap: 10 }}>
+                            <div style={{ fontSize: 13, fontWeight: 600, color: "rgb(233, 213, 255)" }}>
+                              Character Profile Image
+                            </div>
+                            <div style={{ fontSize: 12, color: "rgba(216, 180, 254, 0.8)" }}>
+                              Upload a profile image for the protagonist (stored in Cloudinary). This is separate from the Media Library.
+                            </div>
+                            {importAvatarImageUploadError && (
+                              <span style={{ color: "rgb(252, 165, 165)", fontSize: 12 }}>
+                                {importAvatarImageUploadError}
+                              </span>
+                            )}
+                            <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
+                              <input
+                                ref={importAvatarImageInputRef}
+                                type="file"
+                                accept="image/*"
+                                style={{ display: "none" }}
+                                onChange={handleImportAvatarImageUpload}
+                              />
+                              <Button
+                                type="button"
+                                $variant="outline"
+                                $size="sm"
+                                onClick={() => importAvatarImageInputRef.current?.click()}
+                                disabled={importAvatarImageUploading}
+                                style={{ borderColor: "rgba(192, 132, 252, 0.6)", color: "rgb(216, 180, 254)" }}
+                              >
+                                {importAvatarImageUploading ? "Uploading…" : "Upload Profile Image"}
+                              </Button>
+                              {importAvatarImagePreview && (
+                                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                                  <img
+                                    src={importAvatarImagePreview}
+                                    alt="Character profile"
+                                    style={{ width: 40, height: 40, borderRadius: "50%", objectFit: "cover", border: "1px solid rgba(216, 180, 254, 0.6)" }}
+                                  />
+                                  <span style={{ fontSize: 11, color: "rgba(216, 180, 254, 0.8)", maxWidth: 220, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                                    {importAvatarImagePreview}
+                                  </span>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        </>
                       )}
                     </SectionBox>
 
@@ -3078,6 +3643,7 @@ function CreatorDashboardContent() {
                         setImportSummary("")
                         setImportTags("")
                         setImportAvatarJson(avatarTemplateJson)
+                        setImportAvatarImageUploadError(null)
                         setImportError(null)
                       }}>
                         Reset
@@ -3095,7 +3661,7 @@ function CreatorDashboardContent() {
           <DialogOverlay onClick={() => { setOwnershipModalOpen(false); resetOwnershipModal() }}>
             <DialogContent onClick={(e) => e.stopPropagation()}>
               <DialogTitle>Transfer & credit acknowledgement</DialogTitle>
-              <DialogDescription>Approved stories move into Loop's shared catalogue with permanent credit.</DialogDescription>
+              <DialogDescription>Approved stories move into Loop&apos;s shared catalogue with permanent credit.</DialogDescription>
               <DialogBody>
                 <CheckboxLabel>
                   <Checkbox checked={ownershipAck.transfer} onChange={(e) => setOwnershipAck((prev) => ({ ...prev, transfer: e.target.checked }))} style={{ marginTop: 2 }} />
@@ -3131,7 +3697,12 @@ function CreatorDashboardContent() {
         )}
 
         <WelcomeModal isOpen={showWelcome} onStart={handleStartWalkthrough} onSkip={handleSkipWalkthrough} />
-        <CreatorWalkthrough isOpen={showWalkthrough} onComplete={handleCompleteWalkthrough} onTabChange={setActiveTab} />
+        <CreatorWalkthrough
+          isOpen={showWalkthrough}
+          onComplete={handleCompleteWalkthrough}
+          onTabChange={setActiveTab}
+          hasExampleStory={hasExampleStory}
+        />
       </MainContent>
     </PageContainer>
   )
