@@ -28,7 +28,7 @@ export async function GET(_request: Request, { params }: RouteParams) {
   }
 
   if (!avatar.storyId) {
-    return NextResponse.json({ avatar, story: null, nodes: [], paths: [], transitions: [] })
+    return NextResponse.json({ avatar, story: null, nodes: [], paths: [], transitions: [], storyRuntime: null })
   }
 
   const story = await prisma.twineStory.findUnique({
@@ -46,10 +46,10 @@ export async function GET(_request: Request, { params }: RouteParams) {
   })
 
   if (!story) {
-    return NextResponse.json({ avatar, story: null, nodes: [], paths: [], transitions: [] })
+    return NextResponse.json({ avatar, story: null, nodes: [], paths: [], transitions: [], storyRuntime: null })
   }
 
-  const [nodes, paths, transitions] = await Promise.all([
+  const [nodes, paths, transitions, matchingScenario] = await Promise.all([
     prisma.storyNode.findMany({
       where: { storyId: story.id },
       orderBy: { createdAt: "asc" },
@@ -62,7 +62,30 @@ export async function GET(_request: Request, { params }: RouteParams) {
       where: { storyId: story.id },
       orderBy: [{ fromNodeId: "asc" }, { ordering: "asc" }],
     }),
+    typeof prisma.scenario?.findFirst === "function"
+      ? prisma.scenario.findFirst({
+          where: {
+            OR: [
+              { id: story.slug },
+              { id: story.id },
+              { metadata: { path: ["storySlug"], equals: story.slug } },
+              { metadata: { path: ["storyId"], equals: story.id } },
+            ],
+          },
+          select: { metadata: true },
+        })
+      : Promise.resolve(null),
   ])
 
-  return NextResponse.json({ avatar, story, nodes, paths, transitions })
+  let storyRuntime: unknown = null
+  if (
+    matchingScenario?.metadata &&
+    typeof matchingScenario.metadata === "object" &&
+    !Array.isArray(matchingScenario.metadata)
+  ) {
+    const metadata = matchingScenario.metadata as Record<string, unknown>
+    storyRuntime = metadata.storyRuntime ?? metadata.simulation ?? null
+  }
+
+  return NextResponse.json({ avatar, story, nodes, paths, transitions, storyRuntime })
 }

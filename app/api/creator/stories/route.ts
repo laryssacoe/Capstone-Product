@@ -5,6 +5,7 @@ import { z } from "zod"
 import { getCurrentSession } from "@/lib/server/auth"
 import { buildStoryApprovalLinks, isMailerConfigured, sendStoryPendingUpdateEmail } from "@/lib/server/mailer"
 import { prisma } from "@/lib/server/prisma"
+import { syncScenarioRuntimeForStory } from "@/lib/server/scenario-runtime"
 import { storyPayloadSchema, storyUpdatePayloadSchema, upsertStoryGraph, type StoryPayload } from "@/lib/server/story-graph"
 
 export const dynamic = "force-dynamic"
@@ -417,6 +418,7 @@ export async function POST(request: Request) {
 
   let parsed: ReturnType<typeof storyPayloadSchema.safeParse>
   let avatarData: z.infer<typeof avatarMetadataSchema> | undefined
+  let storyRuntimeData: unknown
   
   try {
     const json = await request.json()
@@ -427,6 +429,9 @@ export async function POST(request: Request) {
       if (avatarParsed.success) {
         avatarData = avatarParsed.data
       }
+    }
+    if (json.metadata?.storyRuntime !== undefined) {
+      storyRuntimeData = json.metadata.storyRuntime
     }
     
     parsed = storyPayloadSchema.safeParse(json)
@@ -470,6 +475,11 @@ export async function POST(request: Request) {
     if (avatarData) {
       await upsertAvatarFromMetadata(story.id, avatarData)
     }
+    await syncScenarioRuntimeForStory({
+      story,
+      avatar: avatarData,
+      runtimeRaw: storyRuntimeData,
+    })
 
     const pendingUpdateEmailStatus = await handlePendingStoryUpdate(story, session.user)
 
@@ -497,6 +507,7 @@ export async function PUT(request: Request) {
 
   let parsed: ReturnType<typeof storyUpdatePayloadSchema.safeParse>
   let avatarData: z.infer<typeof avatarMetadataSchema> | undefined
+  let storyRuntimeData: unknown
   
   try {
     const json = await request.json()
@@ -507,6 +518,9 @@ export async function PUT(request: Request) {
       if (avatarParsed.success) {
         avatarData = avatarParsed.data
       }
+    }
+    if (json.metadata?.storyRuntime !== undefined) {
+      storyRuntimeData = json.metadata.storyRuntime
     }
     
     parsed = storyUpdatePayloadSchema.safeParse(json)
@@ -578,6 +592,12 @@ export async function PUT(request: Request) {
     if (avatarData) {
       await upsertAvatarFromMetadata(story.id, avatarData)
     }
+    await syncScenarioRuntimeForStory({
+      story,
+      avatar: avatarData,
+      runtimeRaw: storyRuntimeData,
+      previousSlug: existingStory.slug,
+    })
 
     const pendingUpdateEmailStatus = await handlePendingStoryUpdate(story, session.user)
 

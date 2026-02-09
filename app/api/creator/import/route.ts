@@ -4,6 +4,7 @@ import { z } from "zod"
 
 import { getCurrentSession } from "@/lib/server/auth"
 import { prisma } from "@/lib/server/prisma"
+import { syncScenarioRuntimeForStory } from "@/lib/server/scenario-runtime"
 import {
   convertTwisonToStoryPayload,
   type TwisonStory,
@@ -64,6 +65,7 @@ const importOverridesSchema = z.object({
   tags: z.array(z.string()).optional(),
   visibility: z.enum(["PRIVATE", "UNLISTED", "PUBLIC"]).optional(),
   avatar: avatarMetadataSchema.optional(),
+  storyRuntime: z.unknown().optional(),
 })
 
 type ImportOverrides = z.infer<typeof importOverridesSchema>
@@ -377,6 +379,11 @@ export async function POST(request: Request) {
     // Auto-generate basic avatar if none provided
     await maybeAttachAutoAvatar(session.user.id, story.id, payload, twison)
   }
+  await syncScenarioRuntimeForStory({
+    story,
+    avatar: overrides.avatar,
+    runtimeRaw: overrides.storyRuntime,
+  })
 
   return NextResponse.json(
     {

@@ -51,7 +51,7 @@ export async function GET(request: Request, { params }: RouteParams) {
     return NextResponse.json({ error: "Not authorized to view this story." }, { status: 403 })
   }
 
-  const [nodes, paths, transitions, avatars] = await Promise.all([
+  const [nodes, paths, transitions, avatars, matchingScenario] = await Promise.all([
     prisma.storyNode.findMany({
       where: { storyId: story.id },
       orderBy: { createdAt: "asc" },
@@ -68,10 +68,32 @@ export async function GET(request: Request, { params }: RouteParams) {
       where: { storyId: story.id },
       orderBy: [{ isPlayable: "desc" }, { updatedAt: "desc" }],
     }),
+    typeof prisma.scenario?.findFirst === "function"
+      ? prisma.scenario.findFirst({
+          where: {
+            OR: [
+              { id: story.slug },
+              { id: story.id },
+              { metadata: { path: ["storySlug"], equals: story.slug } },
+              { metadata: { path: ["storyId"], equals: story.id } },
+            ],
+          },
+          select: { metadata: true },
+        })
+      : Promise.resolve(null),
   ])
 
   const avatar = avatars.find((a) => a.isPlayable) ?? avatars[0] ?? null
+  let storyRuntime: unknown = null
+  if (
+    matchingScenario?.metadata &&
+    typeof matchingScenario.metadata === "object" &&
+    !Array.isArray(matchingScenario.metadata)
+  ) {
+    const metadata = matchingScenario.metadata as Record<string, unknown>
+    storyRuntime = metadata.storyRuntime ?? metadata.simulation ?? null
+  }
 
-  const response = NextResponse.json({ story, nodes, paths, transitions, avatar })
+  const response = NextResponse.json({ story, nodes, paths, transitions, avatar, storyRuntime })
   return setCacheControl(response, isPublic ? cachePolicy.collectionPublic : cachePolicy.privateNoStore)
 }

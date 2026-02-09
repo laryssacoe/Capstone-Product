@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server"
 
+import { cachePolicy, setCacheControl } from "@/lib/http-cache"
 import { prisma } from "@/lib/server/prisma"
 export const dynamic = "force-dynamic"
 
@@ -35,18 +36,39 @@ export async function GET(_req: Request, { params }: RouteParams) {
       orderBy: [{ isPlayable: "desc" }, { updatedAt: "desc" }],
     }))
 
-  return NextResponse.json(
+  let storyRuntime: unknown = null
+  if (typeof prisma.scenario?.findFirst === "function") {
+    const matchingScenario = await prisma.scenario.findFirst({
+      where: {
+        OR: [
+          { id: story.slug },
+          { id: story.id },
+          { metadata: { path: ["storySlug"], equals: story.slug } },
+          { metadata: { path: ["storyId"], equals: story.id } },
+        ],
+      },
+      select: { metadata: true },
+    })
+
+    if (
+      matchingScenario?.metadata &&
+      typeof matchingScenario.metadata === "object" &&
+      !Array.isArray(matchingScenario.metadata)
+    ) {
+      const metadata = matchingScenario.metadata as Record<string, unknown>
+      storyRuntime = metadata.storyRuntime ?? metadata.simulation ?? null
+    }
+  }
+
+  const response = NextResponse.json(
     {
       avatar: attachedAvatar ?? null,
       story,
       nodes: story.nodes,
       paths: story.paths,
       transitions: story.transitions,
-    },
-    {
-      headers: {
-        "Cache-Control": "public, s-maxage=300, stale-while-revalidate=3600",
-      },
+      storyRuntime,
     },
   )
+  return setCacheControl(response, cachePolicy.storyPublic)
 }
