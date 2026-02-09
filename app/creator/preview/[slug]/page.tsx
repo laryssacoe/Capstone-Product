@@ -705,9 +705,7 @@ export default function CreatorStoryPreviewPage() {
         
         const playPromise = audio.play()
         if (playPromise !== undefined) {
-          playPromise
-            .then(() => console.log("Audio started playing"))
-            .catch(err => console.log("Audio autoplay blocked:", err.message))
+          playPromise.catch(() => {})
         }
       } 
     } else {
@@ -728,7 +726,7 @@ export default function CreatorStoryPreviewPage() {
     if (!audioEnabled && currentAudioSrc.current) {
       audio.pause()
     } else if (audioEnabled && currentAudioSrc.current && passageAudio === currentAudioSrc.current) {
-      audio.play().catch(err => console.log("Resume blocked:", err.message))
+      audio.play().catch(() => {})
     }
   }, [audioEnabled, passageAudio])
 

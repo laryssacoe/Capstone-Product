@@ -2215,13 +2215,6 @@ function CreatorDashboardContent() {
     story.nodes.forEach((node) => {
       // Extract images 
       const imagePath = node.media?.image || node.media?.visual
-      if (imagePath) {
-        console.log(`Checking image path: "${imagePath}"`, {
-          isValid: isValidMediaPath(imagePath),
-          alreadySeen: seenPaths.has(imagePath)
-        })
-      }
-      
       if (isValidMediaPath(imagePath) && !seenPaths.has(imagePath)) {
         seenPaths.add(imagePath)
         const mediaItem = {
@@ -2237,13 +2230,6 @@ function CreatorDashboardContent() {
 
       // Extract audio
       const audioPath = node.media?.audio
-      if (audioPath) {
-        console.log(`Checking audio path: "${audioPath}"`, {
-          isValid: isValidMediaPath(audioPath),
-          alreadySeen: seenPaths.has(audioPath)
-        })
-      }
-      
       if (isValidMediaPath(audioPath) && !seenPaths.has(audioPath)) {
         seenPaths.add(audioPath)
         const mediaItem = {
@@ -3270,7 +3256,6 @@ function CreatorDashboardContent() {
                                         src={media.serverPath || media.url} 
                                         alt="" 
                                         onError={(e) => {
-                                          console.log("Thumbnail failed to load:", media.serverPath || media.url)
                                           e.currentTarget.style.display = 'none'
                                         }}
                                       />

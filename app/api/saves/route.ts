@@ -178,8 +178,6 @@ export async function DELETE(request: NextRequest) {
       where,
     })
 
-    console.log(`Deleted ${result.count} saves for story ${storySlug}`)
-
     return NextResponse.json({ success: true, deletedCount: result.count })
   } catch (error) {
     console.error("Error deleting saves:", error)

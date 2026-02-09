@@ -153,7 +153,6 @@ async function handlePendingStoryUpdate(story: {
     typeof prisma.storyPath?.findMany !== "function" ||
     typeof prisma.storyTransition?.findMany !== "function"
   ) {
-    console.warn("[api/creator/stories] Skipping pending update sync: prisma delegate missing in test context.")
     return null
   }
 
@@ -246,7 +245,6 @@ async function handlePendingStoryUpdate(story: {
     : { approveUrl: undefined, rejectUrl: undefined, previewUrl: undefined }
 
   if (!isMailerConfigured()) {
-    console.warn("[api/creator/stories] Pending update email skipped: mailer not configured.")
     return {
       delivered: false,
       message: "Mailer configuration missing. Set SMTP environment variables to receive pending update notifications.",
