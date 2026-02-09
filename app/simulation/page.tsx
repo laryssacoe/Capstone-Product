@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useCallback, useRef, Suspense } from "react"
+import { useState, useEffect, useCallback, useRef, Suspense, useMemo } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import styled, { keyframes } from "styled-components"
 import {
@@ -10,13 +10,20 @@ import {
   RotateCcw,
   ArrowLeft,
   ChevronRight,
+  Users,
+  BarChart3,
+  BookOpen,
+  Scale,
+  Home,
+  GraduationCap,
+  Briefcase,
   Volume2,
   VolumeX,
-  Home,
-  Brain,
-  CheckCircle2,
 } from "lucide-react"
 import type { Avatar, AvatarAppearance, Resources, SocialContext } from "@/types/simulation"
+import OptimizedStoryImage from "@/components/optimized-story-image"
+import { resolveStoryRuntimeConfig, type PostReflectionStatIconKey, type StoryRuntimeConfig } from "@/lib/story-runtime-config"
+import { simulationAnalyticsDefaults, type SimulationAnalyticsActionIcon } from "@/lib/simulation-analytics-defaults"
 
 interface StoryChoice {
   id: string
@@ -75,47 +82,37 @@ type HistoryEntry = {
   }
   visitedPassages: string[]
   choicesMade: string[]
+  choiceHistory: ChoiceRecord[]
   hasReportedCompletion: boolean
 }
 
-// Audio configuration for stories, supports multiple slug variants
-const STORY_AUDIO_CONFIG: Record<string, { path: string; volume: number }> = {
-  "katrina-mahinay": {
-    path: "/audios/Katrina.mp3",
-    volume: 0.3,
-  },
-  "katrina": {
-    path: "/audios/Katrina.mp3",
-    volume: 0.3,
-  },
-  "katrina-story": {
-    path: "/audios/Katrina.mp3",
-    volume: 0.3,
-  },
+type ChoiceRecord = {
+  from: string
+  to?: string
+  label: string
+  effects?: StoryChoice["effects"]
+  kind: "choice" | "continue"
 }
 
-// Helper to find audio config by partial match
-function getAudioConfig(slug: string | null): { path: string; volume: number } | null {
-  if (!slug) return null
-  
-  // Direct match first
-  if (STORY_AUDIO_CONFIG[slug]) {
-    return STORY_AUDIO_CONFIG[slug]
-  }
-  
-  // Try partial match (slug contains key or key contains slug)
-  const lowerSlug = slug.toLowerCase()
-  for (const [key, config] of Object.entries(STORY_AUDIO_CONFIG)) {
-    if (lowerSlug.includes(key) || key.includes(lowerSlug)) {
-      return config
-    }
-  }
-  
-  if (lowerSlug.includes("katrina")) {
-    return STORY_AUDIO_CONFIG["katrina-mahinay"]
-  }
-  
-  return null
+const postReflectionIconMap: Record<PostReflectionStatIconKey, typeof Users> = {
+  users: Users,
+  graduationCap: GraduationCap,
+  dollarSign: DollarSign,
+  home: Home,
+  heart: Heart,
+  briefcase: Briefcase,
+}
+
+const analyticsActionIconMap: Record<SimulationAnalyticsActionIcon, typeof BookOpen> = {
+  bookOpen: BookOpen,
+  users: Users,
+  scale: Scale,
+}
+
+function getAudioConfig(
+  runtimeConfig: Pick<StoryRuntimeConfig, "backgroundAudio"> | null | undefined,
+): { path: string; volume: number } | null {
+  return runtimeConfig?.backgroundAudio?.path ? runtimeConfig.backgroundAudio : null
 }
 
 const fadeIn = keyframes`
@@ -142,16 +139,16 @@ const BackgroundLayer = styled.div`
   z-index: 1;
 `
 
-const BackgroundImage = styled.div<{ $url: string; $hasImage: boolean }>`
+const BackgroundFallback = styled.div`
   position: absolute;
   inset: 0;
-  background-size: cover;
-  background-position: center top;
-  background-image: ${({ $url, $hasImage }) => 
-    $hasImage 
-      ? `url(${$url})` 
-      : `linear-gradient(135deg, #1e1b4b 0%, #312e81 25%, #1e1b4b 50%, #0f172a 75%, #1e1b4b 100%)`
-  };
+  background: linear-gradient(135deg, #1e1b4b 0%, #312e81 25%, #1e1b4b 50%, #0f172a 75%, #1e1b4b 100%);
+`
+
+const BackgroundImageLayer = styled.div`
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
   transition: opacity 0.8s ease;
 `
 
@@ -317,7 +314,13 @@ const CharacterAvatar = styled.div`
   border: 2px solid #8b5cf6;
   flex-shrink: 0;
   box-shadow: 0 4px 12px -4px rgba(139, 92, 246, 0.4);
-  
+
+  span {
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+
   img {
     width: 100%;
     height: 100%;
@@ -495,6 +498,18 @@ const FullScreenBox = styled.div`
   padding: 2rem;
 `
 
+const CompletionBox = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  background: linear-gradient(to bottom, #0f172a, #1e1b4b);
+  color: #e2e8f0;
+  text-align: center;
+  padding: 2rem;
+`
+
 const GameOverTitle = styled.h2`
   font-size: 2.25rem;
   font-weight: 700;
@@ -503,10 +518,18 @@ const GameOverTitle = styled.h2`
 `
 
 const CompletionTitle = styled.h2`
-  font-size: 1.875rem;
+  font-size: 2rem;
   font-weight: 700;
   margin-bottom: 1rem;
   color: #c4b5fd;
+`
+
+const CompletionText = styled.p`
+  font-size: 1.125rem;
+  color: #94a3b8;
+  margin-bottom: 2rem;
+  max-width: 600px;
+  line-height: 1.6;
 `
 
 const ScreenText = styled.p`
@@ -519,7 +542,7 @@ const ScreenText = styled.p`
 
 const FinalStats = styled.div`
   display: flex;
-  gap: 1rem;
+  gap: 24px;
   margin-bottom: 2rem;
   flex-wrap: wrap;
   justify-content: center;
@@ -528,15 +551,35 @@ const FinalStats = styled.div`
 const FinalStatItem = styled.div<{ $color?: string }>`
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 8px;
   background: rgba(51, 65, 85, 0.5);
   padding: 0.625rem 1rem;
   border-radius: 0.625rem;
   color: #e2e8f0;
-  font-size: 0.9rem;
+  font-size: 0.95rem;
   
   svg {
     color: ${({ $color }) => $color || "#94a3b8"};
+  }
+`
+
+const ReplayButton = styled.button`
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.875rem 2rem;
+  background: #8b5cf6;
+  border: none;
+  border-radius: 0.75rem;
+  color: white;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+
+  &:hover {
+    background: #7c3aed;
+    transform: scale(1.02);
   }
 `
 
@@ -554,33 +597,6 @@ const ActionButton = styled.button`
   cursor: pointer;
   transition: all 0.2s;
   &:hover { background: #7c3aed; transform: scale(1.02); }
-`
-
-const HomeButton = styled.button`
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.75rem 1.75rem;
-  background: rgba(51, 65, 85, 0.6);
-  border: 1px solid rgba(71, 85, 105, 0.5);
-  border-radius: 0.625rem;
-  color: #e2e8f0;
-  font-size: 0.95rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s;
-  &:hover { 
-    background: rgba(71, 85, 105, 0.6); 
-    border-color: rgba(139, 92, 246, 0.4);
-    transform: scale(1.02); 
-  }
-`
-
-const ButtonGroup = styled.div`
-  display: flex;
-  gap: 1rem;
-  flex-wrap: wrap;
-  justify-content: center;
 `
 
 const ReflectionBox = styled.div`
@@ -636,47 +652,180 @@ const ReflectionOption = styled.button<{ $selected: boolean }>`
   }
 `
 
-const SubmitButton = styled.button<{ $disabled?: boolean }>`
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  padding: 0.875rem 2rem;
-  background: ${({ $disabled }) => $disabled 
-    ? "rgba(51, 65, 85, 0.5)" 
-    : "linear-gradient(135deg, #10b981, #059669)"};
-  border: 1px solid ${({ $disabled }) => $disabled 
-    ? "rgba(71, 85, 105, 0.5)" 
-    : "rgba(16, 185, 129, 0.5)"};
-  border-radius: 0.75rem;
-  color: ${({ $disabled }) => $disabled ? "#64748b" : "white"};
-  font-size: 1rem;
-  font-weight: 600;
-  cursor: ${({ $disabled }) => $disabled ? "not-allowed" : "pointer"};
-  transition: all 0.2s;
-  box-shadow: ${({ $disabled }) => $disabled 
-    ? "none" 
-    : "0 4px 16px -4px rgba(16, 185, 129, 0.4)"};
-  
-  &:hover:not(:disabled) { 
-    transform: ${({ $disabled }) => $disabled ? "none" : "scale(1.02)"};
-    box-shadow: ${({ $disabled }) => $disabled 
-      ? "none" 
-      : "0 8px 24px -8px rgba(16, 185, 129, 0.5)"};
+const OpenEndedInput = styled.textarea`
+  width: 100%;
+  min-height: 110px;
+  padding: 0.75rem;
+  background: rgba(15, 23, 42, 0.6);
+  border: 1px solid rgba(71, 85, 105, 0.5);
+  border-radius: 0.5rem;
+  color: #e2e8f0;
+  font-size: 0.9rem;
+  resize: vertical;
+  margin-top: 0.5rem;
+  font-family: inherit;
+  line-height: 1.5;
+
+  &:focus {
+    outline: none;
+    border-color: rgba(139, 92, 246, 0.6);
+  }
+
+  &::placeholder {
+    color: #64748b;
   }
 `
 
-const SubmittedMessage = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.75rem 1.25rem;
-  background: rgba(16, 185, 129, 0.15);
-  border: 1px solid rgba(16, 185, 129, 0.3);
-  border-radius: 0.75rem;
-  color: #34d399;
-  font-size: 0.9rem;
+const AnalyticsContainer = styled.div`
+  min-height: 100vh;
+  background: linear-gradient(to bottom, #0f172a, #1e1b4b);
+  color: #e2e8f0;
+  padding: 2rem;
+  overflow-y: auto;
+`
+
+const AnalyticsTitle = styled.h1`
+  font-size: 2rem;
+  font-weight: 700;
+  color: #c4b5fd;
+  margin-bottom: 0.75rem;
+`
+
+const AnalyticsSubtitle = styled.p`
+  color: #94a3b8;
+  font-size: 1.1rem;
+  line-height: 1.6;
+`
+
+const SectionTitle = styled.h2`
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #e2e8f0;
   margin-bottom: 1.5rem;
+  text-align: center;
+`
+
+const ComparisonSection = styled.div`
+  max-width: 900px;
+  margin: 0 auto 3rem auto;
+`
+
+const ComparisonCard = styled.div`
+  background: rgba(30, 41, 59, 0.6);
+  border: 1px solid rgba(139, 92, 246, 0.15);
+  border-radius: 1rem;
+  padding: 2rem;
+  margin-bottom: 1.5rem;
+`
+
+const ComparisonTitle = styled.h3`
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #c4b5fd;
+  margin-bottom: 1rem;
+`
+
+const ComparisonBar = styled.div`
+  margin-bottom: 1.25rem;
+`
+
+const ComparisonLabel = styled.div`
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.875rem;
+  color: #94a3b8;
+  margin-bottom: 0.5rem;
+`
+
+const ComparisonTrack = styled.div`
+  height: 8px;
+  background: rgba(51, 65, 85, 0.5);
+  border-radius: 4px;
+  overflow: hidden;
+`
+
+const ComparisonFill = styled.div<{ $width: number; $color: string }>`
+  height: 100%;
+  width: ${({ $width }) => $width}%;
+  background: ${({ $color }) => $color};
+  border-radius: 4px;
+  transition: width 1s ease;
+`
+
+const InsightBox = styled.div`
+  background: rgba(139, 92, 246, 0.1);
+  border-left: 3px solid #8b5cf6;
+  padding: 1rem 1.25rem;
+  border-radius: 0 0.5rem 0.5rem 0;
+  margin-top: 1rem;
+`
+
+const InsightText = styled.p`
+  font-size: 0.9rem;
+  color: #c4b5fd;
+  line-height: 1.6;
+`
+
+const ResourcesSection = styled.div`
+  max-width: 800px;
+  margin: 0 auto 2rem auto;
+  text-align: center;
+  background: rgba(30, 41, 59, 0.6);
+  border-radius: 1rem;
+  padding: 1.5rem;
+`
+
+const ResourcesGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+  margin-top: 1.5rem;
+`
+
+const ResourceLink = styled.a`
+  display: block;
+  padding: 1rem;
+  background: rgba(51, 65, 85, 0.4);
+  border: 1px solid rgba(71, 85, 105, 0.3);
+  border-radius: 0.75rem;
+  color: #94a3b8;
+  font-size: 0.875rem;
+  text-decoration: none;
+  transition: all 0.2s;
+
+  &:hover {
+    background: rgba(139, 92, 246, 0.15);
+    border-color: rgba(139, 92, 246, 0.3);
+    color: #c4b5fd;
+  }
+`
+
+const MethodologySection = styled.div`
+  max-width: 800px;
+  margin: 0 auto 3rem auto;
+  background: rgba(15, 23, 42, 0.6);
+  border: 1px solid rgba(71, 85, 105, 0.3);
+  border-radius: 1rem;
+  padding: 2rem;
+`
+
+const MethodologyText = styled.p`
+  font-size: 0.875rem;
+  color: #64748b;
+  line-height: 1.7;
+  margin-bottom: 1rem;
+
+  &:last-child {
+    margin-bottom: 0;
+  }
+`
+
+const ActionButtons = styled.div`
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-top: 2rem;
 `
 
 const LoadingContainer = styled.div`
@@ -690,8 +839,8 @@ const LoadingContainer = styled.div`
 `
 
 const Spinner = styled.div`
-  width: 40px;
-  height: 40px;
+  width: 48px;
+  height: 48px;
   border: 3px solid rgba(139, 92, 246, 0.2);
   border-top-color: #8b5cf6;
   border-radius: 50%;
@@ -776,10 +925,7 @@ function normalizeAvatar(raw: any, storySlug: string | null): Avatar {
   }
 }
 
-// Get avatar profile image based on avatar ID or from appearance data
-function getAvatarProfileImage(avatarId: string, fallback: string): string {
-  const id = avatarId.toLowerCase()
-  
+function getAvatarProfileImage(fallback: string): string {
   if (fallback && (
     fallback.startsWith("/scenes/") ||
     fallback.includes("cloudinary.com") ||
@@ -787,12 +933,7 @@ function getAvatarProfileImage(avatarId: string, fallback: string): string {
   )) {
     return fallback
   }
-  
-  // Example specific cases
-  if (id.includes("katrina")) {
-    return "/scenes/katrina-profile.png"
-  }
-  
+
   return fallback
 }
 
@@ -915,7 +1056,7 @@ function buildPersonaStory(
     avatarId,
     title: story?.title ?? "",
     theme: story?.summary ?? "",
-    avatarImage: getAvatarProfileImage(avatarId, fallbackImage),
+    avatarImage: getAvatarProfileImage(fallbackImage),
     avatarName: avatar?.name && String(avatar.name).trim().length > 0 ? avatar.name : story?.title ?? "Character",
     initialStats: {
       money: typeof initialResources.money === "number" ? initialResources.money : 500,
@@ -936,11 +1077,15 @@ function SimulationContent() {
 
   const [isLoading, setIsLoading] = useState(true)
   const [currentStory, setCurrentStory] = useState<ReturnType<typeof buildPersonaStory> | null>(null)
+  const [storyRuntimeConfig, setStoryRuntimeConfig] = useState<StoryRuntimeConfig | null>(null)
   const [currentPassageId, setCurrentPassageId] = useState<string>("start")
   const [stats, setStats] = useState({ money: 500, health: 100, time: 100 })
   const [showChoices, setShowChoices] = useState(false)
   const [choicesVisible, setChoicesVisible] = useState(false)
   const [showReflection, setShowReflection] = useState(false)
+  const [showAnalytics, setShowAnalytics] = useState(false)
+  const [analyticsStep, setAnalyticsStep] = useState(0)
+  const [statIndex, setStatIndex] = useState(0)
   const [reflectionAnswers, setReflectionAnswers] = useState<Record<string, string>>({})
   const [reflectionsSubmitted, setReflectionsSubmitted] = useState(false)
   const [submittingReflections, setSubmittingReflections] = useState(false)
@@ -957,6 +1102,7 @@ function SimulationContent() {
   })
   const [visitedPassages, setVisitedPassages] = useState<string[]>([])
   const [choicesMade, setChoicesMade] = useState<string[]>([])
+  const [choiceHistory, setChoiceHistory] = useState<ChoiceRecord[]>([])
   const [historyStack, setHistoryStack] = useState<HistoryEntry[]>([])
 
   // Global background audio: plays when story loads
@@ -964,55 +1110,25 @@ function SimulationContent() {
     if (!storySlugResolved || !currentStory || isLoading) return
     if (audioInitialized) return 
 
-    const audioConfig = getAudioConfig(storySlugResolved)
-    
-    console.log("Audio init check:", { 
-      storySlugResolved, 
-      audioConfig,
-      audioEnabled,
-      isLoading 
-    })
-    
-    if (!audioConfig) {
-      console.log("No audio config found for story slug:", storySlugResolved)
-      return
-    }
+    const audioConfig = getAudioConfig(storyRuntimeConfig)
+        
+    if (!audioConfig) return
 
     const startAudio = () => {
       if (audioRef.current) {
         audioRef.current.pause()
         audioRef.current = null
       }
-
-      console.log("Creating audio element with path:", audioConfig.path)
       
       const audio = new Audio(audioConfig.path)
       audio.loop = true
       audio.volume = audioConfig.volume
       audioRef.current = audio
       
-      // Add event listeners for debugging
-      audio.addEventListener('canplaythrough', () => {
-        console.log("Audio can play through")
-      })
-      
-      audio.addEventListener('error', (e) => {
-        console.error("Audio error:", e, audio.error)
-      })
-      
-      audio.addEventListener('playing', () => {
-        console.log("Audio is now playing")
-      })
-
       if (audioEnabled) {
-        console.log("Attempting to play audio...")
         audio.play()
-          .then(() => {
-            console.log("Audio playback started successfully")
-          })
-          .catch((err) => {
-            console.warn("Audio autoplay blocked:", err)
-            // Audio will start on first user interaction
+          .catch(() => {
+            // Audio will start on first user interaction.
           })
       }
       
@@ -1023,16 +1139,14 @@ function SimulationContent() {
 
     return () => {
     }
-  }, [storySlugResolved, currentStory, isLoading, audioInitialized, audioEnabled])
+  }, [storySlugResolved, currentStory, isLoading, audioInitialized, audioEnabled, storyRuntimeConfig])
 
   // Handle audio enable/disable toggle
   useEffect(() => {
     if (!audioRef.current) return
 
     if (audioEnabled) {
-      audioRef.current.play().catch((err) => {
-        console.warn("Audio play failed:", err)
-      })
+      audioRef.current.play().catch(() => {})
     } else {
       audioRef.current.pause()
     }
@@ -1042,10 +1156,8 @@ function SimulationContent() {
   useEffect(() => {
     const tryPlayAudio = () => {
       if (audioRef.current && audioEnabled && audioRef.current.paused) {
-        console.log("User interaction detected, trying to play audio...")
         audioRef.current.play()
-          .then(() => console.log("Audio started after user interaction"))
-          .catch((err) => console.warn("Still cannot play:", err))
+          .catch(() => {})
       }
     }
     
@@ -1120,8 +1232,8 @@ function SimulationContent() {
             if (!response.ok) {
               data = null
             }
-          } catch (err) {
-            console.warn("Story fetch failed, trying avatar fallback:", err)
+          } catch {
+            // Continue with avatar fallback.
           }
         }
 
@@ -1147,6 +1259,7 @@ function SimulationContent() {
 
         const resolvedSlug = data.story?.slug ?? slug ?? null
         setStorySlugResolved(resolvedSlug)
+        setStoryRuntimeConfig(resolveStoryRuntimeConfig(data.storyRuntime))
 
         const normalizedAvatar = normalizeAvatar(data.avatar, resolvedSlug)
 
@@ -1194,7 +1307,14 @@ function SimulationContent() {
         })
         setVisitedPassages([initialKey])
         setChoicesMade([])
+        setChoiceHistory([])
         setHistoryStack([])
+        setShowReflection(false)
+        setShowAnalytics(false)
+        setAnalyticsStep(0)
+        setStatIndex(0)
+        setReflectionAnswers({})
+        setReflectionsSubmitted(false)
         setHasReportedCompletion(false)
 
         if (sessionId && resolvedSlug) {
@@ -1219,6 +1339,7 @@ function SimulationContent() {
                 })
                 setVisitedPassages(latest.visitedPassages ?? [initialKey])
                 setChoicesMade(latest.choicesMade ?? [])
+                setChoiceHistory([])
                 // Restore mute state from save if available
                 if (typeof latest.hiddenState?.audioMuted === "boolean") {
                   setAudioEnabled(!latest.hiddenState.audioMuted)
@@ -1226,9 +1347,7 @@ function SimulationContent() {
                 setHistoryStack([])
               }
             }
-          } catch (e) {
-            console.warn("Could not load save state", e)
-          }
+          } catch {}
         }
       } catch (err) {
         if (!cancelled) {
@@ -1282,7 +1401,7 @@ function SimulationContent() {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(savePayload),
-    }).catch((err) => console.warn("Auto-save failed", err))
+    }).catch(() => {})
   }, [audioEnabled, choicesMade, currentPassageId, currentStory, hiddenState, isLoading, sessionId, stats, storySlugResolved, visitedPassages])
 
   const currentPassage = currentStory?.passages[currentPassageId]
@@ -1290,6 +1409,17 @@ function SimulationContent() {
   const hasNext = currentPassage?.next
   const isComplete = currentPassage && !hasChoices && !hasNext
   const canStepBack = historyStack.length > 0
+  const supportValue = hiddenState.supportScore
+  const initialTime = currentStory?.initialStats.time ?? 100
+  const timeSpent = Math.max(0, initialTime - stats.time)
+  const totalRisk = hiddenState.schoolRisk + hiddenState.workRisk + hiddenState.systemRisk
+  const completionEndingType =
+    totalRisk >= 6 || stats.money <= 0 || stats.health <= 20
+      ? "bad"
+      : totalRisk <= 2 && hiddenState.supportScore >= 4
+      ? "good"
+      : "neutral"
+  const moneyComparisonMax = Math.max(currentStory?.initialStats.money ?? 0, stats.money, 1)
 
   useEffect(() => {
     setIsTransitioning(true)
@@ -1315,7 +1445,6 @@ function SimulationContent() {
         if (currentStep >= fadeSteps || newVolume <= 0) {
           clearInterval(fadeInterval)
           audio.pause()
-          console.log("Audio faded out - story complete")
         }
       }, stepTime)
       
@@ -1335,6 +1464,46 @@ function SimulationContent() {
       }
     }
   }, [currentPassageId, currentPassage, hasChoices])
+
+  useEffect(() => {
+    if (!currentStory || !currentPassage) return
+
+    const nextKeys = new Set<string>()
+    if (currentPassage.next) nextKeys.add(currentPassage.next)
+    currentPassage.choices?.forEach((choice) => {
+      if (choice.leads_to) nextKeys.add(choice.leads_to)
+    })
+
+    const nextImages = Array.from(nextKeys)
+      .map((key) => currentStory.passages[key]?.image)
+      .filter((url): url is string => Boolean(url))
+
+    if (!nextImages.length) return
+
+    const createdLinks: HTMLLinkElement[] = []
+
+    nextImages.forEach((url) => {
+      if (document.head.querySelector(`link[rel="preload"][href="${url}"]`)) return
+
+      const link = document.createElement("link")
+      link.rel = "preload"
+      link.as = "image"
+      link.href = url
+      document.head.appendChild(link)
+      createdLinks.push(link)
+    })
+
+    if (!createdLinks.length) return
+
+    const timeoutId = window.setTimeout(() => {
+      createdLinks.forEach((link) => link.remove())
+    }, 30000)
+
+    return () => {
+      window.clearTimeout(timeoutId)
+      createdLinks.forEach((link) => link.remove())
+    }
+  }, [currentStory, currentPassage])
 
   useEffect(() => {
     if (!currentStory || !currentPassage || !isComplete || hasReportedCompletion) return
@@ -1367,41 +1536,8 @@ function SimulationContent() {
     return () => controller.abort()
   }, [currentStory, currentPassage, isComplete, hasReportedCompletion])
 
-  const RISK_EFFECTS: Record<
-    string,
-    Partial<{
-      schoolRisk: number
-      workRisk: number
-      systemRisk: number
-      supportScore: number
-      honestyScore: number
-    }>
-  > = {
-    "hide-letter": { systemRisk: 1, honestyScore: -1 },
-    "tell-miko": { supportScore: 1, honestyScore: 1 },
-    "tell-both": { systemRisk: -1, supportScore: 2, honestyScore: 2 },
-    "choose-school": { schoolRisk: -2, workRisk: 1 },
-    "choose-work": { schoolRisk: 2, workRisk: -1 },
-    "juggle-both": { schoolRisk: -1, workRisk: -1 },
-    "stay-home": { schoolRisk: 1, systemRisk: 1 },
-    "promise-fix": {},
-    "soft-truth-teacher": { schoolRisk: -1, supportScore: 1, honestyScore: 1 },
-    "avoid-meeting": { schoolRisk: 1, systemRisk: 1 },
-    "ask-help": { schoolRisk: -2, supportScore: 2, honestyScore: 1 },
-    downplay: { honestyScore: -1 },
-    "leave-early": { schoolRisk: 1, systemRisk: 1 },
-    "work-quietly": { workRisk: -1 },
-    "ask-more-hours": { schoolRisk: 1, workRisk: -1 },
-    "ask-fewer-hours": { schoolRisk: -1, workRisk: 1 },
-    "promise-better": { workRisk: -1 },
-    "be-honest-boss": { workRisk: -1, supportScore: 1, honestyScore: 1 },
-    "keep-cleaning": { systemRisk: -1 },
-    "vague-reply": { supportScore: 1 },
-    "tell-truth-friends": { supportScore: 2, honestyScore: 1 },
-    "ignore-friends": { supportScore: -1 },
-  }
-
-  const ENDING_CHOICE_IDS = ["plan-next-week", "call-mom", "sit-in-silence"]
+  const riskEffects = useMemo(() => storyRuntimeConfig?.riskEffects ?? {}, [storyRuntimeConfig?.riskEffects])
+  const endingChoiceIds = useMemo(() => storyRuntimeConfig?.endingChoiceIds ?? [], [storyRuntimeConfig?.endingChoiceIds])
 
   const pickEnding = useCallback(
     (nextStats: { money: number; health: number }, nextHidden: typeof hiddenState) => {
@@ -1418,7 +1554,13 @@ function SimulationContent() {
   )
 
   const applyChoiceOutcome = useCallback(
-    (choiceId: string, leadsTo: string | undefined, effects?: StoryChoice["effects"]) => {
+    (
+      choiceId: string,
+      choiceLabel: string,
+      leadsTo: string | undefined,
+      effects?: StoryChoice["effects"],
+      kind: "choice" | "continue" = "choice",
+    ) => {
       if (!leadsTo) return
       const snapshot: HistoryEntry = {
         passageId: currentPassageId,
@@ -1426,6 +1568,7 @@ function SimulationContent() {
         hiddenState: { ...hiddenState },
         visitedPassages: [...visitedPassages],
         choicesMade: [...choicesMade],
+        choiceHistory: [...choiceHistory],
         hasReportedCompletion,
       }
       setHistoryStack((prev) => [...prev, snapshot])
@@ -1437,7 +1580,7 @@ function SimulationContent() {
         time: Math.max(0, stats.time + (resolvedEffects.time ?? 0)),
       }
 
-      const riskEffect = RISK_EFFECTS[choiceId] ?? {}
+      const riskEffect = riskEffects[choiceId] ?? {}
       const updatedHidden = {
         schoolRisk: hiddenState.schoolRisk + (riskEffect.schoolRisk ?? 0),
         workRisk: hiddenState.workRisk + (riskEffect.workRisk ?? 0),
@@ -1449,16 +1592,37 @@ function SimulationContent() {
       setStats(updatedStats)
       setHiddenState(updatedHidden)
 
-      const nextPassageId = ENDING_CHOICE_IDS.includes(choiceId) ? pickEnding(updatedStats, updatedHidden) : leadsTo
+      const nextPassageId = endingChoiceIds.includes(choiceId) ? pickEnding(updatedStats, updatedHidden) : leadsTo
       setChoicesMade((prev) => [...prev, choiceId])
+      setChoiceHistory((prev) => [
+        ...prev,
+        {
+          from: currentPassageId,
+          to: nextPassageId,
+          label: choiceLabel,
+          effects,
+          kind,
+        },
+      ])
       setCurrentPassageId(nextPassageId)
     },
-    [choicesMade, currentPassageId, hasReportedCompletion, hiddenState, pickEnding, stats, visitedPassages],
+    [
+      choiceHistory,
+      choicesMade,
+      currentPassageId,
+      endingChoiceIds,
+      hasReportedCompletion,
+      hiddenState,
+      pickEnding,
+      riskEffects,
+      stats,
+      visitedPassages,
+    ],
   )
 
   const handleChoice = useCallback(
     (choice: StoryChoice) => {
-      applyChoiceOutcome(choice.id, choice.leads_to, choice.effects)
+      applyChoiceOutcome(choice.id, choice.text ?? "Choice", choice.leads_to, choice.effects, "choice")
     },
     [applyChoiceOutcome],
   )
@@ -1466,7 +1630,7 @@ function SimulationContent() {
   const handleContinue = useCallback(() => {
     if (!currentPassage?.next) return
     const choiceId = currentPassage.nextChoiceId ?? `${currentPassage.id}-continue`
-    applyChoiceOutcome(choiceId, currentPassage.next, currentPassage.nextEffects)
+    applyChoiceOutcome(choiceId, "Continue", currentPassage.next, currentPassage.nextEffects, "continue")
   }, [applyChoiceOutcome, currentPassage])
 
   const handleStepBack = useCallback(() => {
@@ -1478,6 +1642,7 @@ function SimulationContent() {
     setHiddenState(previous.hiddenState)
     setVisitedPassages(previous.visitedPassages)
     setChoicesMade(previous.choicesMade)
+    setChoiceHistory(previous.choiceHistory)
     setHasReportedCompletion(previous.hasReportedCompletion)
   }, [historyStack])
 
@@ -1489,9 +1654,7 @@ function SimulationContent() {
           await fetch(`/api/saves?storySlug=${encodeURIComponent(storySlugResolved)}&sessionId=${encodeURIComponent(sessionId)}`, {
             method: "DELETE",
           })
-        } catch (err) {
-          console.warn("Failed to clear save on restart:", err)
-        }
+        } catch {}
       }
       
       const initialKey = currentStory.passages["start"] ? "start" : Object.keys(currentStory.passages)[0]
@@ -1506,33 +1669,50 @@ function SimulationContent() {
       })
       setVisitedPassages([initialKey])
       setChoicesMade([])
+      setChoiceHistory([])
       setHistoryStack([])
       setShowReflection(false)
+      setShowAnalytics(false)
+      setAnalyticsStep(0)
+      setStatIndex(0)
       setReflectionAnswers({})
       setReflectionsSubmitted(false)
       setHasReportedCompletion(false)
       
       // Resume audio if enabled 
       if (audioRef.current && audioEnabled) {
-        const audioConfig = getAudioConfig(storySlugResolved)
+        const audioConfig = getAudioConfig(storyRuntimeConfig)
         if (audioConfig) {
           audioRef.current.volume = audioConfig.volume
         }
-        audioRef.current.play().catch((err) => {
-          console.warn("Failed to resume audio on restart:", err)
-        })
+        audioRef.current.play().catch(() => {})
       }
     }
-  }, [currentStory, sessionId, storySlugResolved, audioEnabled])
+  }, [currentStory, sessionId, storySlugResolved, audioEnabled, storyRuntimeConfig])
 
-  const handleReflectionSelect = (question: string, answer: string) => {
-    setReflectionAnswers((prev) => ({ ...prev, [question]: answer }))
+  const handleReflectionChange = (questionId: string, value: string) => {
+    setReflectionAnswers((prev) => ({ ...prev, [questionId]: value }))
   }
 
-  const allReflectionsAnswered = Object.keys(reflectionAnswers).length >= 3
+  const reflectionQuestions = storyRuntimeConfig?.reflectionQuestions ?? []
+  const openReflectionQuestion = storyRuntimeConfig?.openReflectionQuestion
+  const hasReflectionStep = reflectionQuestions.length > 0 || Boolean(openReflectionQuestion)
+  const hasAnalyticsContent =
+    (storyRuntimeConfig?.postReflectionStats?.length ?? 0) > 0 ||
+    (storyRuntimeConfig?.resourceLinks?.length ?? 0) > 0 ||
+    Boolean(storyRuntimeConfig?.methodologyText)
+  const canShowReflection = hasReflectionStep && hasAnalyticsContent
+  const requiredReflectionIds = canShowReflection ? storyRuntimeConfig?.requiredReflectionIds ?? [] : []
+  const requiredAnsweredCount = requiredReflectionIds.filter((id) => reflectionAnswers[id]).length
+  const requiredTotalCount = requiredReflectionIds.length
+  const allReflectionsAnswered = requiredTotalCount === 0 ? true : requiredAnsweredCount === requiredTotalCount
 
   const handleSubmitReflections = useCallback(async () => {
     if (!sessionId || !storySlugResolved || !allReflectionsAnswered) return
+    if (!canShowReflection) {
+      setReflectionsSubmitted(true)
+      return
+    }
     
     setSubmittingReflections(true)
     
@@ -1546,11 +1726,11 @@ function SimulationContent() {
           storyVersion: "1.0.0",
           sessionId,
           endingId: currentPassageId,
-          endingType: hiddenState.systemRisk > 50 ? "bad" : hiddenState.supportScore > 50 ? "good" : "neutral",
+          endingType: completionEndingType,
           finalResources: stats,
           finalHiddenState: hiddenState,
           totalChoices: choicesMade.length,
-          totalTime: stats.time || 0,
+          totalTime: timeSpent,
           pathTaken: visitedPassages,
           choicesMade,
           reflectionResponses: reflectionAnswers,
@@ -1562,16 +1742,37 @@ function SimulationContent() {
         method: "DELETE",
       })
       
-      console.log("Reflections submitted and save cleared")
       setReflectionsSubmitted(true)
-    } catch (err) {
-      console.warn("Failed to submit reflections:", err)
+    } catch {
       // Still mark as submitted so user can navigate
       setReflectionsSubmitted(true)
     } finally {
       setSubmittingReflections(false)
     }
-  }, [sessionId, storySlugResolved, currentPassageId, stats, visitedPassages, choicesMade, hiddenState, reflectionAnswers, allReflectionsAnswered])
+  }, [
+    sessionId,
+    storySlugResolved,
+    allReflectionsAnswered,
+    currentPassageId,
+    stats,
+    visitedPassages,
+    choicesMade,
+    hiddenState,
+    reflectionAnswers,
+    canShowReflection,
+    completionEndingType,
+    timeSpent,
+  ])
+
+  const handleViewAnalytics = useCallback(async () => {
+    if (!allReflectionsAnswered) return
+    if (!reflectionsSubmitted) {
+      await handleSubmitReflections()
+    }
+    setAnalyticsStep(0)
+    setStatIndex(0)
+    setShowAnalytics(true)
+  }, [allReflectionsAnswered, handleSubmitReflections, reflectionsSubmitted])
 
   const toggleAudio = () => {
     const newState = !audioEnabled
@@ -1692,153 +1893,417 @@ function SimulationContent() {
   }
 
   if (isComplete && !showReflection) {
+    const primaryAction = canShowReflection ? (
+      <ContinueButton onClick={() => setShowReflection(true)}>
+        Continue to Reflection
+        <ChevronRight size={18} />
+      </ContinueButton>
+    ) : hasAnalyticsContent ? (
+      <ContinueButton onClick={handleViewAnalytics}>
+        View Real-World Data
+        <ChevronRight size={18} />
+      </ContinueButton>
+    ) : (
+      <ContinueButton onClick={() => router.push("/scenarios")}>
+        Explore More Stories
+        <ChevronRight size={18} />
+      </ContinueButton>
+    )
+
     return (
       <Container>
-        <FullScreenBox>
+        <CompletionBox>
           <Heart size={44} style={{ color: "#c4b5fd", marginBottom: "1rem" }} />
           <CompletionTitle>Story Complete</CompletionTitle>
-          <ScreenText>
-            You experienced {currentStory.avatarName}&apos;s journey. Every choice shaped their path.
-          </ScreenText>
+          <CompletionText>
+            You navigated {currentStory.avatarName}&apos;s journey, making difficult choices that shaped this outcome.
+          </CompletionText>
           <FinalStats>
             <FinalStatItem $color="#60a5fa">
               <Clock size={18} />
-              <span>{stats.time}h remaining</span>
+              <span>~{timeSpent} min spent</span>
             </FinalStatItem>
             <FinalStatItem $color="#4ade80">
               <DollarSign size={18} />
-              <span>${stats.money} left</span>
+              <span>Final: ${stats.money}</span>
             </FinalStatItem>
             <FinalStatItem $color="#f87171">
               <Heart size={18} />
-              <span>{stats.health}% wellbeing</span>
+              <span>Health: {stats.health}%</span>
+            </FinalStatItem>
+            <FinalStatItem $color="#c084fc">
+              <Users size={18} />
+              <span>Support: {supportValue}/100</span>
             </FinalStatItem>
           </FinalStats>
-          <ContinueButton onClick={() => setShowReflection(true)}>
-            Continue to Reflection
-            <ChevronRight size={18} />
-          </ContinueButton>
-        </FullScreenBox>
+          {primaryAction}
+        </CompletionBox>
       </Container>
     )
   }
 
-  if (isComplete && showReflection) {
+  if (isComplete && showAnalytics) {
+    const analyticsStats = (storyRuntimeConfig?.postReflectionStats ?? []).map((stat) => ({
+      ...stat,
+      icon: postReflectionIconMap[stat.icon] ?? Users,
+    }))
+
+    if (analyticsStats.length === 0 && analyticsStep <= 1) {
+      return (
+        <AnalyticsContainer style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
+          <div style={{ textAlign: "center", maxWidth: "640px", animation: "fadeIn 0.8s ease" }}>
+            <AnalyticsTitle style={{ marginBottom: "0.75rem" }}>{simulationAnalyticsDefaults.noStats.title}</AnalyticsTitle>
+            <AnalyticsSubtitle style={{ marginBottom: "2rem" }}>
+              {simulationAnalyticsDefaults.noStats.subtitle}
+            </AnalyticsSubtitle>
+            <ContinueButton onClick={() => setAnalyticsStep(3)} style={{ margin: "0 auto" }}>
+              {simulationAnalyticsDefaults.noStats.continueLabel}
+              <ChevronRight size={18} />
+            </ContinueButton>
+          </div>
+        </AnalyticsContainer>
+      )
+    }
+
+    if (analyticsStep === 0) {
+      return (
+        <AnalyticsContainer style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
+          <div style={{ textAlign: "center", maxWidth: "600px", animation: "fadeIn 1s ease" }}>
+            <BarChart3 size={64} style={{ color: "#8b5cf6", marginBottom: "1.5rem" }} />
+            <AnalyticsTitle style={{ fontSize: "2.5rem", marginBottom: "1rem" }}>
+              {simulationAnalyticsDefaults.intro.title}
+            </AnalyticsTitle>
+            <AnalyticsSubtitle style={{ fontSize: "1.25rem", marginBottom: "2.5rem" }}>
+              {simulationAnalyticsDefaults.intro.subtitle}
+            </AnalyticsSubtitle>
+            <ContinueButton onClick={() => setAnalyticsStep(1)} style={{ margin: "0 auto" }}>
+              {simulationAnalyticsDefaults.intro.ctaLabel}
+              <ChevronRight size={18} />
+            </ContinueButton>
+          </div>
+        </AnalyticsContainer>
+      )
+    }
+
+    if (analyticsStep === 1) {
+      const currentStat = analyticsStats[statIndex]
+      const IconComponent = currentStat.icon
+      return (
+        <AnalyticsContainer style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
+          <div style={{ textAlign: "center", maxWidth: "500px" }}>
+            <div style={{ marginBottom: "0.75rem", color: "#64748b", fontSize: "0.875rem" }}>
+              {statIndex + 1} of {analyticsStats.length}
+            </div>
+            <div
+              key={statIndex}
+              style={{
+                animation: "fadeIn 0.8s ease",
+                padding: "3rem",
+                background: "rgba(30, 41, 59, 0.6)",
+                borderRadius: "1.5rem",
+                border: `2px solid ${currentStat.color}40`,
+              }}
+            >
+              <div
+                style={{
+                  width: "80px",
+                  height: "80px",
+                  borderRadius: "1rem",
+                  background: `${currentStat.color}20`,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  margin: "0 auto 1.5rem auto",
+                }}
+              >
+                <IconComponent size={40} style={{ color: currentStat.color }} />
+              </div>
+              <div style={{ color: "#94a3b8", fontSize: "0.875rem", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: "0.5rem" }}>
+                {currentStat.title}
+              </div>
+              <div style={{ fontSize: "4rem", fontWeight: "700", color: "#e2e8f0", marginBottom: "1rem" }}>
+                {currentStat.value}
+              </div>
+              <p style={{ color: "#94a3b8", fontSize: "1.1rem", lineHeight: "1.6", marginBottom: "1rem" }}>
+                {currentStat.description}
+              </p>
+              <p style={{ color: "#475569", fontSize: "0.75rem", fontStyle: "italic" }}>
+                Source: {currentStat.source}
+              </p>
+            </div>
+            <div style={{ display: "flex", gap: "0.5rem", justifyContent: "center", marginTop: "1.5rem" }}>
+              {analyticsStats.map((_, i) => (
+                <div
+                  key={i}
+                  style={{
+                    width: "8px",
+                    height: "8px",
+                    borderRadius: "50%",
+                    background: i === statIndex ? "#8b5cf6" : "#334155",
+                    transition: "all 0.3s",
+                  }}
+                />
+              ))}
+            </div>
+            <div style={{ display: "flex", gap: "1rem", justifyContent: "center", marginTop: "1.5rem" }}>
+              {statIndex > 0 && (
+                <button
+                  onClick={() => setStatIndex((prev) => prev - 1)}
+                  style={{
+                    padding: "0.75rem 1.5rem",
+                    background: "rgba(51, 65, 85, 0.5)",
+                    border: "1px solid rgba(71, 85, 105, 0.5)",
+                    borderRadius: "0.5rem",
+                    color: "#94a3b8",
+                    fontSize: "0.875rem",
+                    cursor: "pointer",
+                  }}
+                >
+                  Previous
+                </button>
+              )}
+              <button
+                onClick={() => {
+                  if (statIndex < analyticsStats.length - 1) {
+                    setStatIndex((prev) => prev + 1)
+                  } else {
+                    setAnalyticsStep(2)
+                  }
+                }}
+                style={{
+                  padding: "0.75rem 1.5rem",
+                  background: "#8b5cf6",
+                  border: "none",
+                  borderRadius: "0.5rem",
+                  color: "white",
+                  fontSize: "0.875rem",
+                  cursor: "pointer",
+                }}
+              >
+                {statIndex < analyticsStats.length - 1 ? "Next" : "Continue"}
+              </button>
+            </div>
+            <button
+              onClick={() => setAnalyticsStep(2)}
+              style={{
+                marginTop: "1rem",
+                background: "transparent",
+                border: "none",
+                color: "#64748b",
+                fontSize: "0.75rem",
+                cursor: "pointer",
+              }}
+            >
+              Skip to Your Results
+            </button>
+          </div>
+        </AnalyticsContainer>
+      )
+    }
+
+    if (analyticsStep === 2) {
+      return (
+        <AnalyticsContainer style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
+          <div style={{ textAlign: "center", maxWidth: "700px", animation: "fadeIn 1s ease" }}>
+            <SectionTitle style={{ marginBottom: "2rem" }}>Your Choices in Context</SectionTitle>
+
+            <ComparisonSection>
+              <ComparisonCard style={{ textAlign: "left" }}>
+                <ComparisonTitle>{simulationAnalyticsDefaults.comparison.title}</ComparisonTitle>
+
+                <ComparisonBar>
+                  <ComparisonLabel>
+                    <span>Final Money: ${stats.money}</span>
+                    <span>{simulationAnalyticsDefaults.comparison.benchmarks.money}</span>
+                  </ComparisonLabel>
+                  <ComparisonTrack>
+                    <ComparisonFill $width={Math.min(100, (stats.money / moneyComparisonMax) * 100)} $color="#4ade80" />
+                  </ComparisonTrack>
+                </ComparisonBar>
+
+                <ComparisonBar>
+                  <ComparisonLabel>
+                    <span>Health Level: {stats.health}%</span>
+                    <span>{simulationAnalyticsDefaults.comparison.benchmarks.health}</span>
+                  </ComparisonLabel>
+                  <ComparisonTrack>
+                    <ComparisonFill $width={stats.health} $color="#f87171" />
+                  </ComparisonTrack>
+                </ComparisonBar>
+
+                <ComparisonBar>
+                  <ComparisonLabel>
+                    <span>Support Network: {supportValue}/100</span>
+                    <span>{simulationAnalyticsDefaults.comparison.benchmarks.support}</span>
+                  </ComparisonLabel>
+                  <ComparisonTrack>
+                    <ComparisonFill $width={Math.min(100, Math.max(0, supportValue))} $color="#c084fc" />
+                  </ComparisonTrack>
+                </ComparisonBar>
+
+                <InsightBox>
+                  <InsightText>
+                    {supportValue >= 30
+                      ? simulationAnalyticsDefaults.comparison.insights.supportHigh
+                      : stats.money >= 80
+                      ? simulationAnalyticsDefaults.comparison.insights.moneyHigh
+                      : simulationAnalyticsDefaults.comparison.insights.fallback}
+                  </InsightText>
+                </InsightBox>
+              </ComparisonCard>
+            </ComparisonSection>
+
+            <ContinueButton onClick={() => setAnalyticsStep(3)} style={{ margin: "2rem auto 0 auto" }}>
+              {simulationAnalyticsDefaults.comparison.nextLabel}
+              <ChevronRight size={18} />
+            </ContinueButton>
+          </div>
+        </AnalyticsContainer>
+      )
+    }
+
+    if (analyticsStep === 3) {
+      return (
+        <AnalyticsContainer style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "2rem" }}>
+          <div style={{ textAlign: "center", maxWidth: "800px", animation: "fadeIn 1s ease" }}>
+            <SectionTitle style={{ marginBottom: "1rem" }}>{simulationAnalyticsDefaults.action.title}</SectionTitle>
+            <p style={{ color: "#94a3b8", marginBottom: "2.5rem", fontSize: "1.1rem" }}>
+              {simulationAnalyticsDefaults.action.subtitle}
+            </p>
+
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: "1rem", marginBottom: "2.5rem", justifyItems: "center" }}>
+              {simulationAnalyticsDefaults.action.cards.map((card) => {
+                const Icon = analyticsActionIconMap[card.icon]
+                const rgb =
+                  card.color === "#8b5cf6" ? "139, 92, 246" : card.color === "#60a5fa" ? "96, 165, 250" : "74, 222, 128"
+                return (
+                  <div
+                    key={card.title}
+                    style={{
+                      background: `rgba(${rgb}, 0.1)`,
+                      border: `1px solid rgba(${rgb}, 0.3)`,
+                      borderRadius: "1rem",
+                      padding: "1.5rem",
+                      textAlign: "center",
+                      display: "flex",
+                      flexDirection: "column",
+                      alignItems: "center",
+                      maxWidth: 280,
+                    }}
+                  >
+                    <Icon size={24} style={{ color: card.color, marginBottom: "0.75rem" }} />
+                    <h3 style={{ color: "#e2e8f0", fontWeight: "600", marginBottom: "0.5rem" }}>{card.title}</h3>
+                    <p style={{ color: "#94a3b8", fontSize: "0.875rem", lineHeight: "1.5" }}>{card.body}</p>
+                  </div>
+                )
+              })}
+            </div>
+
+            <ResourcesSection>
+              <h3 style={{ color: "#e2e8f0", fontWeight: "600", marginBottom: "1rem" }}>
+                {simulationAnalyticsDefaults.action.resourcesTitle}
+              </h3>
+              <ResourcesGrid>
+                {(storyRuntimeConfig?.resourceLinks ?? []).map((link) => (
+                  <ResourceLink key={link.href} href={link.href} target="_blank" rel="noopener noreferrer">
+                    {link.label}
+                  </ResourceLink>
+                ))}
+              </ResourcesGrid>
+            </ResourcesSection>
+
+            {storyRuntimeConfig?.methodologyText && (
+              <MethodologySection style={{ marginBottom: "2rem", textAlign: "left" }}>
+                <h3 style={{ color: "#94a3b8", fontWeight: "600", marginBottom: "0.75rem", fontSize: "0.875rem" }}>
+                  {simulationAnalyticsDefaults.action.methodologyTitle}
+                </h3>
+                <MethodologyText>{storyRuntimeConfig.methodologyText}</MethodologyText>
+              </MethodologySection>
+            )}
+
+            <ActionButtons>
+              <ReplayButton onClick={handleRestart}>
+                <RotateCcw size={18} />
+                Experience Again
+              </ReplayButton>
+
+              <ContinueButton onClick={() => router.push("/scenarios")}>
+                Explore More Stories
+                <ChevronRight size={18} />
+              </ContinueButton>
+            </ActionButtons>
+          </div>
+        </AnalyticsContainer>
+      )
+    }
+  }
+
+  if (isComplete && showReflection && !showAnalytics && canShowReflection) {
+    const canViewAnalytics = allReflectionsAnswered && !submittingReflections
+
     return (
-      <Container>
-        <FullScreenBox>
+      <Container style={{ height: "auto", minHeight: "100vh", overflow: "auto" }}>
+        <CompletionBox>
           <CompletionTitle>Take a Moment to Reflect</CompletionTitle>
-          <ScreenText>How did this experience make you feel? There are no right or wrong answers.</ScreenText>
+          <CompletionText>
+            Consider {currentStory.avatarName}&apos;s experiences and the weight of their responsibilities. Your
+            reflections help connect the story to real-world context.
+          </CompletionText>
 
           <ReflectionBox>
             <ReflectionTitle>Your Reflections</ReflectionTitle>
 
-            <ReflectionQuestion>
-              <QuestionText>How did you feel during this experience?</QuestionText>
-              <ReflectionOptions>
-                {["Anxious", "Frustrated", "Empathetic", "Curious", "Moved"].map((option) => (
-                  <ReflectionOption
-                    key={option}
-                    $selected={reflectionAnswers["feeling"] === option}
-                    onClick={() => handleReflectionSelect("feeling", option)}
-                  >
-                    {option}
-                  </ReflectionOption>
-                ))}
-              </ReflectionOptions>
-            </ReflectionQuestion>
-
-            <ReflectionQuestion>
-              <QuestionText>What surprised you most?</QuestionText>
-              <ReflectionOptions>
-                {["The costs involved", "The time required", "The lack of support", "The emotional toll", "Nothing"].map(
-                  (option) => (
+            {reflectionQuestions.map((question) => (
+              <ReflectionQuestion key={question.id}>
+                <QuestionText>{question.prompt}</QuestionText>
+                <ReflectionOptions>
+                  {question.options.map((option) => (
                     <ReflectionOption
-                      key={option}
-                      $selected={reflectionAnswers["surprise"] === option}
-                      onClick={() => handleReflectionSelect("surprise", option)}
+                      key={`${question.id}:${option}`}
+                      $selected={reflectionAnswers[question.id] === option}
+                      onClick={() => handleReflectionChange(question.id, option)}
                     >
                       {option}
                     </ReflectionOption>
-                  ),
-                )}
-              </ReflectionOptions>
-            </ReflectionQuestion>
+                  ))}
+                </ReflectionOptions>
+              </ReflectionQuestion>
+            ))}
 
-            <ReflectionQuestion>
-              <QuestionText>After this experience, I feel more aware of...</QuestionText>
-              <ReflectionOptions>
-                {["Daily challenges others face", "Hidden costs", "Importance of community", "Systemic barriers", "My own privileges"].map(
-                  (option) => (
-                    <ReflectionOption
-                      key={option}
-                      $selected={reflectionAnswers["awareness"] === option}
-                      onClick={() => handleReflectionSelect("awareness", option)}
-                    >
-                      {option}
-                    </ReflectionOption>
-                  ),
-                )}
-              </ReflectionOptions>
-            </ReflectionQuestion>
+            {openReflectionQuestion && (
+              <ReflectionQuestion>
+                <QuestionText>{openReflectionQuestion.prompt}</QuestionText>
+                <OpenEndedInput
+                  placeholder={openReflectionQuestion.placeholder}
+                  value={reflectionAnswers[openReflectionQuestion.id] ?? ""}
+                  onChange={(event) => handleReflectionChange(openReflectionQuestion.id, event.target.value)}
+                />
+              </ReflectionQuestion>
+            )}
           </ReflectionBox>
 
-          {/* Show submit button before submission */}
-          {!reflectionsSubmitted && (
-            <>
-              <SubmitButton 
-                $disabled={!allReflectionsAnswered || submittingReflections}
-                onClick={handleSubmitReflections}
-                disabled={!allReflectionsAnswered || submittingReflections}
-              >
-                {submittingReflections ? (
-                  <>
-                    <Spinner style={{ width: 18, height: 18, borderWidth: 2 }} />
-                    Submitting...
-                  </>
-                ) : (
-                  <>
-                    <CheckCircle2 size={18} />
-                    Submit Reflections
-                  </>
-                )}
-              </SubmitButton>
-              
-              {!allReflectionsAnswered && (
-                <p style={{ color: "#64748b", fontSize: "0.8rem", marginTop: "0.75rem" }}>
-                  Please answer all reflection questions to submit
-                </p>
-              )}
-            </>
-          )}
+          <div style={{ display: "flex", gap: "1rem", flexWrap: "wrap", justifyContent: "center" }}>
+            <ReplayButton onClick={handleRestart}>
+              <RotateCcw size={18} />
+              Try Again
+            </ReplayButton>
 
-          {/* Show navigation buttons after submission */}
-          {reflectionsSubmitted && (
-            <>
-              <SubmittedMessage>
-                <CheckCircle2 size={18} />
-                Your reflections have been saved. Thank you for sharing!
-              </SubmittedMessage>
-              
-              <ButtonGroup>
-                <HomeButton onClick={() => router.push("/")}>
-                  <Home size={18} />
-                  Home
-                </HomeButton>
-                
-                <ActionButton onClick={handleRestart}>
-                  <RotateCcw size={18} />
-                  Experience Again
-                </ActionButton>
+            <ContinueButton
+              onClick={handleViewAnalytics}
+              disabled={!canViewAnalytics}
+              style={{ background: canViewAnalytics ? "#8b5cf6" : "#475569" }}
+            >
+              <BarChart3 size={18} />
+              View Real-World Data
+            </ContinueButton>
+          </div>
 
-                <ContinueButton onClick={() => router.push("/scenarios")}>
-                  Explore More Stories
-                  <ChevronRight size={18} />
-                </ContinueButton>
-              </ButtonGroup>
-            </>
+          {!allReflectionsAnswered && (
+            <p style={{ color: "#64748b", fontSize: "0.875rem", marginTop: "1rem" }}>
+              Please answer all reflection questions to continue ({requiredAnsweredCount} of {requiredTotalCount})
+            </p>
           )}
-        </FullScreenBox>
+        </CompletionBox>
       </Container>
     )
   }
@@ -1852,12 +2317,25 @@ function SimulationContent() {
     passageImage.includes("cloudinary.com") ||
     passageImage.includes("res.cloudinary.com")
   )
+  const shouldPrioritizeBackground = historyStack.length === 0
 
   return (
     <Container>
       {/* Background Layer: Full screen, prominent */}
       <BackgroundLayer>
-        <BackgroundImage $url={passageImage} $hasImage={hasBackgroundImage} />
+        <BackgroundFallback />
+        {hasBackgroundImage && (
+          <BackgroundImageLayer>
+            <OptimizedStoryImage
+              src={passageImage}
+              alt={currentPassage.title ?? "Story background"}
+              fill
+              priority={shouldPrioritizeBackground}
+              sizes="100vw"
+              style={{ objectFit: "cover" }}
+            />
+          </BackgroundImageLayer>
+        )}
         <GradientOverlay />
       </BackgroundLayer>
 
@@ -1893,7 +2371,13 @@ function SimulationContent() {
         <TextBox key={currentPassageId} $transitioning={isTransitioning}>
           <TextBoxHeader>
             <CharacterAvatar>
-              <img src={currentStory.avatarImage} alt={currentStory.avatarName} />
+              <OptimizedStoryImage
+                src={currentStory.avatarImage}
+                alt={currentStory.avatarName}
+                width={44}
+                height={44}
+                sizes="44px"
+              />
             </CharacterAvatar>
             <CharacterInfo>
               <CharacterName>{currentStory.avatarName}</CharacterName>
