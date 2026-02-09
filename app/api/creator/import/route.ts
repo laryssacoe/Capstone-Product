@@ -8,6 +8,7 @@ import {
   convertTwisonToStoryPayload,
   type TwisonStory,
   repairTwisonStory,
+  suggestAvatarFromTwison,
   validateTwisonStory,
 } from "@/lib/server/twine-transform"
 import { upsertStoryGraph, type StoryPayload } from "@/lib/server/story-graph"
@@ -26,11 +27,12 @@ const avatarMetadataSchema = z.object({
     hairStyle: z.string().optional(),
     clothing: z.string().optional(),
     accessories: z.array(z.string()).optional(),
-    image: z.string().optional(), // Profile image path should be in /scenes/ directory
+    image: z.string().optional(), // Cloudinary URL for profile images
   }).optional(),
   initialResources: z.object({
     money: z.number(),
     time: z.number(),
+    health: z.number().optional().default(100),
     socialSupport: z.number().optional().default(50),
     mentalHealth: z.number().optional().default(70),
     physicalHealth: z.number().optional().default(80),
@@ -162,6 +164,7 @@ async function upsertAvatarFromMetadata(
     initialResources: {
       money: avatarMetadata.initialResources.money,
       time: avatarMetadata.initialResources.time,
+      health: avatarMetadata.initialResources.health ?? 100,
       socialSupport: avatarMetadata.initialResources.socialSupport ?? 50,
       mentalHealth: avatarMetadata.initialResources.mentalHealth ?? 70,
       physicalHealth: avatarMetadata.initialResources.physicalHealth ?? 80,
@@ -208,30 +211,85 @@ async function maybeAttachAutoAvatar(
   })
   if (hasAvatar) return
 
+  const defaultInitialResources = {
+    money: 500,
+    time: 100,
+    health: 100,
+    socialSupport: 50,
+    mentalHealth: 70,
+    physicalHealth: 80,
+  }
+  type ResourceKey = keyof typeof defaultInitialResources
+  const resourceKeyMap: Record<string, ResourceKey> = {
+    money: "money",
+    time: "time",
+    health: "health",
+    physicalhealth: "physicalHealth",
+    mentalhealth: "mentalHealth",
+    socialsupport: "socialSupport",
+    support: "socialSupport",
+  }
+
+  const normalizeSuggestedResources = (raw?: Record<string, number>) => {
+    const normalized = { ...defaultInitialResources }
+    let hasHealth = false
+    let hasPhysicalHealth = false
+    if (!raw) return normalized
+
+    for (const [key, value] of Object.entries(raw)) {
+      if (!Number.isFinite(value)) continue
+      const cleaned = key.replace(/-/g, "")
+      const mapped = resourceKeyMap[cleaned]
+      if (!mapped) continue
+
+      const safeValue = Math.max(0, value)
+      if (mapped === "health" || mapped === "physicalHealth" || mapped === "mentalHealth" || mapped === "socialSupport") {
+        normalized[mapped] = Math.min(safeValue, 100)
+      } else {
+        normalized[mapped] = safeValue
+      }
+      if (mapped === "health") {
+        hasHealth = true
+      }
+      if (mapped === "physicalHealth") {
+        hasPhysicalHealth = true
+      }
+    }
+
+    if (hasHealth && !hasPhysicalHealth) {
+      normalized.physicalHealth = normalized.health
+    }
+    if (!hasHealth && hasPhysicalHealth) {
+      normalized.health = normalized.physicalHealth
+    }
+
+    return normalized
+  }
+
+  const startPassage =
+    twison.passages?.find((passage) => passage.pid === twison.startnode) ?? twison.passages?.[0]
+  const suggestedAvatar = suggestAvatarFromTwison(startPassage)
+  const suggestedResources = normalizeSuggestedResources(suggestedAvatar?.initialResources)
+
   // Extract background from first node's text content
   const content = firstNode.content as any
   const textArray = content?.text
-  const background = Array.isArray(textArray) 
+  const fallbackBackground = Array.isArray(textArray) 
     ? textArray.join(" ").slice(0, 240) 
     : typeof textArray === "string" 
       ? textArray.slice(0, 240) 
       : ""
-  
+  const background = suggestedAvatar?.background ?? fallbackBackground
+
   if (!background) return
 
   await prisma.avatarProfile.create({
     data: {
       id: randomUUID(),
       storyId,
-      name: firstNode.title ?? twison.name ?? "Story Protagonist",
+      name: suggestedAvatar?.name ?? firstNode.title ?? twison.name ?? "Story Protagonist",
       background,
-      initialResources: {
-        money: 100,
-        time: 100,
-        socialSupport: 50,
-        mentalHealth: 70,
-        physicalHealth: 80,
-      },
+      initialResources: suggestedResources,
       socialContext: {
         derivedFromImport: true,
       },

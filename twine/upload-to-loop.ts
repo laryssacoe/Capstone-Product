@@ -17,7 +17,7 @@
  *   "age": 25,
  *   "background": "Character background description...",
  *   "appearance": {
- *     "image": "/scenes/character-profile.png",
+ *     "image": "https://res.cloudinary.com/<cloud>/image/upload/.../character-profile.png",
  *     "skinTone": "medium",
  *     "hairColor": "dark brown"
  *   },
@@ -227,7 +227,7 @@ Avatar Options:
   --avatar <path>        Path to avatar metadata JSON file
   --avatar-name <name>   Character name (if not using --avatar file)
   --avatar-background <text>  Character background (if not using --avatar file)
-  --avatar-image <path>  Profile image path (e.g. "/scenes/character.png")
+  --avatar-image <path>  Profile image URL (e.g. "https://res.cloudinary.com/<cloud>/image/upload/.../character.png")
   --avatar-money <num>   Initial money resource (default: 100)
   --avatar-time <num>    Initial time resource in hours (default: 100)
 
@@ -242,7 +242,7 @@ Avatar Metadata JSON Structure:
     "age": 25,
     "background": "Character background description...",
     "appearance": {
-      "image": "/scenes/character-profile.png",
+      "image": "https://res.cloudinary.com/<cloud>/image/upload/.../character-profile.png",
       "skinTone": "medium",
       "hairColor": "dark brown",
       "hairStyle": "ponytail",
@@ -287,7 +287,7 @@ Examples:
     --cookie "loop.session=abc123" \\
     --avatar-name "Maria Santos" \\
     --avatar-background "A single mother navigating housing insecurity" \\
-    --avatar-image "/scenes/maria-profile.png" \\
+    --avatar-image "https://res.cloudinary.com/<cloud>/image/upload/.../maria-profile.png" \\
     --avatar-money 150 \\
     --avatar-time 80
 `)

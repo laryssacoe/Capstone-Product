@@ -556,7 +556,13 @@ export default function ProfilePage() {
 						<div className="relative">
 							<div className="relative flex h-32 w-32 items-center justify-center overflow-hidden rounded-full border-4 border-blue-500 bg-gradient-to-br from-blue-900 via-slate-900 to-purple-900 shadow-lg shadow-blue-500/20">
 								{savedProfile.avatarUrl ? (
-									<Image src={savedProfile.avatarUrl} alt="Profile" fill sizes="128px" className="object-cover" />
+									savedProfile.avatarUrl.startsWith("/") ||
+									savedProfile.avatarUrl.includes("cloudinary.com") ||
+									savedProfile.avatarUrl.includes("res.cloudinary.com") ? (
+										<Image src={savedProfile.avatarUrl} alt="Profile" fill sizes="128px" className="object-cover" />
+									) : (
+										<img src={savedProfile.avatarUrl} alt="Profile" className="h-full w-full object-cover" />
+									)
 								) : (
 									<span className="text-4xl font-semibold text-white">{getInitials()}</span>
 								)}

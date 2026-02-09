@@ -59,6 +59,7 @@ interface AvatarProfile {
   initialResources?: {
     money: number
     time: number
+    health?: number
     socialSupport?: number
     mentalHealth?: number
     physicalHealth?: number
@@ -642,7 +643,7 @@ export default function CreatorStoryPreviewPage() {
             setStats({
               money: ir.money ?? 100,
               time: ir.time ?? 100,
-              health: ir.physicalHealth ?? 80,
+              health: ir.health ?? ir.physicalHealth ?? 80,
             })
           }
         }
@@ -683,8 +684,10 @@ export default function CreatorStoryPreviewPage() {
   const hasChoices = choices.length > 0
   const hasNext = Boolean(currentNode?.content?.next)
   const textContent = currentNode?.content?.text ?? []
-  const passageImage = currentNode?.media?.image || currentNode?.media?.visual
-  const passageAudio = currentNode?.media?.audio
+  const legacyMedia = (currentNode as any)?.content?.media
+  const passageImage =
+    currentNode?.media?.image || currentNode?.media?.visual || legacyMedia?.image || legacyMedia?.visual
+  const passageAudio = currentNode?.media?.audio || legacyMedia?.audio
   const hasValidImage = isValidMediaUrl(passageImage)
   const hasValidAudio = isValidMediaUrl(passageAudio)
 
@@ -802,7 +805,7 @@ export default function CreatorStoryPreviewPage() {
       setStats({
         money: ir.money ?? 100,
         time: ir.time ?? 100,
-        health: ir.physicalHealth ?? 80,
+        health: ir.health ?? ir.physicalHealth ?? 80,
       })
     } else {
       setStats({ money: 100, health: 80, time: 100 })

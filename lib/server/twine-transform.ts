@@ -345,12 +345,22 @@ export function convertTwisonToStoryPayload(
 export function suggestAvatarFromTwison(passage?: TwisonPassage) {
   if (!passage) return null
   const resources: Record<string, number> = {}
+  const metadataResources = passage.metadata?.initialResources
+  if (metadataResources && typeof metadataResources === "object" && !Array.isArray(metadataResources)) {
+    Object.entries(metadataResources).forEach(([key, value]) => {
+      if (typeof value !== "number" || !Number.isFinite(value)) return
+      resources[slugify(key)] = value
+    })
+  }
   const matches = passage.text?.match(/(\w+):\s*(\d{1,3})/g) ?? []
   matches.forEach((match) => {
     const [key, value] = match.split(":")
     const numeric = Number.parseInt(value?.trim() ?? "0", 10)
     if (Number.isFinite(numeric)) {
-      resources[slugify(key)] = Math.min(Math.max(numeric, 0), 100)
+      const slug = slugify(key)
+      if (!(slug in resources)) {
+        resources[slug] = Math.max(numeric, 0)
+      }
     }
   })
 

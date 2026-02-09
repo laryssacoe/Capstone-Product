@@ -32,6 +32,7 @@ const avatarMetadataSchema = z.object({
   initialResources: z.object({
     money: z.number(),
     time: z.number(),
+    health: z.number().optional().default(100),
     socialSupport: z.number().optional().default(50),
     mentalHealth: z.number().optional().default(70),
     physicalHealth: z.number().optional().default(80),
@@ -102,6 +103,7 @@ async function upsertAvatarFromMetadata(
     initialResources: {
       money: avatarMetadata.initialResources.money,
       time: avatarMetadata.initialResources.time,
+      health: avatarMetadata.initialResources.health ?? 100,
       socialSupport: avatarMetadata.initialResources.socialSupport ?? 50,
       mentalHealth: avatarMetadata.initialResources.mentalHealth ?? 70,
       physicalHealth: avatarMetadata.initialResources.physicalHealth ?? 80,

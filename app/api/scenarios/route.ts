@@ -32,7 +32,7 @@ const SOCIAL_ISSUE_SET = new Set<SocialIssueType>(SOCIAL_ISSUE_TYPES)
 const SOCIAL_SEVERITIES = ["mild", "moderate", "severe"] as const
 type SocialSeverity = (typeof SOCIAL_SEVERITIES)[number]
 
-const DEFAULT_RESOURCES = {
+const defaultResources = {
   money: 40,
   time: 40,
   energy: 40,
@@ -40,6 +40,10 @@ const DEFAULT_RESOURCES = {
   mentalHealth: 40,
   physicalHealth: 40,
 }
+
+const words_per_minute = 170
+const decision_seconds = 20
+const min_duration_minutes = 5
 
 function asRecord(value: unknown): Record<string, any> {
   if (!value || typeof value !== "object" || Array.isArray(value)) {
@@ -77,6 +81,38 @@ function normalizeSeverity(raw: unknown): SocialSeverity {
   return "moderate"
 }
 
+function countWords(input: unknown): number {
+  if (!input) return 0
+  if (Array.isArray(input)) {
+    return input.reduce((total, item) => total + countWords(item), 0)
+  }
+  if (typeof input !== "string") return 0
+  const matches = input.trim().match(/\S+/g)
+  return matches ? matches.length : 0
+}
+
+function estimateDurationFromNodes(nodes: Array<Record<string, any>>): number {
+  let wordCount = 0
+  let decisionCount = 0
+
+  nodes.forEach((node) => {
+    const content = asRecord(node.content)
+    wordCount += countWords(content.text)
+    const choices = Array.isArray(content.choices) ? content.choices : []
+    if (node.type === "DECISION") {
+      decisionCount += 1
+    }
+    choices.forEach((choice) => {
+      wordCount += countWords(choice?.text ?? choice?.id)
+    })
+  })
+
+  const readingMinutes = wordCount / words_per_minute
+  const decisionMinutes = (decisionCount * decision_seconds) / 60
+  const total = Math.ceil(readingMinutes + decisionMinutes)
+  return Math.max(min_duration_minutes, total)
+}
+
 function buildSystemScenarios(records: Array<{
   id: string
   title: string
@@ -89,7 +125,7 @@ function buildSystemScenarios(records: Array<{
   return records.map((record) => {
     const metadata = asRecord(record.metadata)
     const issueMeta = asRecord(metadata.issue)
-    const resourcesSource = { ...DEFAULT_RESOURCES, ...asRecord(metadata.minimumResources) }
+    const resourcesSource = { ...defaultResources, ...asRecord(metadata.minimumResources) }
     const minimumResources = normalizeResources(resourcesSource)
     const issueDescription =
       typeof issueMeta.description === "string" && issueMeta.description.trim().length > 0
@@ -226,6 +262,8 @@ export async function GET() {
             avatar.socialContext && typeof avatar.socialContext === "object" && !Array.isArray(avatar.socialContext)
               ? avatar.socialContext
               : {}
+          const appearance = asRecord(avatar.appearance)
+          const avatarImage = typeof appearance.image === "string" ? appearance.image : ""
 
           const issues = Array.isArray((socialContext as any)?.socialIssues) ? (socialContext as any).socialIssues : []
           const primaryIssue = issues[0] ?? {
@@ -248,10 +286,9 @@ export async function GET() {
                 consequences: [],
                 nextScenarioId: null,
               }
-            })
+          })
 
-          const nodeCount = storyNodes.length
-          const estimatedDuration = Math.max(10, nodeCount * 3)
+          const estimatedDuration = estimateDurationFromNodes(storyNodes as Array<Record<string, any>>)
           const metadataIsPlayable = avatar.isPlayable || avatarIdsNeedingPlayable.has(avatar.id)
 
           const scenarioId = story.slug ?? avatar.id
@@ -278,6 +315,8 @@ export async function GET() {
               avatarId: avatar.id,
               isPlayable: metadataIsPlayable,
               decisionCount: decisions.length,
+              appearance,
+              avatarImage,
             },
           }
         } catch (error) {
@@ -329,8 +368,8 @@ export async function GET() {
         },
         context: issueDescription,
         decisions,
-        minimumResources: normalizeResources(DEFAULT_RESOURCES),
-        estimatedDuration: Math.max(10, nodes.length * 3),
+        minimumResources: normalizeResources(defaultResources),
+        estimatedDuration: estimateDurationFromNodes(nodes as Array<Record<string, any>>),
         metadata: {
           source: "story",
           storyId: story.id,
@@ -352,9 +391,11 @@ export async function GET() {
       })
     }
 
-  const scenarios = Array.from(scenarioMap.values()).sort((a, b) => a.title.localeCompare(b.title))
+    const scenarios = Array.from(scenarioMap.values()).sort((a, b) => a.title.localeCompare(b.title))
 
-    return NextResponse.json({ scenarios })
+    const response = NextResponse.json({ scenarios })
+    response.headers.set("Cache-Control", "public, s-maxage=120, stale-while-revalidate=300")
+    return response
   } catch (error) {
     console.error("[api/scenarios] Failed to load scenarios", error)
     return NextResponse.json(

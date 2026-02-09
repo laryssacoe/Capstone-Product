@@ -16,13 +16,15 @@ export const avatarTemplate = {
     hairStyle: "short",
     clothing: "casual",
     accessories: [],
-    // Add your character image path here after uploading to /public/scenes/
-    // Example: "/scenes/my-character.png"
+    // Add your character image URL here after uploading to Cloudinary
+    // Example: "https://res.cloudinary.com/<cloud>/image/upload/.../my-character.png"
     image: "",
   },
   initialResources: {
+    // Note: These are overridden by storyGraph.initialResources in the creator UI.
     money: 100,
     time: 100,
+    health: 100,
     socialSupport: 50,
     mentalHealth: 70,
     physicalHealth: 80,
@@ -42,6 +44,11 @@ export const avatarTemplateJson = JSON.stringify(avatarTemplate, null, 2)
 // Story Graph Template
 
 export const storyGraphTemplate = {
+  initialResources: {
+    money: 500,
+    time: 100,
+    health: 100,
+  },
   nodes: [
     {
       key: "start",
@@ -70,8 +77,8 @@ export const storyGraphTemplate = {
           },
         ],
       },
-      // Add scene images after uploading to /public/scenes/
-      // media: { image: "/scenes/opening-scene.png" },
+      // Add scene images after uploading to Cloudinary
+      // media: { image: "https://res.cloudinary.com/<cloud>/image/upload/.../opening-scene.png" },
     },
     {
       key: "path-a",
@@ -142,7 +149,14 @@ export const twineJsonExample = `{
       "pid": 1,
       "name": "Opening Scene",
       "tags": ["intro"],
-      "text": "You arrive for your first shift at the community coffee shop. [[Greet the team->Meet The Team]] [[Head straight to the counter->Jump In]]"
+      "text": "You arrive for your first shift at the community coffee shop. [[Greet the team->Meet The Team]] [[Head straight to the counter->Jump In]]",
+      "metadata": {
+        "initialResources": {
+          "money": 500,
+          "time": 100,
+          "health": 100
+        }
+      }
     },
     {
       "pid": 2,
@@ -177,7 +191,7 @@ export const twineChecklistSections = [
       "Start passage is named 'start' or set as the starting passage in Twine",
       "Each passage has a unique name (becomes node.key)",
       "Links use [[Choice Text->target-passage]] or [[target-passage]] syntax",
-      "No broken links - all targets exist as passages",
+      "No broken links. Ensure all targets exist as passages",
     ],
   },
   {
