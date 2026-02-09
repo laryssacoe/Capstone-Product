@@ -22,6 +22,6 @@ describe("useToast advanced", () => {
     act(() => {
       result.current.dismiss(id)
     })
-    expect(result.current.toasts.find((t) => t.id === id)).toBeUndefined()
+    expect(result.current.toasts.find((t) => t.id === id)?.open).toBe(false)
   })
 })

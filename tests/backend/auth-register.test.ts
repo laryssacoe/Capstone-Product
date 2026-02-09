@@ -29,6 +29,7 @@ vi.mock("@/lib/server/email-verification", () => ({
 const { prisma } = await import("@/lib/server/prisma")
 const { createSession } = await import("@/lib/server/auth")
 const { verifyEmailWithKickbox } = await import("@/lib/server/email-verification")
+const { resolveMx, resolve } = await import("node:dns/promises")
 const { POST } = await import("@/app/api/auth/register/route")
 
 const prismaMock = prisma as unknown as {
@@ -40,6 +41,8 @@ const prismaMock = prisma as unknown as {
 
 const createSessionMock = createSession as unknown as Mock
 const verifyEmailMock = verifyEmailWithKickbox as unknown as Mock
+const resolveMxMock = resolveMx as unknown as Mock
+const resolveMock = resolve as unknown as Mock
 
 function buildRequest(body: unknown) {
   return new Request("http://localhost/api/auth/register", {
@@ -52,6 +55,8 @@ function buildRequest(body: unknown) {
 beforeEach(() => {
   vi.resetAllMocks()
   verifyEmailMock.mockResolvedValue({ deliverable: true })
+  resolveMxMock.mockResolvedValue([{ exchange: "mx.example.com" }])
+  resolveMock.mockResolvedValue(["1.1.1.1"])
 })
 
 afterEach(() => {
@@ -160,8 +165,24 @@ describe("POST /api/auth/register", () => {
     expect(createSessionMock).not.toHaveBeenCalled()
   })
 
-  it.skip("rejects when MX lookup fails", async () => {
-    // This path is covered in integration; module-level imports make unit mocking tricky.
+  it("rejects when MX and A lookup fail", async () => {
+    prismaMock.user.findFirst.mockResolvedValueOnce(null)
+    resolveMxMock.mockRejectedValueOnce(new Error("MX failed"))
+    resolveMock.mockRejectedValueOnce(new Error("A failed"))
+
+    const response = await POST(
+      buildRequest({
+        email: "bad-domain@invalid.test",
+        password: "password123",
+        username: "bad-domain-user",
+      }),
+    )
+
+    expect(response.status).toBe(400)
+    const json = await response.json()
+    expect(String(json.error).toLowerCase()).toContain("couldn't verify this email domain")
+    expect(verifyEmailMock).not.toHaveBeenCalled()
+    expect(prismaMock.user.create).not.toHaveBeenCalled()
   })
 
   it("caches trusted domain without verification", async () => {
