@@ -1,13 +1,16 @@
 import { NextResponse } from "next/server"
 import { z } from "zod"
-
+import { v2 as cloudinary } from "cloudinary"
 
 import { getCurrentSession } from "@/lib/server/auth"
 import { prisma } from "@/lib/server/prisma"
 export const dynamic = "force-dynamic"
 
-
-
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+})
 
 const MAX_DATA_URI_LENGTH = 4 * 1024 * 1024 // ~4MB encoded
 const dataUriPattern = /^data:image\/[a-zA-Z0-9+.-]+;base64,/i
@@ -41,6 +44,15 @@ async function moderateImage(imageUrl: string): Promise<{ acceptable: boolean; r
     return { acceptable: false, reason: "Image flagged as inappropriate." }
   }
   return { acceptable: true }
+}
+
+async function persistAvatarToCloudinary(image: string) {
+  const folder = "loop/avatars"
+  return cloudinary.uploader.upload(image, {
+    folder,
+    resource_type: "image",
+    transformation: [{ quality: "auto", fetch_format: "auto" }],
+  })
 }
 
 export async function POST(request: Request) {
@@ -77,14 +89,21 @@ export async function POST(request: Request) {
   }
 
   try {
+    let avatarUrl = image
+    const isCloudinaryUrl = isHttpUrl(image) && image.includes("cloudinary.com")
+    if (!isCloudinaryUrl) {
+      const uploadResult = await persistAvatarToCloudinary(image)
+      avatarUrl = uploadResult.secure_url
+    }
+
     const profile = await prisma.userProfile.upsert({
       where: { userId: session.user.id },
       create: {
         userId: session.user.id,
-        avatarUrl: image,
+        avatarUrl,
       },
       update: {
-        avatarUrl: image,
+        avatarUrl,
       },
     })
 

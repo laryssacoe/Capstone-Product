@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server"
 import { z } from "zod"
+import { v2 as cloudinary } from "cloudinary"
 
 
 import { getCurrentSession } from "@/lib/server/auth"
@@ -7,8 +8,11 @@ import { Prisma } from "@/src/generated/prisma/client"
 import { prisma } from "@/lib/server/prisma"
 export const dynamic = "force-dynamic"
 
-
-
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+})
 
 const MAX_AVATAR_DATA_URI_LENGTH = 4 * 1024 * 1024 // ~4MB encoded
 const dataUriPattern = /^data:image\/[a-zA-Z0-9+.-]+;base64,/i
@@ -139,6 +143,20 @@ function isDataUri(value: string): boolean {
   return dataUriPattern.test(value)
 }
 
+function isCloudinaryUrl(value: string): boolean {
+  return value.includes("cloudinary.com")
+}
+
+async function ensureCloudinaryAvatar(url: string): Promise<string> {
+  if (isCloudinaryUrl(url)) return url
+  const uploadResult = await cloudinary.uploader.upload(url, {
+    folder: "loop/avatars",
+    resource_type: "image",
+    transformation: [{ quality: "auto", fetch_format: "auto" }],
+  })
+  return uploadResult.secure_url
+}
+
 function normalizeOptionalString(value: unknown) {
   if (typeof value !== "string") return value
   const trimmed = value.trim()
@@ -183,6 +201,19 @@ export async function PUT(request: Request) {
   }
 
   const data = parsed.data
+  const existing = await prisma.userProfile.findUnique({
+    where: { userId: session.user.id },
+  })
+
+  let avatarUrl = data.avatarUrl ?? null
+  if (avatarUrl) {
+    try {
+      avatarUrl = await ensureCloudinaryAvatar(avatarUrl)
+    } catch (error) {
+      console.error("[profile] Failed to upload avatar to Cloudinary", error)
+      return NextResponse.json({ error: "Unable to store profile image. Please try again." }, { status: 500 })
+    }
+  }
 
   const customLinks = data.customLinks
     ? (data.customLinks as Prisma.InputJsonValue)
@@ -190,7 +221,7 @@ export async function PUT(request: Request) {
 
   const normalized = {
     displayName: data.displayName ?? null,
-    avatarUrl: data.avatarUrl ?? null,
+    avatarUrl,
     bio: data.bio ?? null,
     timezone: data.timezone ?? null,
     pronouns: data.pronouns ?? null,
@@ -204,10 +235,6 @@ export async function PUT(request: Request) {
     expertiseTags: data.expertiseTags ?? [],
     customLinks,
   }
-
-  const existing = await prisma.userProfile.findUnique({
-    where: { userId: session.user.id },
-  })
 
   const consentAcceptedAt =
     data.acceptConsent && !existing?.consentAcceptedAt ? new Date() : existing?.consentAcceptedAt ?? null

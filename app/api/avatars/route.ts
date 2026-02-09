@@ -230,11 +230,13 @@ export async function GET(request: Request) {
     }
   })
 
-  return NextResponse.json({
+  const response = NextResponse.json({
     avatars: withMetrics,
     meta: {
       total: avatars.length,
       featured: featuredOnly,
     },
   })
+  response.headers.set("Cache-Control", "public, s-maxage=120, stale-while-revalidate=300")
+  return response
 }

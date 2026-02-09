@@ -35,11 +35,18 @@ export async function GET(_req: Request, { params }: RouteParams) {
       orderBy: [{ isPlayable: "desc" }, { updatedAt: "desc" }],
     }))
 
-  return NextResponse.json({
-    avatar: attachedAvatar ?? null,
-    story,
-    nodes: story.nodes,
-    paths: story.paths,
-    transitions: story.transitions,
-  })
+  return NextResponse.json(
+    {
+      avatar: attachedAvatar ?? null,
+      story,
+      nodes: story.nodes,
+      paths: story.paths,
+      transitions: story.transitions,
+    },
+    {
+      headers: {
+        "Cache-Control": "public, s-maxage=300, stale-while-revalidate=3600",
+      },
+    },
+  )
 }

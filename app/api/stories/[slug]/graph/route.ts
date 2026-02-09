@@ -50,7 +50,7 @@ export async function GET(request: Request, { params }: RouteParams) {
     return NextResponse.json({ error: "Not authorized to view this story." }, { status: 403 })
   }
 
-  const [nodes, paths, transitions] = await Promise.all([
+  const [nodes, paths, transitions, avatars] = await Promise.all([
     prisma.storyNode.findMany({
       where: { storyId: story.id },
       orderBy: { createdAt: "asc" },
@@ -63,7 +63,19 @@ export async function GET(request: Request, { params }: RouteParams) {
       where: { storyId: story.id },
       orderBy: [{ fromNodeId: "asc" }, { ordering: "asc" }],
     }),
+    prisma.avatarProfile.findMany({
+      where: { storyId: story.id },
+      orderBy: [{ isPlayable: "desc" }, { updatedAt: "desc" }],
+    }),
   ])
 
-  return NextResponse.json({ story, nodes, paths, transitions })
+  const avatar = avatars.find((a) => a.isPlayable) ?? avatars[0] ?? null
+
+  const response = NextResponse.json({ story, nodes, paths, transitions, avatar })
+  if (isPublic) {
+    response.headers.set("Cache-Control", "public, s-maxage=120, stale-while-revalidate=300")
+  } else {
+    response.headers.set("Cache-Control", "private, no-store")
+  }
+  return response
 }

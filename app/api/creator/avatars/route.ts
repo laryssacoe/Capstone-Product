@@ -1,6 +1,7 @@
 import { randomUUID } from "crypto"
 import { NextResponse } from "next/server"
 import { z } from "zod"
+import { v2 as cloudinary } from "cloudinary"
 
 
 import { getCurrentSession } from "@/lib/server/auth"
@@ -8,6 +9,11 @@ import type { Prisma } from "@/src/generated/prisma/client"
 import { prisma } from "@/lib/server/prisma"
 export const dynamic = "force-dynamic"
 
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+})
 
 
 
@@ -30,6 +36,20 @@ const profileSchema = z.object({
   bio: z.string().optional(),
   avatarUrl: z.string().url().optional(),
 })
+
+function isCloudinaryUrl(value: string): boolean {
+  return value.includes("cloudinary.com")
+}
+
+async function ensureCloudinaryAvatar(url: string): Promise<string> {
+  if (isCloudinaryUrl(url)) return url
+  const uploadResult = await cloudinary.uploader.upload(url, {
+    folder: "loop/avatars",
+    resource_type: "image",
+    transformation: [{ quality: "auto", fetch_format: "auto" }],
+  })
+  return uploadResult.secure_url
+}
 
 export async function GET() {
   const session = await getCurrentSession()
@@ -104,18 +124,27 @@ export async function POST(request: Request) {
   const results: Record<string, unknown> = {}
 
   if (profile) {
+    let avatarUrl = profile.avatarUrl
+    if (avatarUrl) {
+      try {
+        avatarUrl = await ensureCloudinaryAvatar(avatarUrl)
+      } catch (error) {
+        console.error("[creator/avatars] Failed to upload avatar to Cloudinary", error)
+        return NextResponse.json({ error: "Unable to store profile image. Please try again." }, { status: 500 })
+      }
+    }
     const updatedProfile = await prisma.userProfile.upsert({
       where: { userId: session.user.id },
       update: {
         displayName: profile.displayName ?? undefined,
         bio: profile.bio ?? undefined,
-        avatarUrl: profile.avatarUrl ?? undefined,
+        avatarUrl: avatarUrl ?? undefined,
       },
       create: {
         userId: session.user.id,
         displayName: profile.displayName ?? session.user.username ?? session.user.email ?? "Creator",
         bio: profile.bio ?? null,
-        avatarUrl: profile.avatarUrl ?? null,
+        avatarUrl: avatarUrl ?? null,
       },
     })
     results.profile = updatedProfile
