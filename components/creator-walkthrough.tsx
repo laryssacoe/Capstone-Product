@@ -630,7 +630,7 @@ export function WelcomeModal({ onStart, onSkip, isOpen }: WelcomeModalProps) {
 
             <ModalTitle>Welcome to Creator Tools!</ModalTitle>
             <ModalDescription>
-              We've created an example story for you to explore. Take a quick tour to learn how everything works!
+              We&apos;ve created an example story for you to explore. Take a quick tour to learn how everything works!
             </ModalDescription>
 
             <ModalButtonGroup>

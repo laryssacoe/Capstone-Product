@@ -597,7 +597,7 @@ export default function HomePage() {
             <WarningNote>
               <strong>Note:</strong> {user
                 ? <>Messages are sent from your account and are <u>not anonymous</u>.</>
-                : <>Messages sent without an account are anonymous and we can't reply directly.</>}
+                : <>Messages sent without an account are anonymous and we can&apos;t reply directly.</>}
             </WarningNote>
 
             {showErrorMessage && <ErrorBox>{errorMessage}</ErrorBox>}
@@ -728,7 +728,7 @@ export default function HomePage() {
             <FeatureCard>
               <IconWrap><Heart size={32} color="#f472b6" /></IconWrap>
               <FeatureTitle>Empathy Building</FeatureTitle>
-              <FeatureText>Gain insight into others' experiences and build genuine understanding.</FeatureText>
+              <FeatureText>Gain insight into others&apos; experiences and build genuine understanding.</FeatureText>
             </FeatureCard>
           </FeatureGrid>
         </FeaturesInner>
