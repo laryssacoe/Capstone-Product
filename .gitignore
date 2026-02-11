@@ -36,6 +36,15 @@ pnpm-debug.log*
 /prisma/data/
 *.db
 *.sqlite
+/prisma/*-cloudinary-map.json
+/prisma/*.sql
+/prisma/seed-*.ts
+/prisma/upload-story-images.ts
+
+# Local media / data drops (not for git)
+/public/scenes/*/
+/railway-backup-*.dump
+*.dump
 
 # Test reports
 /coverage
