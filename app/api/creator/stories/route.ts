@@ -9,6 +9,7 @@ import { syncScenarioRuntimeForStory } from "@/lib/server/scenario-runtime"
 import { storyPayloadSchema, storyUpdatePayloadSchema, upsertStoryGraph, type StoryPayload } from "@/lib/server/story-graph"
 
 export const dynamic = "force-dynamic"
+const exampleStorySlug = "my-first-story"
 
 type SessionUser = {
   id: string
@@ -654,9 +655,44 @@ export async function DELETE(request: Request) {
       })
     }
 
+    const isStarterStoryDeletion = slug === exampleStorySlug && story.ownerId === session.user.id
+
     await prisma.twineStory.delete({
       where: { id: story.id },
     });
+
+    if (isStarterStoryDeletion) {
+      try {
+        const profile = await prisma.userProfile.findUnique({
+          where: { userId: session.user.id },
+          select: { preferences: true },
+        })
+        const basePreferences =
+          profile?.preferences && typeof profile.preferences === "object" && !Array.isArray(profile.preferences)
+            ? (profile.preferences as Record<string, unknown>)
+            : {}
+
+        await prisma.userProfile.upsert({
+          where: { userId: session.user.id },
+          update: {
+            preferences: {
+              ...basePreferences,
+              starterStoryDeleted: true,
+              starterStoryDeletedAt: new Date().toISOString(),
+            },
+          },
+          create: {
+            userId: session.user.id,
+            preferences: {
+              starterStoryDeleted: true,
+              starterStoryDeletedAt: new Date().toISOString(),
+            },
+          },
+        })
+      } catch (error) {
+        console.error("[api/creator/stories] Failed to persist starter-story deletion preference", error)
+      }
+    }
 
     return new NextResponse(null, { status: 204 });
   } catch (error) {
