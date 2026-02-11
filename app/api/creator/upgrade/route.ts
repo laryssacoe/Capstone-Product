@@ -270,12 +270,14 @@ export async function POST() {
     const displayName = session.user.username || session.user.email || "Creator"
     const alreadyCreator = session.user.role === "CREATOR" || session.user.role === "ADMIN"
 
-    let updatedUser = {
-      id: session.user.id,
-      email: session.user.email ?? null,
-      username: session.user.username ?? null,
-      role: session.user.role,
-    }
+    let updatedUser:
+      | {
+          id: string
+          email: string | null
+          username: string | null
+          role: string
+        }
+      | null = null
 
     // Upgrade user to creator role and ensure profile consent
     if (!alreadyCreator) {
@@ -313,11 +315,14 @@ export async function POST() {
       }
     }
 
-    const profile = await prisma.userProfile.findUnique({
-      where: { userId: session.user.id },
-      select: { preferences: true },
-    })
-    const shouldSkipStarterStory = hasDeletedStarterStory(profile?.preferences)
+    let shouldSkipStarterStory = false
+    if (typeof prisma.userProfile?.findUnique === "function") {
+      const profile = await prisma.userProfile.findUnique({
+        where: { userId: session.user.id },
+        select: { preferences: true },
+      })
+      shouldSkipStarterStory = hasDeletedStarterStory(profile?.preferences)
+    }
 
     // Ensure a starter example story exists (new or pre-existing creators),
     // unless the creator already deleted it.
@@ -333,10 +338,11 @@ export async function POST() {
       console.error("[api/creator/upgrade] Failed to create example story:", storyError)
     }
 
-    return NextResponse.json({ 
-      user: updatedUser,
-      alreadyUpgraded: alreadyCreator,
-    }, { status: 200 })
+    if (alreadyCreator) {
+      return NextResponse.json({ message: "Already upgraded." }, { status: 200 })
+    }
+
+    return NextResponse.json({ user: updatedUser }, { status: 200 })
   } catch (error) {
     console.error("[api/creator/upgrade] Failed to upgrade user:", error)
     return NextResponse.json(

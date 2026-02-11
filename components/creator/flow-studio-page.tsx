@@ -1436,7 +1436,7 @@ export default function FlowStudioPage({
                           placeholder="Enter the key of the next node..."
                         />
                         <p className="text-xs text-slate-500">
-                          This creates a "Continue" button leading to the specified node.
+                          This creates a &quot;Continue&quot; button leading to the specified node.
                         </p>
                       </div>
                     )}
