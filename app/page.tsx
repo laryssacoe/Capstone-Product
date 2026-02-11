@@ -12,6 +12,7 @@ import emailjs from '@emailjs/browser';
 import { Button as UIButton } from "@/components/ui/button";
 import { Badge as UIBadge } from "@/components/ui/badge";
 import { TutorialPrompt } from "@/components/tutorial-prompt"
+import { ProfileBubbleChip } from "@/components/profile-bubble-chip"
 import { loop_logo_url } from "@/lib/brand-assets";
 
 import { Globe, Heart, Brain, ChevronDown, Mail } from "lucide-react";
@@ -517,8 +518,6 @@ const PageLoader = styled.div<{ $loaded: boolean }>`
 
 export default function HomePage() {
   const { user } = useAuth();
-  // @ts-ignore
-  const ProfileBubbleChip = require("@/components/profile-bubble-chip").ProfileBubbleChip;
   const [showScrollIndicator, setShowScrollIndicator] = useState(true);
   const [message, setMessage] = useState("");
   const [showContactForm, setShowContactForm] = useState(false);

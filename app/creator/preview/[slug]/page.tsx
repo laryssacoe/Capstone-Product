@@ -13,6 +13,7 @@ import {
   Clock,
   RotateCcw,
 } from "lucide-react"
+import OptimizedStoryImage from "@/components/optimized-story-image"
 
 interface StoryMeta {
   id: string
@@ -289,6 +290,12 @@ const CharacterAvatar = styled.div`
   display: flex;
   align-items: center;
   justify-content: center;
+
+  span {
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
   
   img {
     width: 100%;
@@ -744,9 +751,10 @@ export default function CreatorStoryPreviewPage() {
 
   // Cleanup on unmount
   useEffect(() => {
+    const audio = audioRef.current
     return () => {
-      if (audioRef.current) {
-        audioRef.current.pause()
+      if (audio) {
+        audio.pause()
         currentAudioSrc.current = null
       }
     }
@@ -918,10 +926,13 @@ export default function CreatorStoryPreviewPage() {
           <TextBoxHeader>
             <CharacterAvatar>
               {showAvatarImage ? (
-                <img 
-                  src={avatarImage} 
-                  alt={avatarName} 
-                  onError={() => setAvatarImageError(true)}
+                <OptimizedStoryImage
+                  src={avatarImage}
+                  alt={avatarName}
+                  width={44}
+                  height={44}
+                  sizes="44px"
+                  fallback={<AvatarPlaceholder>👤</AvatarPlaceholder>}
                 />
               ) : (
                 <AvatarPlaceholder>👤</AvatarPlaceholder>

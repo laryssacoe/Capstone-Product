@@ -129,4 +129,34 @@ describe("ProgressTracker", () => {
     await waitFor(() => expect(screen.getByText(/Start Your First Story/i)).toBeInTheDocument())
     expect(screen.queryByText(/Continue Your Journey/i)).not.toBeInTheDocument()
   })
+
+  it("shows server error messages for non-401 failures", async () => {
+    mockFetch(createJsonResponse({ error: "Backend unavailable" }, 500))
+
+    render(<ProgressTracker />)
+
+    await waitFor(() => expect(screen.getByText("Backend unavailable")).toBeInTheDocument())
+    expect(screen.getByRole("link", { name: /Sign In/i })).toHaveAttribute("href", "/login")
+  })
+
+  it("uses the fallback error text when fetch rejects", async () => {
+    const fetchMock = vi.fn().mockRejectedValueOnce("network failed")
+    vi.stubGlobal("fetch", fetchMock as typeof fetch)
+
+    render(<ProgressTracker />)
+
+    await waitFor(() => expect(screen.getByText("Unable to load progress.")).toBeInTheDocument())
+  })
+
+  it("formats total time over 60 minutes as hours and minutes", async () => {
+    const longSessionProgress = {
+      ...baseProgress,
+      timeSpent: 125,
+    }
+    mockFetch(createJsonResponse(longSessionProgress))
+
+    render(<ProgressTracker />)
+
+    await waitFor(() => expect(screen.getByText("2h 5m")).toBeInTheDocument())
+  })
 })

@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import styled, { keyframes } from "styled-components";
 import { Button as UIButton } from "@/components/ui/button";
 import { Badge as UIBadge } from "@/components/ui/badge";
@@ -278,12 +278,13 @@ const Divider = styled.div`
   margin: 1rem 0;
 `;
 
-const BackgroundText = styled.p`
+const BackgroundText = styled.p<{ $height?: number }>`
   color: #94a3b8;
   font-size: 0.9rem;
   line-height: 1.65;
   margin: 0 0 1.25rem;
-  flex: 1;
+  height: ${({ $height }) => ($height ? `${$height}px` : "auto")};
+  overflow: hidden;
 `;
 
 const ChallengeBox = styled.div`
@@ -720,6 +721,9 @@ export default function AvatarPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedAvatar, setSelectedAvatar] = useState<AvatarWithMetrics | null>(null);
+  const cardRefs = useRef<Record<string, HTMLDivElement | null>>({});
+  const backgroundRefs = useRef<Record<string, HTMLParagraphElement | null>>({});
+  const [backgroundMinHeightById, setBackgroundMinHeightById] = useState<Record<string, number>>({});
   const [savedProgress, setSavedProgress] = useState<Record<string, boolean>>({});
 
   const handleStart = (avatar: AvatarWithMetrics) => {
@@ -806,6 +810,86 @@ export default function AvatarPage() {
     };
   }, []);
 
+  useEffect(() => {
+    let frame = 0;
+    let cancelled = false;
+
+    const measureByRow = () => {
+      type RowItem = { id: string; height: number };
+      const rows = new Map<number, RowItem[]>();
+
+      avatars.forEach((avatar) => {
+        const card = cardRefs.current[avatar.id];
+        const background = backgroundRefs.current[avatar.id];
+        if (!card || !background) return;
+
+        const top = Math.round(card.getBoundingClientRect().top);
+        const height = Math.ceil(background.getBoundingClientRect().height);
+        const matchedTop = Array.from(rows.keys()).find((rowTop) => Math.abs(rowTop - top) < 6) ?? top;
+        const row = rows.get(matchedTop) ?? [];
+        row.push({ id: avatar.id, height });
+        rows.set(matchedTop, row);
+      });
+
+      const next: Record<string, number> = {};
+      rows.forEach((row) => {
+        const maxHeight = row.reduce((max, item) => Math.max(max, item.height), 0);
+        row.forEach((item) => {
+          next[item.id] = maxHeight;
+        });
+      });
+
+      setBackgroundMinHeightById((prev) => {
+        const prevKeys = Object.keys(prev);
+        const nextKeys = Object.keys(next);
+        if (prevKeys.length !== nextKeys.length) return next;
+        for (const key of nextKeys) {
+          if (prev[key] !== next[key]) return next;
+        }
+        return prev;
+      });
+    };
+
+    const scheduleMeasure = () => {
+      if (frame) {
+        window.cancelAnimationFrame(frame);
+      }
+      frame = window.requestAnimationFrame(measureByRow);
+    };
+
+    const resizeObserver =
+      typeof ResizeObserver !== "undefined" ? new ResizeObserver(() => scheduleMeasure()) : null;
+
+    avatars.forEach((avatar) => {
+      const card = cardRefs.current[avatar.id];
+      const background = backgroundRefs.current[avatar.id];
+      if (card) resizeObserver?.observe(card);
+      if (background) resizeObserver?.observe(background);
+    });
+
+    // Re-measure after late font swaps so row alignment stays correct
+    const onFontLoadDone = () => scheduleMeasure();
+    const fonts = typeof document !== "undefined" ? document.fonts : undefined;
+    fonts?.addEventListener?.("loadingdone", onFontLoadDone);
+    fonts?.ready
+      ?.then(() => {
+        if (!cancelled) scheduleMeasure();
+      })
+      .catch(() => undefined);
+
+    scheduleMeasure();
+    window.addEventListener("resize", scheduleMeasure);
+    return () => {
+      cancelled = true;
+      if (frame) {
+        window.cancelAnimationFrame(frame);
+      }
+      resizeObserver?.disconnect();
+      fonts?.removeEventListener?.("loadingdone", onFontLoadDone);
+      window.removeEventListener("resize", scheduleMeasure);
+    };
+  }, [avatars]);
+
   const hasSavedProgress = (avatarId: string) => savedProgress[avatarId] ?? false;
 
   return (
@@ -839,7 +923,12 @@ export default function AvatarPage() {
               const hasProgress = hasSavedProgress(avatar.id);
 
               return (
-                <CardWrapper key={avatar.id}>
+                <CardWrapper
+                  key={avatar.id}
+                  ref={(node) => {
+                    cardRefs.current[avatar.id] = node;
+                  }}
+                >
                   <StoryCard
                     $isPlayable={isPlayable}
                     onClick={isPlayable ? () => setSelectedAvatar(avatar) : undefined}
@@ -876,7 +965,12 @@ export default function AvatarPage() {
 
                       <Divider />
 
-                      <BackgroundText>
+                      <BackgroundText
+                        ref={(node) => {
+                          backgroundRefs.current[avatar.id] = node;
+                        }}
+                        $height={backgroundMinHeightById[avatar.id]}
+                      >
                         {isPlayable ? avatar.background : "This story is still being developed. Check back soon."}
                       </BackgroundText>
 

@@ -100,7 +100,7 @@ const IssueContent = styled(SelectContent)`
   color: #e5e7eb;
 `;
 
-const Grid = styled.div<{ $count: number }>`
+const Grid = styled.div<{ $count: number; $forceTwoColumns?: boolean }>`
   display: grid;
   gap: 2rem;
   grid-template-columns: 1fr;
@@ -108,8 +108,12 @@ const Grid = styled.div<{ $count: number }>`
   align-items: stretch;
 
   @media (min-width: 560px) {
-    grid-template-columns: ${({ $count }) =>
-      $count >= 2 ? 'repeat(2, minmax(0, 1fr))' : `repeat(${$count || 1}, minmax(260px, 1fr))`};
+    grid-template-columns: ${({ $count, $forceTwoColumns }) =>
+      $forceTwoColumns
+        ? 'repeat(2, minmax(0, 1fr))'
+        : $count >= 2
+        ? 'repeat(2, minmax(0, 1fr))'
+        : `repeat(${$count || 1}, minmax(260px, 1fr))`};
   }
 `;
 
@@ -705,6 +709,7 @@ export function ScenarioBrowser({
   }, [equalizePrimaryChallengeByRow, filteredScenarios.length]);
 
   const hasSavedProgress = (scenarioId: string) => savedProgress[scenarioId] ?? false;
+  const forceTwoColumns = selectedIssueType !== 'all' && filteredScenarios.length === 1;
 
   return (
     <Wrap>
@@ -756,7 +761,7 @@ export function ScenarioBrowser({
         </EmptyWrap>
       ) : (
         <>
-          <Grid ref={gridRef} $count={filteredScenarios.length || 1}>
+          <Grid ref={gridRef} $count={filteredScenarios.length || 1} $forceTwoColumns={forceTwoColumns}>
             {filteredScenarios.map((scenario) => {
               const canPlay = canPlayScenario(scenario, userResources);
               const hasProgress = hasSavedProgress(scenario.id);
