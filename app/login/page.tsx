@@ -151,11 +151,11 @@ export default function LoginPage() {
 
       setError(null)
 
-      // Redirect to originating page or profile
+      // Redirect to home
       if (redirectTo) {
         router.push(redirectTo)
       } else {
-        router.push("/profile")
+        router.push("/")
       }
       router.refresh()
     } catch (err) {

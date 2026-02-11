@@ -254,7 +254,7 @@ export default function RegisterPage() {
         throw new Error(message)
       }
 
-      router.push("/progress")
+      router.push("/")
       router.refresh()
     } catch (err) {
       setError(err instanceof Error ? err.message : "Unable to create account.")
