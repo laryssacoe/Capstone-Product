@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef, Suspense, useMemo } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
-import styled, { keyframes } from "styled-components"
+import styled, { css, keyframes } from "styled-components"
 import {
   Heart,
   Clock,
@@ -17,6 +17,7 @@ import {
   Home,
   GraduationCap,
   Briefcase,
+  Shield,
   Volume2,
   VolumeX,
 } from "lucide-react"
@@ -115,6 +116,33 @@ function getAudioConfig(
   return runtimeConfig?.backgroundAudio?.path ? runtimeConfig.backgroundAudio : null
 }
 
+function formatHoursAndMinutesFromHours(hours: number): string {
+  const safeHours = Math.max(0, hours)
+  const totalMinutes = Math.round(safeHours * 60)
+  const wholeHours = Math.floor(totalMinutes / 60)
+  const remainingMinutes = totalMinutes % 60
+
+  if (wholeHours === 0) return `${remainingMinutes}m`
+  if (remainingMinutes === 0) return `${wholeHours}h`
+  return `${wholeHours}h ${remainingMinutes}m`
+}
+
+const NEUTRAL_SCENE_IMAGE = "/scenes/neutral-image.png"
+
+function isStoryVisualPath(image: string | null | undefined): image is string {
+  return Boolean(
+    image &&
+      (image.startsWith("/scenes/") ||
+        image.includes("cloudinary.com") ||
+        image.includes("res.cloudinary.com")),
+  )
+}
+
+function resolveBackdropImage(primary: string | null | undefined): string {
+  if (isStoryVisualPath(primary)) return primary
+  return NEUTRAL_SCENE_IMAGE
+}
+
 const fadeIn = keyframes`
   0% { opacity: 0; transform: translateY(10px); }
   100% { opacity: 1; transform: translateY(0); }
@@ -125,6 +153,74 @@ const fadeInOnly = keyframes`
   100% { opacity: 1; }
 `
 
+const cinematicIn = keyframes`
+  0% {
+    opacity: 0;
+    transform: scale(0.8);
+    filter: blur(10px);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+    filter: blur(0);
+  }
+`
+
+const cinematicOut = keyframes`
+  0% {
+    opacity: 1;
+    transform: scale(1);
+    filter: blur(0);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.12);
+    filter: blur(8px);
+  }
+`
+
+const slowZoomDrift = keyframes`
+  0% { transform: scale(1); }
+  100% { transform: scale(1.12); }
+`
+
+const countUp = keyframes`
+  0% { opacity: 0; transform: translateY(20px) scale(0.8); }
+  60% { opacity: 1; transform: translateY(-3px) scale(1.04); }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
+`
+
+const glowPulse = keyframes`
+  0%, 100% { box-shadow: 0 0 20px rgba(139, 92, 246, 0.1); }
+  50% { box-shadow: 0 0 60px rgba(139, 92, 246, 0.25); }
+`
+
+const particleDrift = keyframes`
+  0% {
+    transform: translateY(0) translateX(0);
+    opacity: 0;
+  }
+  20% {
+    opacity: 0.6;
+  }
+  80% {
+    opacity: 0.6;
+  }
+  100% {
+    transform: translateY(-120px) translateX(30px);
+    opacity: 0;
+  }
+`
+
+const timerFill = keyframes`
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+`
+
 const textReveal = keyframes`
   0% { opacity: 0; }
   100% { opacity: 1; }
@@ -133,6 +229,10 @@ const textReveal = keyframes`
 const spin = keyframes`
   to { transform: rotate(360deg); }
 `
+
+const cinematicHold = 4500
+const cinematicExitDuration = 500
+
 
 const Container = styled.div<{ $autoHeight?: boolean }>`
   position: relative;
@@ -473,155 +573,226 @@ const EffectTag = styled.span<{ $positive: boolean }>`
   }
 `
 
-const ContinueButton = styled.button<{ $disabled?: boolean }>`
+const ContinueButton = styled.button<{ $disabled?: boolean; $inline?: boolean }>`
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
-  padding: 0.8rem 1.75rem;
+  padding: 0.75rem 1.5rem;
   background: ${({ $disabled }) => ($disabled ? "#475569" : "linear-gradient(135deg, #8b5cf6, #6366f1)")};
   border: none;
   border-radius: 0.625rem;
   color: white;
-  font-size: 0.95rem;
+  font-size: 0.925rem;
   font-weight: 500;
   cursor: ${({ $disabled }) => ($disabled ? "not-allowed" : "pointer")};
   transition: all 0.2s;
-  margin: 0 auto;
+  margin: ${({ $inline }) => ($inline ? "0" : "0 auto")};
   box-shadow: ${({ $disabled }) => ($disabled ? "none" : "0 4px 16px -4px rgba(139, 92, 246, 0.4)")};
   
   &:hover { 
     transform: ${({ $disabled }) => ($disabled ? "none" : "scale(1.02)")};
     box-shadow: ${({ $disabled }) => ($disabled ? "none" : "0 8px 24px -8px rgba(139, 92, 246, 0.5)")};
   }
+
+  &:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+    background: #475569;
+  }
 `
 
 const ReplayButton = styled.button`
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 0.5rem;
-  padding: 0.875rem 2rem;
-  background: #8b5cf6;
-  border: none;
-  border-radius: 0.75rem;
-  color: white;
-  font-size: 1rem;
+  padding: 0.75rem 1.5rem;
+  background: rgba(139, 92, 246, 0.15);
+  border: 1px solid rgba(139, 92, 246, 0.4);
+  border-radius: 0.625rem;
+  color: #c4b5fd;
+  font-size: 0.925rem;
   font-weight: 500;
   cursor: pointer;
   transition: all 0.2s;
 
   &:hover {
-    background: #7c3aed;
-    transform: scale(1.02);
+    background: rgba(139, 92, 246, 0.25);
   }
 `
 
-const ActionButton = styled.button`
+const ButtonRow = styled.div`
   display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.75rem 1.75rem;
-  background: #8b5cf6;
-  border: none;
-  border-radius: 0.625rem;
-  color: white;
-  font-size: 0.95rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s;
-  &:hover { background: #7c3aed; transform: scale(1.02); }
+  gap: 0.75rem;
+  justify-content: center;
+  flex-wrap: wrap;
 `
 
-const FullScreenBox = styled.div`
+const CinematicScreen = styled.div`
+  position: relative;
+  min-height: 100vh;
   display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
-  min-height: 100vh;
-  background: linear-gradient(to bottom, #0f172a, #1e1b4b);
-  color: #e2e8f0;
-  text-align: center;
+  overflow: hidden;
   padding: 2rem;
 `
 
-const CompletionBox = styled.div`
+const CinematicBg = styled.div<{ $url?: string }>`
+  position: fixed;
+  inset: -24px;
+  background: ${({ $url }) =>
+    $url
+      ? `linear-gradient(135deg, #1e1b4b 0%, #0f172a 100%), url(${$url}) center/cover no-repeat`
+      : "linear-gradient(135deg, #1e1b4b 0%, #0f172a 100%)"};
+  background-blend-mode: overlay;
+  filter: blur(20px) brightness(0.3);
+  transform: scale(1.1);
+  pointer-events: none;
+`
+
+const CinematicOverlay = styled.div<{ $tint?: string }>`
+  position: absolute;
+  inset: 0;
+  background: ${({ $tint }) => $tint || "linear-gradient(to bottom, rgba(15,23,42,0.7), rgba(15,23,42,0.92))"};
+`
+
+const CinematicContent = styled.div`
+  position: relative;
+  z-index: 2;
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  min-height: 100vh;
-  background: linear-gradient(to bottom, #0f172a, #1e1b4b);
-  color: #e2e8f0;
   text-align: center;
-  padding: 2rem;
+  max-width: 640px;
+  width: 100%;
+  animation: ${fadeIn} 0.6s ease;
+`
+
+const CinematicCard = styled.div`
+  background: rgba(15, 23, 42, 0.75);
+  border: 1px solid rgba(139, 92, 246, 0.25);
+  border-radius: 1.25rem;
+  backdrop-filter: blur(24px);
+  padding: 2.5rem 2rem;
+  width: 100%;
+  box-shadow: 0 24px 48px -12px rgba(0, 0, 0, 0.5);
+`
+
+const CinematicAvatar = styled.div`
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 3px solid rgba(139, 92, 246, 0.5);
+  margin: 0 auto 1.25rem auto;
+  box-shadow: 0 0 24px rgba(139, 92, 246, 0.2);
+  
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+`
+
+const GameOverIcon = styled.div<{ $color: string }>`
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: ${({ $color }) => `${$color}15`};
+  border: 2px solid ${({ $color }) => `${$color}40`};
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 1.25rem auto;
+  color: ${({ $color }) => $color};
 `
 
 const GameOverTitle = styled.h2`
-  font-size: 2.25rem;
+  font-size: 2rem;
   font-weight: 700;
-  margin-bottom: 1rem;
+  margin-bottom: 0.75rem;
   color: #f87171;
 `
 
+const GameOverText = styled.p`
+  font-size: 1rem;
+  color: #94a3b8;
+  margin-bottom: 2rem;
+  line-height: 1.7;
+`
+
 const CompletionTitle = styled.h2`
-  font-size: 2rem;
+  font-size: 1.75rem;
   font-weight: 700;
-  margin-bottom: 1rem;
+  margin-bottom: 0.75rem;
   color: #c4b5fd;
 `
 
 const CompletionText = styled.p`
-  font-size: 1.125rem;
+  font-size: 1rem;
   color: #94a3b8;
-  margin-bottom: 2rem;
+  margin-bottom: 1.5rem;
   max-width: 600px;
-  line-height: 1.6;
+  line-height: 1.7;
 `
 
-const ScreenText = styled.p`
-  font-size: 1.05rem;
-  color: #94a3b8;
-  margin-bottom: 2rem;
-  max-width: 500px;
-  line-height: 1.65;
-`
+const StatsRow = styled.div`
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.75rem;
+  margin-bottom: 1.75rem;
+  width: 100%;
 
-const FinalStats = styled.div`
-  display: flex;
-  gap: 24px;
-  margin-bottom: 2rem;
-  flex-wrap: wrap;
-  justify-content: center;
-`
+  @media (max-width: 860px) {
+    grid-template-columns: repeat(2, 1fr);
+  }
 
-const FinalStatItem = styled.div<{ $color?: string }>`
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  background: rgba(51, 65, 85, 0.5);
-  padding: 0.625rem 1rem;
-  border-radius: 0.625rem;
-  color: #e2e8f0;
-  font-size: 0.95rem;
-  
-  svg {
-    color: ${({ $color }) => $color || "#94a3b8"};
+  @media (max-width: 560px) {
+    grid-template-columns: 1fr;
   }
 `
 
-const IconWrapper = styled.div<{ $color: string; $marginBottom?: string }>`
-  color: ${({ $color }) => $color};
-  margin-bottom: ${({ $marginBottom }) => $marginBottom || "1.25rem"};
+const StatTile = styled.div<{ $accent: string }>`
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  padding: 0.75rem 1rem;
+  background: rgba(30, 41, 59, 0.6);
+  border: 1px solid ${({ $accent }) => `${$accent}30`};
+  border-radius: 0.75rem;
+  color: #e2e8f0;
+  font-size: 0.9rem;
+  font-weight: 500;
+
+  svg {
+    color: ${({ $accent }) => $accent};
+    flex-shrink: 0;
+  }
 `
 
-const ReflectionBox = styled.div`
-  background: rgba(15, 23, 42, 0.8);
-  border: 1px solid rgba(139, 92, 246, 0.3);
+const StatTileLabel = styled.span`
+  color: #64748b;
+  font-weight: 400;
+  font-size: 0.8rem;
+`
+
+const ReflectionIntroText = styled(CompletionText)`
+  margin-bottom: 1.25rem;
+`
+
+const ReflectionCard = styled.div`
+  background: rgba(15, 23, 42, 0.65);
+  border: 1px solid rgba(139, 92, 246, 0.2);
   border-radius: 1rem;
+  backdrop-filter: blur(16px);
   padding: 1.75rem;
-  max-width: 550px;
   width: 100%;
-  margin-bottom: 2rem;
+  max-width: 560px;
+  margin-bottom: 1.5rem;
   text-align: left;
 `
 
@@ -635,28 +806,48 @@ const ReflectionTitle = styled.h3`
 
 const ReflectionQuestion = styled.div`
   margin-bottom: 1.25rem;
-  &:last-child { margin-bottom: 0; }
+  padding-bottom: 1.25rem;
+  border-bottom: 1px solid rgba(71, 85, 105, 0.2);
+  &:last-child { margin-bottom: 0; border-bottom: none; padding-bottom: 0; }
 `
 
 const QuestionText = styled.p`
   color: #e2e8f0;
   font-size: 0.95rem;
-  margin-bottom: 0.625rem;
+  margin-bottom: 0.75rem;
   line-height: 1.5;
+  display: flex;
+  align-items: flex-start;
+`
+
+const QuestionNumber = styled.span`
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: rgba(139, 92, 246, 0.2);
+  color: #a78bfa;
+  font-size: 0.75rem;
+  font-weight: 600;
+  margin-right: 0.5rem;
+  flex-shrink: 0;
 `
 
 const ReflectionOptions = styled.div`
   display: flex;
   flex-wrap: wrap;
-  gap: 0.375rem;
+  gap: 0.4rem;
+  padding-left: 1.875rem;
 `
 
 const ReflectionOption = styled.button<{ $selected: boolean }>`
   padding: 0.4rem 0.875rem;
   border-radius: 9999px;
   font-size: 0.8rem;
-  border: 1px solid ${({ $selected }) => ($selected ? "#8b5cf6" : "rgba(71, 85, 105, 0.5)")};
-  background: ${({ $selected }) => ($selected ? "rgba(139, 92, 246, 0.2)" : "rgba(51, 65, 85, 0.3)")};
+  border: 1px solid ${({ $selected }) => ($selected ? "#8b5cf6" : "rgba(71, 85, 105, 0.4)")};
+  background: ${({ $selected }) => ($selected ? "rgba(139, 92, 246, 0.2)" : "rgba(51, 65, 85, 0.25)")};
   color: ${({ $selected }) => ($selected ? "#c4b5fd" : "#94a3b8")};
   cursor: pointer;
   transition: all 0.2s;
@@ -668,7 +859,8 @@ const ReflectionOption = styled.button<{ $selected: boolean }>`
 `
 
 const OpenEndedInput = styled.textarea`
-  width: 100%;
+  width: calc(100% - 1.875rem);
+  margin-left: 1.875rem;
   min-height: 110px;
   padding: 0.75rem;
   background: rgba(15, 23, 42, 0.6);
@@ -691,54 +883,43 @@ const OpenEndedInput = styled.textarea`
   }
 `
 
-const ReflectionButtonsWrapper = styled.div`
-  display: flex;
-  gap: 1rem;
-  flex-wrap: wrap;
-  justify-content: center;
-`
-
 const ReflectionHint = styled.p`
   color: #64748b;
-  font-size: 0.875rem;
-  margin-top: 1rem;
+  font-size: 0.8rem;
+  margin-top: 0.75rem;
+  text-align: center;
 `
 
-const AnalyticsContainer = styled.div<{ $centered?: boolean }>`
+const AnalyticsScreen = styled.div<{ $centered?: boolean }>`
+  position: relative;
   min-height: 100vh;
-  background: linear-gradient(to bottom, #0f172a, #1e1b4b);
-  color: #e2e8f0;
-  padding: 2rem;
-  overflow-y: auto;
   display: ${({ $centered }) => ($centered ? "flex" : "block")};
-  flex-direction: ${({ $centered }) => ($centered ? "column" : "initial")};
+  flex-direction: column;
   align-items: ${({ $centered }) => ($centered ? "center" : "initial")};
   justify-content: ${({ $centered }) => ($centered ? "center" : "initial")};
+  overflow: hidden;
+  padding: 2rem;
+  background: #0f172a;
+  color: #e2e8f0;
 `
 
-const AnalyticsCenteredContent = styled.div<{ $maxWidth?: string }>`
+const AnalyticsBg = styled.div`
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at 50% 0%, rgba(139,92,246,0.12), transparent 70%),
+              linear-gradient(to bottom, #0f172a, #1e1b4b);
+`
+
+const AnalyticsBody = styled.div`
+  position: relative;
+  z-index: 2;
+  animation: ${fadeIn} 0.6s ease;
   text-align: center;
-  max-width: ${({ $maxWidth }) => $maxWidth || "600px"};
-  animation: ${fadeInOnly} 1s ease;
-`
-
-const AnalyticsTitle = styled.h1<{ $fontSize?: string; $marginBottom?: string }>`
-  font-size: ${({ $fontSize }) => $fontSize || "2rem"};
-  font-weight: 700;
-  color: #c4b5fd;
-  margin-bottom: ${({ $marginBottom }) => $marginBottom || "0.75rem"};
-`
-
-const AnalyticsSubtitle = styled.p<{ $fontSize?: string; $marginBottom?: string }>`
-  color: #94a3b8;
-  font-size: ${({ $fontSize }) => $fontSize || "1.1rem"};
-  line-height: 1.6;
-  margin-bottom: ${({ $marginBottom }) => $marginBottom || "0"};
-`
-
-const AnalyticsIntroIcon = styled.div`
-  color: #8b5cf6;
-  margin-bottom: 1.5rem;
+  max-width: 680px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 `
 
 const SectionTitle = styled.h2<{ $marginBottom?: string }>`
@@ -749,289 +930,308 @@ const SectionTitle = styled.h2<{ $marginBottom?: string }>`
   text-align: center;
 `
 
-const StatCarouselWrapper = styled.div`
-  text-align: center;
-  max-width: 500px;
+const ActionSubtitle = styled.p`
+  color: #94a3b8;
+  margin-bottom: 2rem;
+  font-size: 0.95rem;
 `
 
-const StatCarouselCounter = styled.div`
-  margin-bottom: 0.75rem;
-  color: #64748b;
-  font-size: 0.875rem;
-`
+/* ── Cinematic Stat Carousel ── */
 
-const StatCard = styled.div<{ $borderColor: string }>`
-  animation: ${fadeInOnly} 0.8s ease;
-  padding: 3rem;
-  background: rgba(30, 41, 59, 0.6);
-  border-radius: 1.5rem;
-  border: 2px solid ${({ $borderColor }) => $borderColor}40;
-`
-
-const StatIconBox = styled.div<{ $bgColor: string }>`
-  width: 80px;
-  height: 80px;
-  border-radius: 1rem;
-  background: ${({ $bgColor }) => $bgColor}20;
+const CinematicStage = styled.div`
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  height: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin: 0 auto 1.5rem auto;
+  flex-direction: column;
 `
 
-const StatIconInner = styled.div<{ $color: string }>`
-  color: ${({ $color }) => $color};
-`
-
-const StatLabel = styled.div`
-  color: #94a3b8;
-  font-size: 0.875rem;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  margin-bottom: 0.5rem;
-`
-
-const StatValue = styled.div`
-  font-size: 4rem;
-  font-weight: 700;
-  color: #e2e8f0;
-  margin-bottom: 1rem;
-`
-
-const StatDescription = styled.p`
-  color: #94a3b8;
-  font-size: 1.1rem;
-  line-height: 1.6;
-  margin-bottom: 1rem;
-`
-
-const StatSource = styled.p`
-  color: #475569;
-  font-size: 0.75rem;
-  font-style: italic;
-`
-
-const StatDots = styled.div`
-  display: flex;
-  gap: 0.5rem;
-  justify-content: center;
-  margin-top: 1.5rem;
-`
-
-const StatDot = styled.div<{ $active: boolean }>`
-  width: 8px;
-  height: 8px;
+const Particle = styled.div<{ $x: number; $delay: number; $color: string }>`
+  position: absolute;
+  z-index: 1;
+  width: 4px;
+  height: 4px;
   border-radius: 50%;
-  background: ${({ $active }) => ($active ? "#8b5cf6" : "#334155")};
-  transition: all 0.3s;
-`
-
-const StatNavButtons = styled.div`
-  display: flex;
-  gap: 1rem;
-  justify-content: center;
-  margin-top: 1.5rem;
-`
-
-const StatNavButton = styled.button<{ $primary?: boolean }>`
-  padding: 0.75rem 1.5rem;
-  background: ${({ $primary }) => ($primary ? "#8b5cf6" : "rgba(51, 65, 85, 0.5)")};
-  border: ${({ $primary }) => ($primary ? "none" : "1px solid rgba(71, 85, 105, 0.5)")};
-  border-radius: 0.5rem;
-  color: ${({ $primary }) => ($primary ? "white" : "#94a3b8")};
-  font-size: 0.875rem;
-  cursor: pointer;
-`
-
-const StatSkipButton = styled.button`
-  margin-top: 1rem;
-  background: transparent;
-  border: none;
-  color: #64748b;
-  font-size: 0.75rem;
-  cursor: pointer;
-`
-
-const ComparisonSection = styled.div`
-  max-width: 900px;
-  margin: 0 auto 3rem auto;
-`
-
-const ComparisonCard = styled.div`
-  background: rgba(30, 41, 59, 0.6);
-  border: 1px solid rgba(139, 92, 246, 0.15);
-  border-radius: 1rem;
-  padding: 2rem;
-  margin-bottom: 1.5rem;
-  text-align: left;
-`
-
-const ComparisonTitle = styled.h3`
-  font-size: 1.125rem;
-  font-weight: 600;
-  color: #c4b5fd;
-  margin-bottom: 1rem;
-`
-
-const ComparisonBar = styled.div`
-  margin-bottom: 1.25rem;
-`
-
-const ComparisonLabel = styled.div`
-  display: flex;
-  justify-content: space-between;
-  font-size: 0.875rem;
-  color: #94a3b8;
-  margin-bottom: 0.5rem;
-`
-
-const ComparisonTrack = styled.div`
-  height: 8px;
-  background: rgba(51, 65, 85, 0.5);
-  border-radius: 4px;
-  overflow: hidden;
-`
-
-const ComparisonFill = styled.div<{ $width: number; $color: string }>`
-  height: 100%;
-  width: ${({ $width }) => $width}%;
   background: ${({ $color }) => $color};
-  border-radius: 4px;
-  transition: width 1s ease;
+  left: ${({ $x }) => $x}%;
+  bottom: 30%;
+  animation: ${particleDrift} 3s ease ${({ $delay }) => $delay}s infinite;
+  opacity: 0;
 `
 
-const InsightBox = styled.div`
-  background: rgba(139, 92, 246, 0.1);
-  border-left: 3px solid #8b5cf6;
-  padding: 1rem 1.25rem;
-  border-radius: 0 0.5rem 0.5rem 0;
-  margin-top: 1rem;
-`
-
-const InsightText = styled.p`
-  font-size: 0.9rem;
-  color: #c4b5fd;
-  line-height: 1.6;
-`
-
-const ActionCardsGrid = styled.div`
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 1rem;
-  margin-bottom: 2.5rem;
-  justify-items: center;
-`
-
-const ActionCard = styled.div<{ $rgb: string }>`
-  background: rgba(${({ $rgb }) => $rgb}, 0.1);
-  border: 1px solid rgba(${({ $rgb }) => $rgb}, 0.3);
-  border-radius: 1rem;
-  padding: 1.5rem;
-  text-align: center;
+const CinematicStatEntering = styled.div`
   display: flex;
   flex-direction: column;
   align-items: center;
-  max-width: 280px;
+  text-align: center;
+  max-width: 480px;
+  animation: ${cinematicIn} 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards,
+             ${slowZoomDrift} 5s ease-out 0.7s forwards;
+`
+
+const CinematicStatExiting = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  max-width: 480px;
+  animation: ${cinematicOut} 0.5s ease forwards;
+`
+
+const CinematicIconRing = styled.div<{ $color: string }>`
+  width: 88px;
+  height: 88px;
+  border-radius: 50%;
+  background: radial-gradient(circle, ${({ $color }) => $color}20, transparent 70%);
+  border: 2px solid ${({ $color }) => $color}35;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 1.5rem;
+  color: ${({ $color }) => $color};
+  animation: ${glowPulse} 2s ease-in-out infinite;
+`
+
+const CinematicStatValue = styled.div`
+  font-size: 4.5rem;
+  font-weight: 800;
+  color: #f1f5f9;
+  line-height: 1;
+  margin-bottom: 0.5rem;
+  animation: ${countUp} 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.25s backwards;
+  text-shadow: 0 0 40px rgba(139, 92, 246, 0.3);
+`
+
+const CinematicStatLabel = styled.div`
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  color: #94a3b8;
+  margin-bottom: 1rem;
+`
+
+const CinematicStatDesc = styled.p`
+  color: #cbd5e1;
+  font-size: 1.05rem;
+  line-height: 1.7;
+  max-width: 400px;
+  text-wrap: balance;
+  animation: ${fadeIn} 0.8s ease 0.8s backwards;
+`
+
+const CinematicStatSource = styled.p`
+  color: #475569;
+  font-size: 0.7rem;
+  font-style: italic;
+  margin-top: 0.75rem;
+  animation: ${fadeIn} 0.6s ease 1.2s backwards;
+`
+
+const CinematicProgress = styled.div`
+  position: absolute;
+  z-index: 2;
+  bottom: 2rem;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+`
+
+const ProgressDots = styled.div`
+  display: flex;
+  gap: 6px;
+`
+
+const ProgressDot = styled.div<{ $state: "done" | "active" | "upcoming" }>`
+  width: ${({ $state }) => ($state === "active" ? "28px" : "6px")};
+  height: 6px;
+  border-radius: 3px;
+  background: ${({ $state }) =>
+    $state === "done" ? "#8b5cf6" : $state === "active" ? "#a78bfa" : "#1e293b"};
+  transition: all 0.4s ease;
+`
+
+const ProgressTimerBar = styled.div<{ $duration: number }>`
+  width: 200px;
+  height: 2px;
+  background: rgba(51, 65, 85, 0.3);
+  border-radius: 1px;
+  overflow: hidden;
+  
+  &::after {
+    content: "";
+    display: block;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, #8b5cf6, #a78bfa);
+    animation: ${timerFill} ${({ $duration }) => $duration}ms linear forwards;
+    transform-origin: left;
+  }
+`
+
+const CinematicContinueWrap = styled.div`
+  margin-top: 2rem;
+  animation: ${fadeIn} 0.6s ease;
+`
+
+const SkipBtn = styled.button`
+  background: transparent;
+  border: none;
+  color: #475569;
+  font-size: 0.75rem;
+  cursor: pointer;
+  transition: color 0.2s;
+  &:hover { color: #94a3b8; }
+`
+
+
+const ActionGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.875rem;
+  margin-bottom: 2rem;
+  width: 100%;
+
+  @media (max-width: 540px) {
+    grid-template-columns: 1fr;
+  }
+`
+
+const ActionCard = styled.div<{ $accent: string }>`
+  background: ${({ $accent }) => $accent}08;
+  border: 1px solid ${({ $accent }) => $accent}25;
+  border-radius: 1rem;
+  padding: 1.25rem;
+  text-align: left;
+  transition: all 0.2s;
+  &:hover { border-color: ${({ $accent }) => $accent}50; transform: translateY(-2px); }
 `
 
 const ActionCardIcon = styled.div<{ $color: string }>`
   color: ${({ $color }) => $color};
-  margin-bottom: 0.75rem;
+  margin-bottom: 0.625rem;
 `
 
 const ActionCardTitle = styled.h3`
   color: #e2e8f0;
   font-weight: 600;
-  margin-bottom: 0.5rem;
+  font-size: 0.95rem;
+  margin-bottom: 0.375rem;
 `
 
-const ActionCardBody = styled.p`
+const ActionCardDesc = styled.p`
   color: #94a3b8;
-  font-size: 0.875rem;
+  font-size: 0.8rem;
   line-height: 1.5;
+  text-wrap: balance;
+  min-height: 3.3em;
 `
 
-const ActionSubtitle = styled.p`
-  color: #94a3b8;
-  margin-bottom: 2.5rem;
-  font-size: 1.1rem;
+const OrgLabel = styled.p`
+  color: #64748b;
+  font-size: 0.8rem;
+  margin-bottom: 0.75rem;
 `
 
-const ResourcesSection = styled.div`
-  max-width: 800px;
-  margin: 0 auto 2rem auto;
-  text-align: center;
-  background: rgba(30, 41, 59, 0.6);
-  border-radius: 1rem;
-  padding: 1.5rem;
-`
-
-const ResourcesSectionTitle = styled.h3`
-  color: #e2e8f0;
-  font-weight: 600;
-  margin-bottom: 1rem;
-`
-
-const ResourcesGrid = styled.div`
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 1rem;
-  margin-top: 1.5rem;
+const OrgGrid = styled.div`
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.625rem;
+  justify-content: center;
+  margin-bottom: 2rem;
 `
 
 const ResourceLink = styled.a`
-  display: block;
-  padding: 1rem;
-  background: rgba(51, 65, 85, 0.4);
-  border: 1px solid rgba(71, 85, 105, 0.3);
-  border-radius: 0.75rem;
+  display: inline-flex;
+  align-items: center;
+  padding: 0.5rem 1rem;
+  background: rgba(51, 65, 85, 0.3);
+  border: 1px solid rgba(71, 85, 105, 0.25);
+  border-radius: 9999px;
   color: #94a3b8;
-  font-size: 0.875rem;
+  font-size: 0.8rem;
   text-decoration: none;
   transition: all 0.2s;
-
-  &:hover {
-    background: rgba(139, 92, 246, 0.15);
-    border-color: rgba(139, 92, 246, 0.3);
-    color: #c4b5fd;
-  }
+  &:hover { background: rgba(139, 92, 246, 0.15); border-color: rgba(139, 92, 246, 0.3); color: #c4b5fd; }
 `
 
-const MethodologySection = styled.div`
-  max-width: 800px;
-  margin: 0 auto 2rem auto;
-  background: rgba(15, 23, 42, 0.6);
-  border: 1px solid rgba(71, 85, 105, 0.3);
+const MethodologyBox = styled.div`
+  width: 100%;
+  margin: 0 auto 2.5rem auto;
+  border: 1px solid rgba(71, 85, 105, 0.25);
   border-radius: 1rem;
-  padding: 2rem;
+  padding: 1.75rem 2rem;
   text-align: left;
+  max-width: 620px;
+  background: rgba(15, 23, 42, 0.6);
 `
 
-const MethodologyTitle = styled.h3`
+const MethodologyHeader = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  margin-bottom: 1.25rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid rgba(71, 85, 105, 0.2);
+`
+
+const MethodologyIconWrapper = styled.div`
+  color: #64748b;
+`
+
+const MethodologyTitle = styled.p`
   color: #94a3b8;
   font-weight: 600;
-  margin-bottom: 0.75rem;
-  font-size: 0.875rem;
+  font-size: 0.85rem;
+  letter-spacing: 0.03em;
+  margin: 0;
 `
 
-const MethodologyText = styled.p`
-  font-size: 0.875rem;
-  color: #64748b;
-  line-height: 1.7;
-  margin-bottom: 1rem;
+const MethodologyGrid = styled.div`
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem 1.5rem;
+  margin-bottom: 1.25rem;
 
-  &:last-child {
-    margin-bottom: 0;
+  @media (max-width: 480px) {
+    grid-template-columns: 1fr;
   }
 `
 
-const ActionButtons = styled.div`
+const MethodologySourceItem = styled.div`
   display: flex;
-  gap: 1rem;
-  justify-content: center;
-  flex-wrap: wrap;
-  margin-top: 2rem;
+  flex-direction: column;
+  gap: 0.25rem;
 `
+
+const MethodologySourceLabel = styled.span`
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #475569;
+`
+
+const MethodologySourceValue = styled.span`
+  font-size: 0.8rem;
+  color: #94a3b8;
+  line-height: 1.5;
+`
+
+const MethodologyNote = styled.p`
+  font-size: 0.75rem;
+  color: #475569;
+  line-height: 1.6;
+  padding-top: 1rem;
+  border-top: 1px solid rgba(71, 85, 105, 0.15);
+  margin: 0;
+`
+
+/* ── Loading ── */
 
 const LoadingContainer = styled.div`
   display: flex;
@@ -1292,6 +1492,8 @@ function SimulationContent() {
   const [showAnalytics, setShowAnalytics] = useState(false)
   const [analyticsStep, setAnalyticsStep] = useState(0)
   const [statIndex, setStatIndex] = useState(0)
+  const [statPhase, setStatPhase] = useState<"entering" | "visible" | "exiting">("entering")
+  const [cinematicDone, setCinematicDone] = useState(false)
   const [reflectionAnswers, setReflectionAnswers] = useState<Record<string, string>>({})
   const [reflectionsSubmitted, setReflectionsSubmitted] = useState(false)
   const [submittingReflections, setSubmittingReflections] = useState(false)
@@ -1311,6 +1513,7 @@ function SimulationContent() {
   const [choiceHistory, setChoiceHistory] = useState<ChoiceRecord[]>([])
   const [historyStack, setHistoryStack] = useState<HistoryEntry[]>([])
 
+  // Audio initialization
   useEffect(() => {
     if (!storySlugResolved || !currentStory || isLoading) return
     if (audioInitialized) return 
@@ -1377,6 +1580,7 @@ function SimulationContent() {
     }
   }, [])
 
+  // Session ID
   useEffect(() => {
     if (typeof window === "undefined") return
     const existing = localStorage.getItem("loop_session_id")
@@ -1397,6 +1601,7 @@ function SimulationContent() {
     }
   }, [])
 
+  // Load story
   useEffect(() => {
     let cancelled = false
 
@@ -1503,6 +1708,8 @@ function SimulationContent() {
         setShowAnalytics(false)
         setAnalyticsStep(0)
         setStatIndex(0)
+        setStatPhase("entering")
+        setCinematicDone(false)
         setReflectionAnswers({})
         setReflectionsSubmitted(false)
         setHasReportedCompletion(false)
@@ -1562,6 +1769,7 @@ function SimulationContent() {
     setVisitedPassages((prev) => (prev.includes(currentPassageId) ? prev : [...prev, currentPassageId]))
   }, [currentPassageId])
 
+  // Auto-save
   useEffect(() => {
     if (!sessionId || !storySlugResolved || !currentStory) return
     if (!currentPassageId) return
@@ -1596,18 +1804,21 @@ function SimulationContent() {
   const hasNext = currentPassage?.next
   const isComplete = currentPassage && !hasChoices && !hasNext
   const canStepBack = historyStack.length > 0
-  const supportValue = hiddenState.supportScore
   const initialTime = currentStory?.initialStats.time ?? 100
-  const timeSpent = Math.max(0, initialTime - stats.time)
+  const remainingTimeHours = Math.max(0, stats.time)
+  const timeSpentHours = Math.max(0, initialTime - remainingTimeHours)
+  const remainingTimeLabel = Number.isInteger(remainingTimeHours) ? `${remainingTimeHours}h` : `${remainingTimeHours.toFixed(1)}h`
   const totalRisk = hiddenState.schoolRisk + hiddenState.workRisk + hiddenState.systemRisk
   const completionEndingType =
     totalRisk >= 6 || stats.money <= 0 || stats.health <= 20
       ? "bad"
-      : totalRisk <= 2 && hiddenState.supportScore >= 4
+      : totalRisk <= 2
       ? "good"
       : "neutral"
-  const moneyComparisonMax = Math.max(currentStory?.initialStats.money ?? 0, stats.money, 1)
+  const riskEffects = useMemo(() => storyRuntimeConfig?.riskEffects ?? {}, [storyRuntimeConfig?.riskEffects])
+  const endingChoiceIds = useMemo(() => storyRuntimeConfig?.endingChoiceIds ?? [], [storyRuntimeConfig?.endingChoiceIds])
 
+  // Transition effect
   useEffect(() => {
     setIsTransitioning(true)
     const timer = setTimeout(() => setIsTransitioning(false), 250)
@@ -1640,17 +1851,21 @@ function SimulationContent() {
 
   useEffect(() => {
     if (currentPassage && hasChoices) {
-      setShowChoices(false)
+      setShowChoices(true)
       setChoicesVisible(false)
-      const timer1 = setTimeout(() => setShowChoices(true), 800)
-      const timer2 = setTimeout(() => setChoicesVisible(true), 1000)
+      const frameId = window.requestAnimationFrame(() => {
+        setChoicesVisible(true)
+      })
       return () => {
-        clearTimeout(timer1)
-        clearTimeout(timer2)
+        window.cancelAnimationFrame(frameId)
       }
     }
+
+    setShowChoices(false)
+    setChoicesVisible(false)
   }, [currentPassageId, currentPassage, hasChoices])
 
+  // Preload next images
   useEffect(() => {
     if (!currentStory || !currentPassage) return
 
@@ -1691,6 +1906,7 @@ function SimulationContent() {
     }
   }, [currentStory, currentPassage])
 
+  // Report completion
   useEffect(() => {
     if (!currentStory || !currentPassage || !isComplete || hasReportedCompletion) return
 
@@ -1722,16 +1938,13 @@ function SimulationContent() {
     return () => controller.abort()
   }, [currentStory, currentPassage, isComplete, hasReportedCompletion])
 
-  const riskEffects = useMemo(() => storyRuntimeConfig?.riskEffects ?? {}, [storyRuntimeConfig?.riskEffects])
-  const endingChoiceIds = useMemo(() => storyRuntimeConfig?.endingChoiceIds ?? [], [storyRuntimeConfig?.endingChoiceIds])
-
   const pickEnding = useCallback(
     (nextStats: { money: number; health: number }, nextHidden: typeof hiddenState) => {
       const totalRisk = nextHidden.schoolRisk + nextHidden.workRisk + nextHidden.systemRisk
       if (totalRisk >= 6 || nextStats.money <= 0 || nextStats.health <= 20) {
         return "ending-crisis"
       }
-      if (totalRisk <= 2 && nextHidden.supportScore >= 4) {
+      if (totalRisk <= 2) {
         return "ending-quiet-hope"
       }
       return "ending-mixed"
@@ -1860,6 +2073,8 @@ function SimulationContent() {
       setShowAnalytics(false)
       setAnalyticsStep(0)
       setStatIndex(0)
+      setStatPhase("entering")
+      setCinematicDone(false)
       setReflectionAnswers({})
       setReflectionsSubmitted(false)
       setHasReportedCompletion(false)
@@ -1880,16 +2095,57 @@ function SimulationContent() {
 
   const reflectionQuestions = storyRuntimeConfig?.reflectionQuestions ?? []
   const openReflectionQuestion = storyRuntimeConfig?.openReflectionQuestion
+  const analyticsStats = useMemo(
+    () =>
+      (storyRuntimeConfig?.postReflectionStats ?? []).map((stat) => ({
+        ...stat,
+        icon: postReflectionIconMap[stat.icon] ?? Users,
+      })),
+    [storyRuntimeConfig?.postReflectionStats],
+  )
+  const analyticsStatsCount = analyticsStats.length
   const hasReflectionStep = reflectionQuestions.length > 0 || Boolean(openReflectionQuestion)
+  const methodologySources = storyRuntimeConfig?.methodology?.sources ?? []
+  const methodologyNote =
+    storyRuntimeConfig?.methodology?.note?.trim() ||
+    storyRuntimeConfig?.methodologyText?.trim() ||
+    "All statistics reflect peer-reviewed research and government data. Player choices are anonymized, aggregated for comparison only, and not stored beyond this session."
+  const resourceLinks = storyRuntimeConfig?.resourceLinks ?? []
+  const hasMethodologyContent =
+    methodologySources.length > 0 || Boolean(storyRuntimeConfig?.methodologyText?.trim())
   const hasAnalyticsContent =
-    (storyRuntimeConfig?.postReflectionStats?.length ?? 0) > 0 ||
-    (storyRuntimeConfig?.resourceLinks?.length ?? 0) > 0 ||
-    Boolean(storyRuntimeConfig?.methodologyText)
+      analyticsStatsCount > 0 ||
+      resourceLinks.length > 0 ||
+      hasMethodologyContent
   const canShowReflection = hasReflectionStep && hasAnalyticsContent
   const requiredReflectionIds = canShowReflection ? storyRuntimeConfig?.requiredReflectionIds ?? [] : []
   const requiredAnsweredCount = requiredReflectionIds.filter((id) => reflectionAnswers[id]).length
   const requiredTotalCount = requiredReflectionIds.length
   const allReflectionsAnswered = requiredTotalCount === 0 ? true : requiredAnsweredCount === requiredTotalCount
+
+  // Analytics stat carousel auto-advance 
+  useEffect(() => {
+    if (!showAnalytics || analyticsStep !== 0 || cinematicDone) return
+    if (analyticsStatsCount === 0) return
+
+    if (statPhase === "entering") {
+      const t = setTimeout(() => {
+        if (statIndex >= analyticsStatsCount - 1) {
+          setCinematicDone(true)
+        } else {
+          setStatPhase("exiting")
+        }
+      }, cinematicHold)
+      return () => clearTimeout(t)
+    }
+    if (statPhase === "exiting") {
+      const t = setTimeout(() => {
+        setStatIndex((prev) => prev + 1)
+        setStatPhase("entering")
+      }, cinematicExitDuration)
+      return () => clearTimeout(t)
+    }
+  }, [analyticsStatsCount, showAnalytics, analyticsStep, statPhase, statIndex, cinematicDone])
 
   const handleSubmitReflections = useCallback(async () => {
     if (!sessionId || !storySlugResolved || !allReflectionsAnswered) return
@@ -1913,7 +2169,7 @@ function SimulationContent() {
           finalResources: stats,
           finalHiddenState: hiddenState,
           totalChoices: choicesMade.length,
-          totalTime: timeSpent,
+          totalTime: timeSpentHours,
           pathTaken: visitedPassages,
           choicesMade,
           reflectionResponses: reflectionAnswers,
@@ -1942,7 +2198,7 @@ function SimulationContent() {
     reflectionAnswers,
     canShowReflection,
     completionEndingType,
-    timeSpent,
+    timeSpentHours,
   ])
 
   const handleViewAnalytics = useCallback(async () => {
@@ -1952,6 +2208,8 @@ function SimulationContent() {
     }
     setAnalyticsStep(0)
     setStatIndex(0)
+    setStatPhase("entering")
+    setCinematicDone(false)
     setShowAnalytics(true)
   }, [allReflectionsAnswered, handleSubmitReflections, reflectionsSubmitted])
 
@@ -2016,361 +2274,174 @@ function SimulationContent() {
 
   if (stats.money <= 0) {
     return (
-      <Container>
-        <FullScreenBox>
-          <IconWrapper $color="#f87171">
-            <DollarSign size={56} />
-          </IconWrapper>
-          <GameOverTitle>Out of Resources</GameOverTitle>
-          <ScreenText>
-            Without financial resources, the journey cannot continue. This is the reality many people face when
-            unexpected costs arise.
-          </ScreenText>
-          <ActionButton onClick={handleRestart}>
-            <RotateCcw size={18} />
-            Try Again
-          </ActionButton>
-        </FullScreenBox>
-      </Container>
+      <CinematicScreen>
+        <CinematicBg $url={resolveBackdropImage(currentPassage.image)} />
+        <CinematicOverlay $tint="linear-gradient(to bottom, rgba(127,29,29,0.3), rgba(15,23,42,0.92))" />
+        <CinematicContent>
+          <CinematicCard>
+            <GameOverIcon $color="#f87171">
+              <DollarSign size={32} />
+            </GameOverIcon>
+            <GameOverTitle>Out of Money</GameOverTitle>
+            <GameOverText>
+              Without any funds left, the journey cannot continue. This is the reality many people face when
+              unexpected costs arise.
+            </GameOverText>
+            <ReplayButton onClick={handleRestart}>
+              <RotateCcw size={16} />
+              Try Again
+            </ReplayButton>
+          </CinematicCard>
+        </CinematicContent>
+      </CinematicScreen>
     )
   }
 
   if (stats.health <= 0) {
     return (
-      <Container>
-        <FullScreenBox>
-          <IconWrapper $color="#f87171">
-            <Heart size={56} />
-          </IconWrapper>
-          <GameOverTitle>Health Crisis</GameOverTitle>
-          <ScreenText>
-            The physical and emotional toll has become too much. Rest and recovery must take priority over everything
-            else.
-          </ScreenText>
-          <ActionButton onClick={handleRestart}>
-            <RotateCcw size={18} />
-            Try Again
-          </ActionButton>
-        </FullScreenBox>
-      </Container>
+      <CinematicScreen>
+        <CinematicBg $url={resolveBackdropImage(currentPassage.image)} />
+        <CinematicOverlay $tint="linear-gradient(to bottom, rgba(127,29,29,0.3), rgba(15,23,42,0.92))" />
+        <CinematicContent>
+          <CinematicCard>
+            <GameOverIcon $color="#f87171">
+              <Heart size={32} />
+            </GameOverIcon>
+            <GameOverTitle>Health Crisis</GameOverTitle>
+            <GameOverText>
+              The physical and emotional toll has become too much. Rest and recovery must take priority over everything
+              else.
+            </GameOverText>
+            <ReplayButton onClick={handleRestart}>
+              <RotateCcw size={16} />
+              Try Again
+            </ReplayButton>
+          </CinematicCard>
+        </CinematicContent>
+      </CinematicScreen>
     )
   }
 
   if (stats.time <= 0) {
     return (
-      <Container>
-        <FullScreenBox>
-          <IconWrapper $color="#60a5fa">
-            <Clock size={56} />
-          </IconWrapper>
-          <GameOverTitle>Out of Time</GameOverTitle>
-          <ScreenText>
-            There are only so many hours in a day. When every moment is spoken for, something has to give.
-            This is the impossible math many caregivers face.
-          </ScreenText>
-          <ActionButton onClick={handleRestart}>
-            <RotateCcw size={18} />
-            Try Again
-          </ActionButton>
-        </FullScreenBox>
-      </Container>
+      <CinematicScreen>
+        <CinematicBg $url={resolveBackdropImage(currentPassage.image)} />
+        <CinematicOverlay />
+        <CinematicContent>
+          <CinematicCard>
+            <GameOverIcon $color="#60a5fa">
+              <Clock size={32} />
+            </GameOverIcon>
+            <GameOverTitle>Out of Time</GameOverTitle>
+            <GameOverText>
+              There are only so many hours in a day. When every moment is spoken for, something has to give. This is
+              the impossible math many caregivers face.
+            </GameOverText>
+            <ReplayButton onClick={handleRestart}>
+              <RotateCcw size={16} />
+              Try Again
+            </ReplayButton>
+          </CinematicCard>
+        </CinematicContent>
+      </CinematicScreen>
     )
   }
 
   if (isComplete && !showReflection) {
     const primaryAction = canShowReflection ? (
-      <ContinueButton onClick={() => setShowReflection(true)}>
+      <ContinueButton onClick={() => setShowReflection(true)} style={{ width: "100%" }}>
         Continue to Reflection
         <ChevronRight size={18} />
       </ContinueButton>
     ) : hasAnalyticsContent ? (
-      <ContinueButton onClick={handleViewAnalytics}>
+      <ContinueButton onClick={handleViewAnalytics} style={{ width: "100%" }}>
         View Real-World Data
         <ChevronRight size={18} />
       </ContinueButton>
     ) : (
-      <ContinueButton onClick={() => router.push("/scenarios")}>
-        Explore More Stories
-        <ChevronRight size={18} />
-      </ContinueButton>
+      <ButtonRow>
+        <ReplayButton onClick={handleRestart}>
+          <RotateCcw size={16} />
+          Experience Again
+        </ReplayButton>
+        <ContinueButton onClick={() => router.push("/scenarios")}>
+          Explore More Stories
+          <ChevronRight size={18} />
+        </ContinueButton>
+      </ButtonRow>
     )
 
     return (
-      <Container>
-        <CompletionBox>
-          <IconWrapper $color="#c4b5fd" $marginBottom="1rem">
-            <Heart size={44} />
-          </IconWrapper>
-          <CompletionTitle>Story Complete</CompletionTitle>
-          <CompletionText>
-            You navigated {currentStory.avatarName}&apos;s journey, making difficult choices that shaped this outcome.
-          </CompletionText>
-          <FinalStats>
-            <FinalStatItem $color="#60a5fa">
-              <Clock size={18} />
-              <span>~{timeSpent} min spent</span>
-            </FinalStatItem>
-            <FinalStatItem $color="#4ade80">
-              <DollarSign size={18} />
-              <span>Final: ${stats.money}</span>
-            </FinalStatItem>
-            <FinalStatItem $color="#f87171">
-              <Heart size={18} />
-              <span>Health: {stats.health}%</span>
-            </FinalStatItem>
-            <FinalStatItem $color="#c084fc">
-              <Users size={18} />
-              <span>Support: {supportValue}/100</span>
-            </FinalStatItem>
-          </FinalStats>
-          {primaryAction}
-        </CompletionBox>
-      </Container>
+      <CinematicScreen>
+        <CinematicBg $url={resolveBackdropImage(currentPassage.image)} />
+        <CinematicOverlay />
+        <CinematicContent>
+          <CinematicAvatar>
+            <OptimizedStoryImage src={currentStory.avatarImage} alt={currentStory.avatarName} width={72} height={72} sizes="72px" />
+          </CinematicAvatar>
+          <CinematicCard>
+            <CompletionTitle>Story Complete</CompletionTitle>
+            <CompletionText>
+              You navigated {currentStory.avatarName}&apos;s challenging week, making choices that shaped their path forward.
+            </CompletionText>
+            <StatsRow>
+              <StatTile $accent="#4ade80">
+                <DollarSign size={16} />
+                <div>
+                  ${stats.money} <StatTileLabel>remaining</StatTileLabel>
+                </div>
+              </StatTile>
+              <StatTile $accent="#f87171">
+                <Heart size={16} />
+                <div>
+                  {stats.health}% <StatTileLabel>health</StatTileLabel>
+                </div>
+              </StatTile>
+              <StatTile $accent="#60a5fa">
+                <Clock size={16} />
+                <div>
+                  ~{formatHoursAndMinutesFromHours(timeSpentHours)} <StatTileLabel>spent</StatTileLabel>
+                </div>
+              </StatTile>
+            </StatsRow>
+            {primaryAction}
+          </CinematicCard>
+        </CinematicContent>
+      </CinematicScreen>
     )
-  }
-
-  if (isComplete && showAnalytics) {
-    const analyticsStats = (storyRuntimeConfig?.postReflectionStats ?? []).map((stat) => ({
-      ...stat,
-      icon: postReflectionIconMap[stat.icon] ?? Users,
-    }))
-
-    // No stats, skip to resources
-    if (analyticsStats.length === 0 && analyticsStep <= 1) {
-      return (
-        <AnalyticsContainer $centered>
-          <AnalyticsCenteredContent $maxWidth="640px">
-            <AnalyticsTitle $marginBottom="0.75rem">
-              {simulationAnalyticsDefaults.noStats.title}
-            </AnalyticsTitle>
-            <AnalyticsSubtitle $marginBottom="2rem">
-              {simulationAnalyticsDefaults.noStats.subtitle}
-            </AnalyticsSubtitle>
-            <ContinueButton onClick={() => setAnalyticsStep(3)}>
-              {simulationAnalyticsDefaults.noStats.continueLabel}
-              <ChevronRight size={18} />
-            </ContinueButton>
-          </AnalyticsCenteredContent>
-        </AnalyticsContainer>
-      )
-    }
-
-    if (analyticsStep === 0) {
-      return (
-        <AnalyticsContainer $centered>
-          <AnalyticsCenteredContent>
-            <AnalyticsIntroIcon>
-              <BarChart3 size={64} />
-            </AnalyticsIntroIcon>
-            <AnalyticsTitle $fontSize="2.5rem" $marginBottom="1rem">
-              {simulationAnalyticsDefaults.intro.title}
-            </AnalyticsTitle>
-            <AnalyticsSubtitle $fontSize="1.25rem" $marginBottom="2.5rem">
-              {simulationAnalyticsDefaults.intro.subtitle}
-            </AnalyticsSubtitle>
-            <ContinueButton onClick={() => setAnalyticsStep(1)}>
-              {simulationAnalyticsDefaults.intro.ctaLabel}
-              <ChevronRight size={18} />
-            </ContinueButton>
-          </AnalyticsCenteredContent>
-        </AnalyticsContainer>
-      )
-    }
-
-    if (analyticsStep === 1) {
-      const currentStat = analyticsStats[statIndex]
-      const IconComponent = currentStat.icon
-      return (
-        <AnalyticsContainer $centered>
-          <StatCarouselWrapper>
-            <StatCarouselCounter>
-              {statIndex + 1} of {analyticsStats.length}
-            </StatCarouselCounter>
-            <StatCard key={statIndex} $borderColor={currentStat.color}>
-              <StatIconBox $bgColor={currentStat.color}>
-                <StatIconInner $color={currentStat.color}>
-                  <IconComponent size={40} />
-                </StatIconInner>
-              </StatIconBox>
-              <StatLabel>{currentStat.title}</StatLabel>
-              <StatValue>{currentStat.value}</StatValue>
-              <StatDescription>{currentStat.description}</StatDescription>
-              <StatSource>Source: {currentStat.source}</StatSource>
-            </StatCard>
-            <StatDots>
-              {analyticsStats.map((_, i) => (
-                <StatDot key={i} $active={i === statIndex} />
-              ))}
-            </StatDots>
-            <StatNavButtons>
-              {statIndex > 0 && (
-                <StatNavButton onClick={() => setStatIndex((prev) => prev - 1)}>
-                  Previous
-                </StatNavButton>
-              )}
-              <StatNavButton
-                $primary
-                onClick={() => {
-                  if (statIndex < analyticsStats.length - 1) {
-                    setStatIndex((prev) => prev + 1)
-                  } else {
-                    setAnalyticsStep(2)
-                  }
-                }}
-              >
-                {statIndex < analyticsStats.length - 1 ? "Next" : "Continue"}
-              </StatNavButton>
-            </StatNavButtons>
-            <StatSkipButton onClick={() => setAnalyticsStep(2)}>
-              Skip to Your Results
-            </StatSkipButton>
-          </StatCarouselWrapper>
-        </AnalyticsContainer>
-      )
-    }
-
-    if (analyticsStep === 2) {
-      return (
-        <AnalyticsContainer $centered>
-          <AnalyticsCenteredContent $maxWidth="700px">
-            <SectionTitle $marginBottom="2rem">Your Choices in Context</SectionTitle>
-
-            <ComparisonSection>
-              <ComparisonCard>
-                <ComparisonTitle>{simulationAnalyticsDefaults.comparison.title}</ComparisonTitle>
-
-                <ComparisonBar>
-                  <ComparisonLabel>
-                    <span>Final Money: ${stats.money}</span>
-                    <span>{simulationAnalyticsDefaults.comparison.benchmarks.money}</span>
-                  </ComparisonLabel>
-                  <ComparisonTrack>
-                    <ComparisonFill $width={Math.min(100, (stats.money / moneyComparisonMax) * 100)} $color="#4ade80" />
-                  </ComparisonTrack>
-                </ComparisonBar>
-
-                <ComparisonBar>
-                  <ComparisonLabel>
-                    <span>Health Level: {stats.health}%</span>
-                    <span>{simulationAnalyticsDefaults.comparison.benchmarks.health}</span>
-                  </ComparisonLabel>
-                  <ComparisonTrack>
-                    <ComparisonFill $width={stats.health} $color="#f87171" />
-                  </ComparisonTrack>
-                </ComparisonBar>
-
-                <ComparisonBar>
-                  <ComparisonLabel>
-                    <span>Support Network: {supportValue}/100</span>
-                    <span>{simulationAnalyticsDefaults.comparison.benchmarks.support}</span>
-                  </ComparisonLabel>
-                  <ComparisonTrack>
-                    <ComparisonFill $width={Math.min(100, Math.max(0, supportValue))} $color="#c084fc" />
-                  </ComparisonTrack>
-                </ComparisonBar>
-
-                <InsightBox>
-                  <InsightText>
-                    {supportValue >= 30
-                      ? simulationAnalyticsDefaults.comparison.insights.supportHigh
-                      : stats.money >= 80
-                      ? simulationAnalyticsDefaults.comparison.insights.moneyHigh
-                      : simulationAnalyticsDefaults.comparison.insights.fallback}
-                  </InsightText>
-                </InsightBox>
-              </ComparisonCard>
-            </ComparisonSection>
-
-            <ContinueButton onClick={() => setAnalyticsStep(3)}>
-              {simulationAnalyticsDefaults.comparison.nextLabel}
-              <ChevronRight size={18} />
-            </ContinueButton>
-          </AnalyticsCenteredContent>
-        </AnalyticsContainer>
-      )
-    }
-
-    if (analyticsStep === 3) {
-      return (
-        <AnalyticsContainer $centered>
-          <AnalyticsCenteredContent $maxWidth="800px">
-            <SectionTitle $marginBottom="1rem">{simulationAnalyticsDefaults.action.title}</SectionTitle>
-            <ActionSubtitle>{simulationAnalyticsDefaults.action.subtitle}</ActionSubtitle>
-
-            <ActionCardsGrid>
-              {simulationAnalyticsDefaults.action.cards.map((card) => {
-                const Icon = analyticsActionIconMap[card.icon]
-                const rgb =
-                  card.color === "#8b5cf6" ? "139, 92, 246" : card.color === "#60a5fa" ? "96, 165, 250" : "74, 222, 128"
-                return (
-                  <ActionCard key={card.title} $rgb={rgb}>
-                    <ActionCardIcon $color={card.color}>
-                      <Icon size={24} />
-                    </ActionCardIcon>
-                    <ActionCardTitle>{card.title}</ActionCardTitle>
-                    <ActionCardBody>{card.body}</ActionCardBody>
-                  </ActionCard>
-                )
-              })}
-            </ActionCardsGrid>
-
-            <ResourcesSection>
-              <ResourcesSectionTitle>
-                {simulationAnalyticsDefaults.action.resourcesTitle}
-              </ResourcesSectionTitle>
-              <ResourcesGrid>
-                {(storyRuntimeConfig?.resourceLinks ?? []).map((link) => (
-                  <ResourceLink key={link.href} href={link.href} target="_blank" rel="noopener noreferrer">
-                    {link.label}
-                  </ResourceLink>
-                ))}
-              </ResourcesGrid>
-            </ResourcesSection>
-
-            {storyRuntimeConfig?.methodologyText && (
-              <MethodologySection>
-                <MethodologyTitle>
-                  {simulationAnalyticsDefaults.action.methodologyTitle}
-                </MethodologyTitle>
-                <MethodologyText>{storyRuntimeConfig.methodologyText}</MethodologyText>
-              </MethodologySection>
-            )}
-
-            <ActionButtons>
-              <ReplayButton onClick={handleRestart}>
-                <RotateCcw size={18} />
-                Experience Again
-              </ReplayButton>
-
-              <ContinueButton onClick={() => router.push("/scenarios")}>
-                Explore More Stories
-                <ChevronRight size={18} />
-              </ContinueButton>
-            </ActionButtons>
-          </AnalyticsCenteredContent>
-        </AnalyticsContainer>
-      )
-    }
   }
 
   if (isComplete && showReflection && !showAnalytics && canShowReflection) {
     const canViewAnalytics = allReflectionsAnswered && !submittingReflections
 
     return (
-      <Container $autoHeight>
-        <CompletionBox>
+      <CinematicScreen
+        style={{
+          minHeight: "100vh",
+          height: "auto",
+          overflowY: "auto",
+          alignItems: "flex-start",
+          paddingTop: "4rem",
+          paddingBottom: "4rem",
+        }}
+      >
+        <CinematicBg $url={resolveBackdropImage(currentPassage.image)} />
+        <CinematicOverlay />
+        <CinematicContent>
           <CompletionTitle>Take a Moment to Reflect</CompletionTitle>
-          <CompletionText>
-            Consider {currentStory.avatarName}&apos;s experiences and the weight of their responsibilities. Your
-            reflections help connect the story to real-world context.
-          </CompletionText>
+          <ReflectionIntroText>
+            Consider the weight of the choices you made as {currentStory.avatarName}.
+          </ReflectionIntroText>
 
-          <ReflectionBox>
+          <ReflectionCard>
             <ReflectionTitle>Your Reflections</ReflectionTitle>
 
-            {reflectionQuestions.map((question) => (
+            {reflectionQuestions.map((question, index) => (
               <ReflectionQuestion key={question.id}>
-                <QuestionText>{question.prompt}</QuestionText>
+                <QuestionText>
+                  <QuestionNumber>{index + 1}</QuestionNumber>
+                  {question.prompt}
+                </QuestionText>
                 <ReflectionOptions>
                   {question.options.map((option) => (
                     <ReflectionOption
@@ -2387,7 +2458,10 @@ function SimulationContent() {
 
             {openReflectionQuestion && (
               <ReflectionQuestion>
-                <QuestionText>{openReflectionQuestion.prompt}</QuestionText>
+                <QuestionText>
+                  <QuestionNumber>{reflectionQuestions.length + 1}</QuestionNumber>
+                  {openReflectionQuestion.prompt}
+                </QuestionText>
                 <OpenEndedInput
                   placeholder={openReflectionQuestion.placeholder}
                   value={reflectionAnswers[openReflectionQuestion.id] ?? ""}
@@ -2395,11 +2469,11 @@ function SimulationContent() {
                 />
               </ReflectionQuestion>
             )}
-          </ReflectionBox>
+          </ReflectionCard>
 
-          <ReflectionButtonsWrapper>
+          <ButtonRow>
             <ReplayButton onClick={handleRestart}>
-              <RotateCcw size={18} />
+              <RotateCcw size={16} />
               Try Again
             </ReplayButton>
 
@@ -2407,29 +2481,242 @@ function SimulationContent() {
               onClick={handleViewAnalytics}
               $disabled={!canViewAnalytics}
             >
-              <BarChart3 size={18} />
+              <BarChart3 size={16} />
               View Real-World Data
             </ContinueButton>
-          </ReflectionButtonsWrapper>
+          </ButtonRow>
 
           {!allReflectionsAnswered && (
             <ReflectionHint>
-              Please answer all reflection questions to continue ({requiredAnsweredCount} of {requiredTotalCount})
+              Answer all {requiredTotalCount} questions to unlock the data dashboard
             </ReflectionHint>
           )}
-        </CompletionBox>
-      </Container>
+        </CinematicContent>
+      </CinematicScreen>
     )
+  }
+
+  if (isComplete && showAnalytics) {
+    // No stats, skip directly to action step
+    if (analyticsStats.length === 0) {
+      return (
+        <AnalyticsScreen $centered style={{ overflowY: "auto", alignItems: "flex-start", paddingTop: "3rem", paddingBottom: "3rem" }}>
+          <AnalyticsBg />
+          <AnalyticsBody>
+            <SectionTitle $marginBottom="0.5rem">How You Can Help</SectionTitle>
+            <ActionSubtitle>
+              Understanding is the first step. Here are ways to make a real difference.
+            </ActionSubtitle>
+
+            <ActionGrid>
+              {simulationAnalyticsDefaults.action.cards.map((card) => {
+                const Icon = analyticsActionIconMap[card.icon]
+                return (
+                  <ActionCard key={card.title} $accent={card.color}>
+                    <ActionCardIcon $color={card.color}>
+                      <Icon size={22} />
+                    </ActionCardIcon>
+                    <ActionCardTitle>{card.title}</ActionCardTitle>
+                    <ActionCardDesc>{card.body}</ActionCardDesc>
+                  </ActionCard>
+                )
+              })}
+            </ActionGrid>
+
+            {resourceLinks.length > 0 && (
+              <>
+                <OrgLabel>Organizations Making a Difference</OrgLabel>
+                <OrgGrid>
+                  {resourceLinks.map((link) => (
+                    <ResourceLink key={link.href} href={link.href} target="_blank" rel="noopener noreferrer">
+                      {link.label}
+                    </ResourceLink>
+                  ))}
+                </OrgGrid>
+              </>
+            )}
+
+            {hasMethodologyContent && (
+              <MethodologyBox>
+                <MethodologyHeader>
+                  <MethodologyIconWrapper>
+                    <Shield size={16} />
+                  </MethodologyIconWrapper>
+                  <MethodologyTitle>Data & Methodology</MethodologyTitle>
+                </MethodologyHeader>
+                {methodologySources.length > 0 && (
+                  <MethodologyGrid>
+                    {methodologySources.map((source, index) => (
+                      <MethodologySourceItem key={`${source.label}-${index}`}>
+                        <MethodologySourceLabel>{source.label}</MethodologySourceLabel>
+                        <MethodologySourceValue>{source.value}</MethodologySourceValue>
+                      </MethodologySourceItem>
+                    ))}
+                  </MethodologyGrid>
+                )}
+                <MethodologyNote>{methodologyNote}</MethodologyNote>
+              </MethodologyBox>
+            )}
+
+            <ButtonRow>
+              <ReplayButton onClick={handleRestart}>
+                <RotateCcw size={16} />
+                Experience Again
+              </ReplayButton>
+              <ContinueButton onClick={() => router.push("/scenarios")}>
+                Explore More Stories
+                <ChevronRight size={16} />
+              </ContinueButton>
+            </ButtonRow>
+          </AnalyticsBody>
+        </AnalyticsScreen>
+      )
+    }
+
+    // Step 0: Cinematic stat carousel 
+    if (analyticsStep === 0) {
+      const currentStat = analyticsStats[statIndex]
+      const IconComponent = currentStat.icon
+
+      return (
+        <AnalyticsScreen $centered>
+          <AnalyticsBg />
+          {[15, 35, 55, 75, 85].map((x, i) => (
+            <Particle key={i} $x={x} $delay={i * 0.6} $color={currentStat.color} />
+          ))}
+          <CinematicStage>
+            {statPhase === "exiting" ? (
+              <CinematicStatExiting key={`exit-${statIndex}`}>
+                <CinematicIconRing $color={currentStat.color}>
+                  <IconComponent size={38} />
+                </CinematicIconRing>
+                <CinematicStatValue>{currentStat.value}</CinematicStatValue>
+                <CinematicStatLabel>{currentStat.title}</CinematicStatLabel>
+                <CinematicStatDesc>{currentStat.description}</CinematicStatDesc>
+                <CinematicStatSource>Source: {currentStat.source}</CinematicStatSource>
+              </CinematicStatExiting>
+            ) : (
+              <CinematicStatEntering key={`enter-${statIndex}`}>
+                <CinematicIconRing $color={currentStat.color}>
+                  <IconComponent size={38} />
+                </CinematicIconRing>
+                <CinematicStatValue>{currentStat.value}</CinematicStatValue>
+                <CinematicStatLabel>{currentStat.title}</CinematicStatLabel>
+                <CinematicStatDesc>{currentStat.description}</CinematicStatDesc>
+                <CinematicStatSource>Source: {currentStat.source}</CinematicStatSource>
+              </CinematicStatEntering>
+            )}
+
+            {cinematicDone && (
+              <CinematicContinueWrap>
+                <ContinueButton onClick={() => setAnalyticsStep(3)}>
+                  How You Can Help
+                  <ChevronRight size={16} />
+                </ContinueButton>
+              </CinematicContinueWrap>
+            )}
+          </CinematicStage>
+
+          <CinematicProgress>
+            <ProgressTimerBar key={`timer-${statIndex}`} $duration={cinematicHold} />
+            <ProgressDots>
+              {analyticsStats.map((_, i) => (
+                <ProgressDot
+                  key={i}
+                  $state={i < statIndex ? "done" : i === statIndex ? "active" : "upcoming"}
+                />
+              ))}
+            </ProgressDots>
+            {!cinematicDone && (
+              <SkipBtn onClick={() => { setCinematicDone(true); setStatIndex(analyticsStats.length - 1); setStatPhase("visible") }}>
+                Skip
+              </SkipBtn>
+            )}
+          </CinematicProgress>
+        </AnalyticsScreen>
+      )
+    }
+
+    // Step 3: How You Can Help
+    if (analyticsStep >= 2) {
+      return (
+        <AnalyticsScreen $centered style={{ overflowY: "auto", alignItems: "flex-start", paddingTop: "3rem", paddingBottom: "3rem" }}>
+          <AnalyticsBg />
+          <AnalyticsBody>
+            <SectionTitle $marginBottom="0.5rem">How You Can Help</SectionTitle>
+            <ActionSubtitle>
+              Understanding is the first step. Here are ways to make a real difference.
+            </ActionSubtitle>
+
+            <ActionGrid>
+              {simulationAnalyticsDefaults.action.cards.map((card) => {
+                const Icon = analyticsActionIconMap[card.icon]
+                return (
+                  <ActionCard key={card.title} $accent={card.color}>
+                    <ActionCardIcon $color={card.color}>
+                      <Icon size={22} />
+                    </ActionCardIcon>
+                    <ActionCardTitle>{card.title}</ActionCardTitle>
+                    <ActionCardDesc>{card.body}</ActionCardDesc>
+                  </ActionCard>
+                )
+              })}
+            </ActionGrid>
+
+            {resourceLinks.length > 0 && (
+              <>
+                <OrgLabel>Organizations Making a Difference</OrgLabel>
+                <OrgGrid>
+                  {resourceLinks.map((link) => (
+                    <ResourceLink key={link.href} href={link.href} target="_blank" rel="noopener noreferrer">
+                      {link.label}
+                    </ResourceLink>
+                  ))}
+                </OrgGrid>
+              </>
+            )}
+
+            {hasMethodologyContent && (
+              <MethodologyBox>
+                <MethodologyHeader>
+                  <MethodologyIconWrapper>
+                    <Shield size={16} />
+                  </MethodologyIconWrapper>
+                  <MethodologyTitle>Data & Methodology</MethodologyTitle>
+                </MethodologyHeader>
+                {methodologySources.length > 0 && (
+                  <MethodologyGrid>
+                    {methodologySources.map((source, index) => (
+                      <MethodologySourceItem key={`${source.label}-${index}`}>
+                        <MethodologySourceLabel>{source.label}</MethodologySourceLabel>
+                        <MethodologySourceValue>{source.value}</MethodologySourceValue>
+                      </MethodologySourceItem>
+                    ))}
+                  </MethodologyGrid>
+                )}
+                <MethodologyNote>{methodologyNote}</MethodologyNote>
+              </MethodologyBox>
+            )}
+
+            <ButtonRow>
+              <ReplayButton onClick={handleRestart}>
+                <RotateCcw size={16} />
+                Experience Again
+              </ReplayButton>
+              <ContinueButton onClick={() => router.push("/scenarios")}>
+                Explore More Stories
+                <ChevronRight size={16} />
+              </ContinueButton>
+            </ButtonRow>
+          </AnalyticsBody>
+        </AnalyticsScreen>
+      )
+    }
   }
   
   const textContent = Array.isArray(currentPassage.text) ? currentPassage.text : [currentPassage.text]
-  const passageImage = currentPassage.image || ""
-
-  const hasBackgroundImage = !!passageImage && (
-    passageImage.startsWith("/scenes/") ||
-    passageImage.includes("cloudinary.com") ||
-    passageImage.includes("res.cloudinary.com")
-  )
+  const passageImage = resolveBackdropImage(currentPassage.image)
+  const hasBackgroundImage = isStoryVisualPath(passageImage)
   const shouldPrioritizeBackground = historyStack.length === 0
 
   return (
@@ -2461,7 +2748,7 @@ function SimulationContent() {
         <TopBarRight>
           <StatsBar>
             <StatPill $color="#60a5fa">
-              <Clock />{stats.time}h
+              <Clock />{remainingTimeLabel}
             </StatPill>
             <StatPill $color="#4ade80">
               <DollarSign />${stats.money}
