@@ -834,6 +834,64 @@ const MediaPath = styled.div`
   color: rgb(100, 116, 139);
 `
 
+const CropPreviewWrap = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 4px;
+`
+
+const CropPreviewLabel = styled.span`
+  font-size: 11px;
+  color: rgb(148, 163, 184);
+`
+
+const CropPreviewBox = styled.div`
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  border-radius: 6px;
+  overflow: hidden;
+  border: 1px solid rgba(71, 85, 105, 0.6);
+  background: rgb(15, 23, 42);
+`
+
+const CropPreviewImage = styled.img<{ $x: number; $y: number; $zoom: number }>`
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: ${({ $x, $y }) => `${$x}% ${$y}%`};
+  transform: scale(${({ $zoom }) => $zoom});
+  transform-origin: center;
+`
+
+const CropSliderGroup = styled.div`
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+
+  @media (max-width: 640px) {
+    grid-template-columns: 1fr;
+  }
+`
+
+const CropSliderField = styled.label`
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 10px;
+  color: rgb(100, 116, 139);
+`
+
+const CropSlider = styled.input`
+  width: 100%;
+  accent-color: rgb(139, 92, 246);
+`
+
+const CropPreviewHint = styled.span`
+  font-size: 10px;
+  color: rgb(100, 116, 139);
+`
+
 const MediaRow = styled.div`
   display: flex;
   align-items: center;
@@ -1275,6 +1333,63 @@ const AvatarPreviewPath = styled.span`
   white-space: nowrap;
 `
 
+const AvatarFormGrid = styled.div`
+  display: grid;
+  gap: 12px;
+
+  @media (min-width: 768px) {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+`
+
+const AvatarSectionTitle = styled.p`
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: rgba(216, 180, 254, 0.85);
+  margin: 0;
+`
+
+const AvatarHintText = styled.p`
+  font-size: 12px;
+  color: rgba(216, 180, 254, 0.72);
+  margin: 0;
+`
+
+const AvatarResourceReadOnly = styled.div`
+  display: grid;
+  gap: 8px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+
+  @media (max-width: 680px) {
+    grid-template-columns: 1fr;
+  }
+`
+
+const AvatarResourceTile = styled.div`
+  border: 1px solid rgba(192, 132, 252, 0.35);
+  border-radius: 8px;
+  background: rgba(76, 29, 149, 0.22);
+  padding: 8px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+`
+
+const AvatarResourceLabel = styled.span`
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: rgba(216, 180, 254, 0.7);
+`
+
+const AvatarResourceValue = styled.span`
+  font-size: 14px;
+  color: rgb(243, 232, 255);
+  font-weight: 600;
+`
+
 const PurpleOutlineButton = styled(Button)`
   border-color: rgba(192, 132, 252, 0.6);
   color: rgb(216, 180, 254);
@@ -1552,6 +1667,11 @@ interface UploadedMedia {
   url: string  
   mappedToNode?: string
   serverPath?: string
+  cropPreview?: {
+    x: number
+    y: number
+    zoom: number
+  }
 }
 
 interface NodeKeyInfo {
@@ -1566,6 +1686,12 @@ function normalizeSlug(input: string) {
     .replace(/^-+|-+$/g, "")
     .replace(/--+/g, "-")
 }
+
+const createDefaultCropPreview = () => ({
+  x: 50,
+  y: 50,
+  zoom: 1,
+})
 
 function validateGraph(graph: any): { ok: true } | { ok: false; message: string } {
   if (!graph || typeof graph !== "object") return { ok: false, message: "Graph is missing." }
@@ -1697,6 +1823,68 @@ function validateAvatarMetadata(avatar: any): { ok: true } | { ok: false; messag
   return { ok: true }
 }
 
+function toStringList(value: unknown): string[] {
+  if (!Array.isArray(value)) return []
+  return value
+    .map((entry) => (typeof entry === "string" ? entry.trim() : ""))
+    .filter(Boolean)
+}
+
+function normalizeAvatarMetadata(avatar: unknown): AvatarMetadata {
+  const source = avatar && typeof avatar === "object" ? (avatar as Record<string, any>) : {}
+  const appearance = source.appearance && typeof source.appearance === "object" ? source.appearance : {}
+  const resources = source.initialResources && typeof source.initialResources === "object" ? source.initialResources : {}
+  const socialContext = source.socialContext && typeof source.socialContext === "object" ? source.socialContext : {}
+
+  const parsedAge =
+    typeof source.age === "number" && Number.isFinite(source.age)
+      ? source.age
+      : typeof source.age === "string" && source.age.trim()
+      ? Number(source.age)
+      : undefined
+
+  return {
+    name: typeof source.name === "string" ? source.name : "",
+    age: typeof parsedAge === "number" && Number.isFinite(parsedAge) ? parsedAge : undefined,
+    background: typeof source.background === "string" ? source.background : "",
+    appearance: {
+      skinTone: typeof appearance.skinTone === "string" ? appearance.skinTone : "",
+      hairColor: typeof appearance.hairColor === "string" ? appearance.hairColor : "",
+      hairStyle: typeof appearance.hairStyle === "string" ? appearance.hairStyle : "",
+      clothing: typeof appearance.clothing === "string" ? appearance.clothing : "",
+      accessories: toStringList(appearance.accessories),
+      image: typeof appearance.image === "string" ? appearance.image : "",
+    },
+    initialResources: {
+      money: typeof resources.money === "number" ? resources.money : 100,
+      time: typeof resources.time === "number" ? resources.time : 100,
+      health: typeof resources.health === "number" ? resources.health : 100,
+      socialSupport: typeof resources.socialSupport === "number" ? resources.socialSupport : 50,
+      mentalHealth: typeof resources.mentalHealth === "number" ? resources.mentalHealth : 70,
+      physicalHealth: typeof resources.physicalHealth === "number" ? resources.physicalHealth : 80,
+    },
+    socialContext: {
+      socioeconomicStatus:
+        typeof socialContext.socioeconomicStatus === "string" ? socialContext.socioeconomicStatus : "",
+      location: typeof socialContext.location === "string" ? socialContext.location : "",
+      familyStructure: typeof socialContext.familyStructure === "string" ? socialContext.familyStructure : "",
+      educationLevel: typeof socialContext.educationLevel === "string" ? socialContext.educationLevel : "",
+      employmentStatus: typeof socialContext.employmentStatus === "string" ? socialContext.employmentStatus : "",
+      healthConditions: toStringList(socialContext.healthConditions),
+      socialIssues: Array.isArray(socialContext.socialIssues) ? socialContext.socialIssues : [],
+    },
+    isPlayable: source.isPlayable !== false,
+  }
+}
+
+function createAvatarMetadataTemplate(): AvatarMetadata {
+  try {
+    return normalizeAvatarMetadata(JSON.parse(avatarTemplateJson))
+  } catch {
+    return normalizeAvatarMetadata(null)
+  }
+}
+
 const parseTagsString = (input: string) =>
   input
     .split(",")
@@ -1732,7 +1920,7 @@ function CreatorDashboardContent() {
   const [showFlowStudio, setShowFlowStudio] = useState(false)
   const [showSaveHint, setShowSaveHint] = useState(false)
   const saveButtonRef = useRef<HTMLButtonElement | null>(null)
-  const [avatarJson, setAvatarJson] = useState(avatarTemplateJson)
+  const [avatarForm, setAvatarForm] = useState<AvatarMetadata>(() => createAvatarMetadataTemplate())
   const [includeAvatar, setIncludeAvatar] = useState(true)
   const [publishing, setPublishing] = useState(false)
   const [publishError, setPublishError] = useState<string | null>(null)
@@ -1787,6 +1975,7 @@ function CreatorDashboardContent() {
   const [pendingStory, setPendingStory] = useState<CreatorStory | null>(null)
   const [ownershipAck, setOwnershipAck] = useState({ transfer: false, contact: false })
   const [ownershipConfirmLoading, setOwnershipConfirmLoading] = useState(false)
+  const exampleProvisionAttemptedRef = useRef<string | null>(null)
 
   const scrollErrorIntoView = useCallback((element: HTMLElement | null) => {
     if (!element) return
@@ -1807,7 +1996,7 @@ function CreatorDashboardContent() {
     setSummary("Short description of this journey.")
     setTags("community, empathy")
     setGraphJson(storyGraphTemplateJson)
-    setAvatarJson(avatarTemplateJson)
+    setAvatarForm(createAvatarMetadataTemplate())
     setIncludeAvatar(true)
     setUploadedMedia([])
     setFormError(null)
@@ -1854,23 +2043,16 @@ function CreatorDashboardContent() {
     })
   }, [uploadedMedia, toast])
 
-  const updateAvatarJsonImage = useCallback((imageUrl: string) => {
-    try {
-      const parsed = JSON.parse(avatarJson)
-      const appearance = parsed?.appearance && typeof parsed.appearance === "object" ? parsed.appearance : {}
-      const updated = {
-        ...parsed,
-        appearance: {
-          ...appearance,
-          image: imageUrl,
-        },
-      }
-      setAvatarJson(JSON.stringify(updated, null, 2))
-      setAvatarImageUploadError(null)
-    } catch {
-      setAvatarImageUploadError("Avatar JSON is invalid. Fix it before updating the profile image.")
-    }
-  }, [avatarJson])
+  const updateAvatarFormImage = useCallback((imageUrl: string) => {
+    setAvatarForm((previous) => ({
+      ...previous,
+      appearance: {
+        ...previous.appearance,
+        image: imageUrl,
+      },
+    }))
+    setAvatarImageUploadError(null)
+  }, [])
 
   const updateImportAvatarJsonImage = useCallback((imageUrl: string) => {
     try {
@@ -1951,7 +2133,7 @@ function CreatorDashboardContent() {
         return
       }
 
-      updateAvatarJsonImage(data.path)
+      updateAvatarFormImage(data.path)
       toast({
         title: "Profile image uploaded",
         description: "Saved to Cloudinary and linked to this character profile.",
@@ -1962,7 +2144,7 @@ function CreatorDashboardContent() {
       setAvatarImageUploading(false)
       event.target.value = ""
     }
-  }, [toast, updateAvatarJsonImage])
+  }, [toast, updateAvatarFormImage])
 
   const handleImportAvatarImageUpload = useCallback(async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
@@ -2013,6 +2195,75 @@ function CreatorDashboardContent() {
     }
   }, [toast, updateImportAvatarJsonImage])
 
+  const updateAvatarRootField = useCallback(
+    (key: "name" | "age" | "background" | "isPlayable", value: string | number | boolean | undefined) => {
+      setAvatarForm((previous) => ({ ...previous, [key]: value }))
+    },
+    [],
+  )
+
+  const updateAvatarAppearanceField = useCallback(
+    (
+      key: "skinTone" | "hairColor" | "hairStyle" | "clothing" | "accessories" | "image",
+      value: string | string[],
+    ) => {
+      setAvatarForm((previous) => ({
+        ...previous,
+        appearance: {
+          ...previous.appearance,
+          [key]: value,
+        },
+      }))
+    },
+    [],
+  )
+
+  const updateAvatarResourceField = useCallback(
+    (key: "socialSupport" | "mentalHealth" | "physicalHealth", value: string) => {
+      const parsedValue = value.trim() === "" ? undefined : Number(value)
+      setAvatarForm((previous) => ({
+        ...previous,
+        initialResources: {
+          ...previous.initialResources,
+          [key]:
+            typeof parsedValue === "number" && Number.isFinite(parsedValue)
+              ? Math.max(0, Math.min(100, parsedValue))
+              : undefined,
+        },
+      }))
+    },
+    [],
+  )
+
+  const updateAvatarSocialContextField = useCallback(
+    (
+      key:
+        | "socioeconomicStatus"
+        | "location"
+        | "familyStructure"
+        | "educationLevel"
+        | "employmentStatus"
+        | "healthConditions",
+      value: string | string[],
+    ) => {
+      setAvatarForm((previous) => ({
+        ...previous,
+        socialContext: {
+          ...(previous.socialContext ?? {}),
+          [key]: value,
+        },
+      }))
+    },
+    [],
+  )
+
+  const parseCommaSeparatedList = useCallback((value: string) => {
+    return value
+      .split(",")
+      .map((entry) => entry.trim())
+      .filter(Boolean)
+  }, [])
+
   // Media upload handlers
   const handleMediaUpload = useCallback(async (files: FileList | null, type: "image" | "audio") => {
     if (!files || files.length === 0) return
@@ -2042,6 +2293,7 @@ function CreatorDashboardContent() {
         name: file.name,
         type,
         url: URL.createObjectURL(file),
+        cropPreview: type === "image" ? createDefaultCropPreview() : undefined,
       }])
     }
   }, [])
@@ -2108,6 +2360,25 @@ function CreatorDashboardContent() {
       m.id === id ? { ...m, name: newName } : m
     ))
   }, [])
+
+  const handleMediaCropPreviewChange = useCallback(
+    (id: string, key: "x" | "y" | "zoom", value: number) => {
+      setUploadedMedia((prev) =>
+        prev.map((media) => {
+          if (media.id !== id || media.type !== "image") return media
+          const current = media.cropPreview ?? createDefaultCropPreview()
+          return {
+            ...media,
+            cropPreview: {
+              ...current,
+              [key]: value,
+            },
+          }
+        }),
+      )
+    },
+    [],
+  )
 
   const handleMediaNodeMapping = useCallback((id: string, nodeKey: string) => {
     setUploadedMedia(prev => prev.map(m => 
@@ -2286,6 +2557,7 @@ function CreatorDashboardContent() {
             url: item.url,
             serverPath: item.serverPath,
             mappedToNode: item.mappedToNode,
+            cropPreview: item.type === "image" ? createDefaultCropPreview() : undefined,
           },
         ]
       })
@@ -2437,6 +2709,54 @@ function CreatorDashboardContent() {
   }, [fetchStoriesFromApi, isCreator])
 
   useEffect(() => {
+    if (!user?.id) return
+    exampleProvisionAttemptedRef.current = null
+  }, [user?.id])
+
+  useEffect(() => {
+    if (!isCreator || loading || !user?.id) return
+    const storageKey = `creator-example-provisioned:${user.id}`
+    const hasStarterStory = stories.some((story) => story.slug === exampleStory.slug)
+
+    if (hasStarterStory) {
+      localStorage.setItem(storageKey, "true")
+      return
+    }
+
+    if (stories.length > 0) return
+    if (fetchError) return
+    if (localStorage.getItem(storageKey) === "true") return
+    if (exampleProvisionAttemptedRef.current === user.id) return
+
+    exampleProvisionAttemptedRef.current = user.id
+
+    let cancelled = false
+    ;(async () => {
+      try {
+        const response = await fetch("/api/creator/upgrade", {
+          method: "POST",
+          credentials: "include",
+        })
+
+        if (!response.ok) {
+          return
+        }
+
+        await refreshStories()
+        if (!cancelled) {
+          localStorage.setItem(storageKey, "true")
+        }
+      } catch (error) {
+        console.error("[creator-dashboard] Failed to provision example story:", error)
+      }
+    })()
+
+    return () => {
+      cancelled = true
+    }
+  }, [fetchError, isCreator, loading, refreshStories, stories, user?.id])
+
+  useEffect(() => {
     if (!storiesMessage) return
     const stickyMessages = new Set([
       "Complete your creator profile before submitting stories for approval.",
@@ -2508,10 +2828,10 @@ function CreatorDashboardContent() {
     }
     setGraphJson(JSON.stringify(graphPayload, null, 2))
     if (story.metadata?.avatar) {
-      setAvatarJson(JSON.stringify(story.metadata.avatar, null, 2))
+      setAvatarForm(normalizeAvatarMetadata(story.metadata.avatar))
       setIncludeAvatar(true)
     } else {
-      setAvatarJson(avatarTemplateJson)
+      setAvatarForm(createAvatarMetadataTemplate())
       setIncludeAvatar(false)
     }
 
@@ -2554,6 +2874,7 @@ function CreatorDashboardContent() {
           url: imagePath,
           serverPath: imagePath,
           mappedToNode: node.key,
+          cropPreview: createDefaultCropPreview(),
         }
         existingMedia.push(mediaItem)
       }
@@ -2602,12 +2923,7 @@ function CreatorDashboardContent() {
 
       let avatarMetadata: AvatarMetadata | undefined
       if (includeAvatar) {
-        try {
-          const parsedAvatar = JSON.parse(avatarJson) as AvatarMetadata
-          avatarMetadata = applyGraphInitialResourcesToAvatar(parsedAvatar, graphInitialResources)
-        } catch (parseError) {
-          throw new Error("Avatar metadata JSON is invalid. Please ensure it is valid JSON.")
-        }
+        avatarMetadata = applyGraphInitialResourcesToAvatar(normalizeAvatarMetadata(avatarForm), graphInitialResources)
         const avatarValidation = validateAvatarMetadata(avatarMetadata)
         if (!avatarValidation.ok) {
           throw new Error(avatarValidation.message)
@@ -2660,7 +2976,7 @@ function CreatorDashboardContent() {
         setSummary("Short description of this journey.")
         setTags("community, empathy")
         setGraphJson(storyGraphTemplateJson)
-        setAvatarJson(avatarTemplateJson)
+        setAvatarForm(createAvatarMetadataTemplate())
         setIncludeAvatar(true)
         setFormError(null)
         setPublishError(null)
@@ -2719,12 +3035,7 @@ function CreatorDashboardContent() {
       // Validate avatar if included
       let avatarMetadata: AvatarMetadata | undefined
       if (includeAvatar) {
-        try {
-          const parsedAvatar = JSON.parse(avatarJson) as AvatarMetadata
-          avatarMetadata = applyGraphInitialResourcesToAvatar(parsedAvatar, graphInitialResources)
-        } catch (parseError) {
-          throw new Error("Avatar metadata JSON is invalid. Please ensure it is valid JSON.")
-        }
+        avatarMetadata = applyGraphInitialResourcesToAvatar(normalizeAvatarMetadata(avatarForm), graphInitialResources)
         const avatarValidation = validateAvatarMetadata(avatarMetadata)
         if (!avatarValidation.ok) {
           throw new Error(avatarValidation.message)
@@ -2977,7 +3288,8 @@ function CreatorDashboardContent() {
 
   const confirmDeleteStory = async () => {
     if (!confirmDialog.slug) return
-    setDeletingSlug(confirmDialog.slug)
+    const targetSlug = confirmDialog.slug
+    setDeletingSlug(targetSlug)
     setStoriesMessage(null)
     setFetchError(null)
     setConfirmDialog({ slug: null, action: null })
@@ -2986,12 +3298,15 @@ function CreatorDashboardContent() {
         method: "DELETE",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
-        body: JSON.stringify({ slug: confirmDialog.slug }),
+        body: JSON.stringify({ slug: targetSlug }),
       })
       if (!response.ok && response.status !== 204) {
         const raw = await response.text()
         const data = raw ? JSON.parse(raw) : null
         throw new Error((data && data.error) || raw || "Unable to delete story.")
+      }
+      if (targetSlug === exampleStory.slug && user?.id) {
+        localStorage.setItem(`creator-example-provisioned:${user.id}`, "true")
       }
       try {
         await refreshStories()
@@ -3095,16 +3410,7 @@ function CreatorDashboardContent() {
     [stories],
   )
 
-  const avatarImagePreview = useMemo(() => {
-    if (!includeAvatar) return ""
-    try {
-      const parsed = JSON.parse(avatarJson)
-      const image = parsed?.appearance?.image
-      return typeof image === "string" ? image : ""
-    } catch {
-      return ""
-    }
-  }, [avatarJson, includeAvatar])
+  const avatarImagePreview = includeAvatar ? avatarForm.appearance?.image ?? "" : ""
 
   const importAvatarImagePreview = useMemo(() => {
     if (!importIncludeAvatar) return ""
@@ -3437,7 +3743,89 @@ function CreatorDashboardContent() {
                       </SectionHeader>
                       {includeAvatar && (
                         <>
-                          <MonoTextarea value={avatarJson} onChange={(e) => setAvatarJson(e.target.value)} rows={12} />
+                          <AvatarSectionTitle>Identity</AvatarSectionTitle>
+                          <AvatarFormGrid>
+                            <FormGroup>
+                              <Label>Name</Label>
+                              <Input
+                                value={avatarForm.name}
+                                onChange={(e) => updateAvatarRootField("name", e.target.value)}
+                                placeholder="Character Name"
+                              />
+                            </FormGroup>
+                            <FormGroup>
+                              <Label>Age</Label>
+                              <Input
+                                type="number"
+                                value={avatarForm.age ?? ""}
+                                onChange={(e) =>
+                                  updateAvatarRootField(
+                                    "age",
+                                    e.target.value === "" ? undefined : Number(e.target.value),
+                                  )
+                                }
+                                placeholder="25"
+                              />
+                            </FormGroup>
+                          </AvatarFormGrid>
+
+                          <FormGroup>
+                            <Label>Background</Label>
+                            <Textarea
+                              value={avatarForm.background}
+                              onChange={(e) => updateAvatarRootField("background", e.target.value)}
+                              rows={4}
+                              placeholder="Describe the character's context and stakes."
+                            />
+                          </FormGroup>
+
+                          <AvatarSectionTitle>Appearance</AvatarSectionTitle>
+                          <AvatarFormGrid>
+                            <FormGroup>
+                              <Label>Skin Tone</Label>
+                              <Input
+                                value={avatarForm.appearance.skinTone ?? ""}
+                                onChange={(e) => updateAvatarAppearanceField("skinTone", e.target.value)}
+                                placeholder="medium"
+                              />
+                            </FormGroup>
+                            <FormGroup>
+                              <Label>Hair Color</Label>
+                              <Input
+                                value={avatarForm.appearance.hairColor ?? ""}
+                                onChange={(e) => updateAvatarAppearanceField("hairColor", e.target.value)}
+                                placeholder="dark brown"
+                              />
+                            </FormGroup>
+                            <FormGroup>
+                              <Label>Hair Style</Label>
+                              <Input
+                                value={avatarForm.appearance.hairStyle ?? ""}
+                                onChange={(e) => updateAvatarAppearanceField("hairStyle", e.target.value)}
+                                placeholder="short"
+                              />
+                            </FormGroup>
+                            <FormGroup>
+                              <Label>Clothing</Label>
+                              <Input
+                                value={avatarForm.appearance.clothing ?? ""}
+                                onChange={(e) => updateAvatarAppearanceField("clothing", e.target.value)}
+                                placeholder="casual"
+                              />
+                            </FormGroup>
+                          </AvatarFormGrid>
+
+                          <FormGroup>
+                            <Label>Accessories (comma separated)</Label>
+                            <Input
+                              value={(avatarForm.appearance.accessories ?? []).join(", ")}
+                              onChange={(e) =>
+                                updateAvatarAppearanceField("accessories", parseCommaSeparatedList(e.target.value))
+                              }
+                              placeholder="watch, backpack"
+                            />
+                          </FormGroup>
+
                           <AvatarUploadBox>
                             <AvatarUploadTitle>
                               Character Profile Image
@@ -3479,13 +3867,136 @@ function CreatorDashboardContent() {
                               )}
                             </AvatarUploadRow>
                           </AvatarUploadBox>
+
+                          <AvatarSectionTitle>Resources</AvatarSectionTitle>
+                          <AvatarHintText>
+                            Money, Time, and Health are controlled by Story Graph initial resources.
+                          </AvatarHintText>
+                          <AvatarResourceReadOnly>
+                            <AvatarResourceTile>
+                              <AvatarResourceLabel>Money</AvatarResourceLabel>
+                              <AvatarResourceValue>
+                                ${graphResourceValues.money !== "" ? graphResourceValues.money : 0}
+                              </AvatarResourceValue>
+                            </AvatarResourceTile>
+                            <AvatarResourceTile>
+                              <AvatarResourceLabel>Time</AvatarResourceLabel>
+                              <AvatarResourceValue>
+                                {graphResourceValues.time !== "" ? graphResourceValues.time : 0}h
+                              </AvatarResourceValue>
+                            </AvatarResourceTile>
+                            <AvatarResourceTile>
+                              <AvatarResourceLabel>Health</AvatarResourceLabel>
+                              <AvatarResourceValue>
+                                {graphResourceValues.health !== "" ? graphResourceValues.health : 100}%
+                              </AvatarResourceValue>
+                            </AvatarResourceTile>
+                          </AvatarResourceReadOnly>
+
+                          <AvatarFormGrid>
+                            <FormGroup>
+                              <Label>Social Support (0-100)</Label>
+                              <Input
+                                type="number"
+                                min={0}
+                                max={100}
+                                value={avatarForm.initialResources.socialSupport ?? ""}
+                                onChange={(e) => updateAvatarResourceField("socialSupport", e.target.value)}
+                                placeholder="50"
+                              />
+                            </FormGroup>
+                            <FormGroup>
+                              <Label>Mental Health (0-100)</Label>
+                              <Input
+                                type="number"
+                                min={0}
+                                max={100}
+                                value={avatarForm.initialResources.mentalHealth ?? ""}
+                                onChange={(e) => updateAvatarResourceField("mentalHealth", e.target.value)}
+                                placeholder="70"
+                              />
+                            </FormGroup>
+                            <FormGroup>
+                              <Label>Physical Health (0-100)</Label>
+                              <Input
+                                type="number"
+                                min={0}
+                                max={100}
+                                value={avatarForm.initialResources.physicalHealth ?? ""}
+                                onChange={(e) => updateAvatarResourceField("physicalHealth", e.target.value)}
+                                placeholder="80"
+                              />
+                            </FormGroup>
+                          </AvatarFormGrid>
+
+                          <AvatarSectionTitle>Social Context</AvatarSectionTitle>
+                          <AvatarFormGrid>
+                            <FormGroup>
+                              <Label>Socioeconomic Status</Label>
+                              <Input
+                                value={avatarForm.socialContext?.socioeconomicStatus ?? ""}
+                                onChange={(e) => updateAvatarSocialContextField("socioeconomicStatus", e.target.value)}
+                                placeholder="working class"
+                              />
+                            </FormGroup>
+                            <FormGroup>
+                              <Label>Location</Label>
+                              <Input
+                                value={avatarForm.socialContext?.location ?? ""}
+                                onChange={(e) => updateAvatarSocialContextField("location", e.target.value)}
+                                placeholder="Urban area"
+                              />
+                            </FormGroup>
+                            <FormGroup>
+                              <Label>Family Structure</Label>
+                              <Input
+                                value={avatarForm.socialContext?.familyStructure ?? ""}
+                                onChange={(e) => updateAvatarSocialContextField("familyStructure", e.target.value)}
+                                placeholder="Single adult"
+                              />
+                            </FormGroup>
+                            <FormGroup>
+                              <Label>Education Level</Label>
+                              <Input
+                                value={avatarForm.socialContext?.educationLevel ?? ""}
+                                onChange={(e) => updateAvatarSocialContextField("educationLevel", e.target.value)}
+                                placeholder="High school"
+                              />
+                            </FormGroup>
+                            <FormGroup>
+                              <Label>Employment Status</Label>
+                              <Input
+                                value={avatarForm.socialContext?.employmentStatus ?? ""}
+                                onChange={(e) => updateAvatarSocialContextField("employmentStatus", e.target.value)}
+                                placeholder="Part-time"
+                              />
+                            </FormGroup>
+                            <FormGroup>
+                              <Label>Health Conditions (comma separated)</Label>
+                              <Input
+                                value={(avatarForm.socialContext?.healthConditions ?? []).join(", ")}
+                                onChange={(e) =>
+                                  updateAvatarSocialContextField("healthConditions", parseCommaSeparatedList(e.target.value))
+                                }
+                                placeholder="asthma, anxiety"
+                              />
+                            </FormGroup>
+                          </AvatarFormGrid>
+
+                          <CheckboxLabel>
+                            <Checkbox
+                              checked={avatarForm.isPlayable}
+                              onChange={(e) => updateAvatarRootField("isPlayable", e.target.checked)}
+                            />
+                            <span>Character is playable</span>
+                          </CheckboxLabel>
                         </>
                       )}
                     </SectionBox>
 
                     {/* Story Graph */}
                     <FormGroup>
-                      <Label>Story Graph JSON</Label>
+                      <Label>Story Graph</Label>
                       <ResourcesBox>
                         <ResourcesTitle>
                           Initial Resources (Top Bar Stats)
@@ -3636,6 +4147,65 @@ function CreatorDashboardContent() {
                                     ))}
                                   </MediaSelectFlex>
                                 </MediaRow>
+
+                                {media.type === "image" && (
+                                  <CropPreviewWrap>
+                                    <CropPreviewLabel>Crop preview (how this may look in cover layouts)</CropPreviewLabel>
+                                    <CropPreviewBox>
+                                      <CropPreviewImage
+                                        src={media.serverPath || media.url}
+                                        alt=""
+                                        $x={media.cropPreview?.x ?? 50}
+                                        $y={media.cropPreview?.y ?? 50}
+                                        $zoom={media.cropPreview?.zoom ?? 1}
+                                      />
+                                    </CropPreviewBox>
+                                    <CropSliderGroup>
+                                      <CropSliderField>
+                                        Horizontal
+                                        <CropSlider
+                                          type="range"
+                                          min={0}
+                                          max={100}
+                                          step={1}
+                                          value={media.cropPreview?.x ?? 50}
+                                          onChange={(event) =>
+                                            handleMediaCropPreviewChange(media.id, "x", Number(event.target.value))
+                                          }
+                                        />
+                                      </CropSliderField>
+                                      <CropSliderField>
+                                        Vertical
+                                        <CropSlider
+                                          type="range"
+                                          min={0}
+                                          max={100}
+                                          step={1}
+                                          value={media.cropPreview?.y ?? 50}
+                                          onChange={(event) =>
+                                            handleMediaCropPreviewChange(media.id, "y", Number(event.target.value))
+                                          }
+                                        />
+                                      </CropSliderField>
+                                      <CropSliderField>
+                                        Zoom
+                                        <CropSlider
+                                          type="range"
+                                          min={1}
+                                          max={2}
+                                          step={0.01}
+                                          value={media.cropPreview?.zoom ?? 1}
+                                          onChange={(event) =>
+                                            handleMediaCropPreviewChange(media.id, "zoom", Number(event.target.value))
+                                          }
+                                        />
+                                      </CropSliderField>
+                                    </CropSliderGroup>
+                                    <CropPreviewHint>
+                                      Preview-only tool: this helps you decide how to crop your image before finalizing matching.
+                                    </CropPreviewHint>
+                                  </CropPreviewWrap>
+                                )}
 
                                 <MediaPath>
                                   {media.serverPath 
