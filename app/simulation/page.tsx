@@ -25,6 +25,7 @@ import type { Avatar, AvatarAppearance, Resources, SocialContext } from "@/types
 import OptimizedStoryImage from "@/components/optimized-story-image"
 import { resolveStoryRuntimeConfig, type PostReflectionStatIconKey, type StoryRuntimeConfig } from "@/lib/story-runtime-config"
 import { simulationAnalyticsDefaults, type SimulationAnalyticsActionIcon } from "@/lib/simulation-analytics-defaults"
+import { normalizeImagePath } from "@/lib/story-media-path"
 
 interface StoryChoice {
   id: string
@@ -113,7 +114,15 @@ const analyticsActionIconMap: Record<SimulationAnalyticsActionIcon, typeof BookO
 function getAudioConfig(
   runtimeConfig: Pick<StoryRuntimeConfig, "backgroundAudio"> | null | undefined,
 ): { path: string; volume: number } | null {
-  return runtimeConfig?.backgroundAudio?.path ? runtimeConfig.backgroundAudio : null
+  if (!runtimeConfig?.backgroundAudio?.path) return null
+  const normalizedPath = normalizeStoryMediaPath(runtimeConfig.backgroundAudio.path, "audio")
+  if (!normalizedPath) return null
+  const localAudioPath = getLocalAudioPath(normalizedPath)
+  if (localAudioPath && !localAudioAllow.has(localAudioPath.toLowerCase())) return null
+  return {
+    ...runtimeConfig.backgroundAudio,
+    path: normalizedPath,
+  }
 }
 
 function formatHoursAndMinutesFromHours(hours: number): string {
@@ -127,7 +136,98 @@ function formatHoursAndMinutesFromHours(hours: number): string {
   return `${wholeHours}h ${remainingMinutes}m`
 }
 
-const NEUTRAL_SCENE_IMAGE = "/scenes/neutral-image.png"
+const neutralSceneImage = "/scenes/neutral-image.png"
+const localAudioAllow = new Set(["/audios/katrina.mp3"])
+
+function getLocalAudioPath(value: string): string | null {
+  if (!value) return null
+  if (value.startsWith("/audios/")) {
+    return value.split("?")[0]
+  }
+  if (!/^https?:\/\//i.test(value)) return null
+  try {
+    const parsed = new URL(value)
+    if (parsed.pathname.startsWith("/audios/")) {
+      return parsed.pathname
+    }
+  } catch {
+    return null
+  }
+  return null
+}
+
+function collapseAdjacentPathSegments(segments: string[]): string[] {
+  const normalized: string[] = []
+  let previousKey = ""
+
+  segments.forEach((segment) => {
+    const trimmed = segment.trim()
+    if (!trimmed) return
+
+    const currentKey = decodeURIComponent(trimmed).toLowerCase()
+    if (currentKey === previousKey) return
+
+    normalized.push(trimmed)
+    previousKey = currentKey
+  })
+
+  return normalized
+}
+
+function dedupeCloudinaryPathSegments(url: string): string {
+  try {
+    const parsed = new URL(url)
+    if (!parsed.hostname.includes("cloudinary.com")) return url
+
+    const segments = parsed.pathname.split("/")
+    const uploadIndex = segments.findIndex((segment) => segment === "upload")
+    if (uploadIndex === -1) return url
+
+    const prefix = segments.slice(0, uploadIndex + 1)
+    const suffix = segments.slice(uploadIndex + 1)
+    const normalizedSuffix = collapseAdjacentPathSegments(suffix)
+
+    parsed.pathname = [...prefix, ...normalizedSuffix].join("/")
+    return parsed.toString()
+  } catch {
+    return url
+  }
+}
+
+function normalizeStoryMediaPath(
+  value: string | null | undefined,
+  kind: "image" | "audio",
+): string {
+  const raw = typeof value === "string" ? value.trim() : ""
+  if (!raw) return ""
+
+  if (/^https?:\/\//i.test(raw)) {
+    return kind === "image" ? normalizeImagePath(raw) : dedupeCloudinaryPathSegments(raw)
+  }
+
+  const hasImageExt = /\.(png|jpe?g|webp|gif|svg|avif)$/i.test(raw)
+  const hasAudioExt = /\.(mp3|wav|ogg|m4a)$/i.test(raw)
+  const withLeadingSlash = raw.startsWith("/") ? raw : `/${raw}`
+  const pathSegments = withLeadingSlash.split("/").filter(Boolean)
+  const firstSegment = pathSegments[0] ?? ""
+
+  if (kind === "image" && hasImageExt) {
+    const isSingleFile = pathSegments.length === 1
+    if (isSingleFile || firstSegment === "uploads") {
+      return `/scenes/${pathSegments[pathSegments.length - 1]}`
+    }
+  }
+
+  if (kind === "audio" && hasAudioExt) {
+    const isSingleFile = pathSegments.length === 1
+    if (isSingleFile) {
+      return `/audios/${pathSegments[pathSegments.length - 1]}`
+    }
+  }
+
+  const normalizedSegments = collapseAdjacentPathSegments(pathSegments)
+  return `/${normalizedSegments.join("/")}`
+}
 
 function isStoryVisualPath(image: string | null | undefined): image is string {
   return Boolean(
@@ -139,8 +239,19 @@ function isStoryVisualPath(image: string | null | undefined): image is string {
 }
 
 function resolveBackdropImage(primary: string | null | undefined): string {
-  if (isStoryVisualPath(primary)) return primary
-  return NEUTRAL_SCENE_IMAGE
+  const normalized = normalizeStoryMediaPath(primary, "image")
+  if (isStoryVisualPath(normalized)) return normalized
+  return neutralSceneImage
+}
+
+function resolveInitialHealth(resources: Record<string, unknown>): number {
+  const candidates = [resources.health, resources.physicalHealth, resources.mentalHealth]
+  for (const value of candidates) {
+    if (typeof value === "number" && Number.isFinite(value) && value > 0) {
+      return Math.max(0, Math.min(100, value))
+    }
+  }
+  return 100
 }
 
 const fadeIn = keyframes`
@@ -352,7 +463,7 @@ const StatPill = styled.div<{ $color?: string }>`
   }
 `
 
-const AudioButton = styled.button<{ $active?: boolean }>`
+const AudioButton = styled.button<{ $active?: boolean; $disabled?: boolean }>`
   display: flex;
   align-items: center;
   justify-content: center;
@@ -361,14 +472,16 @@ const AudioButton = styled.button<{ $active?: boolean }>`
   background: rgba(0, 0, 0, 0.45);
   border: none;
   border-radius: 50%;
-  color: ${({ $active }) => $active ? "#a78bfa" : "rgba(255,255,255,0.7)"};
-  cursor: pointer;
+  color: ${({ $active, $disabled }) =>
+    $disabled ? "rgba(148, 163, 184, 0.55)" : $active ? "#a78bfa" : "rgba(255,255,255,0.7)"};
+  cursor: ${({ $disabled }) => ($disabled ? "not-allowed" : "pointer")};
+  opacity: ${({ $disabled }) => ($disabled ? 0.75 : 1)};
   backdrop-filter: blur(8px);
   transition: all 0.2s;
   
   &:hover {
-    background: rgba(139, 92, 246, 0.3);
-    color: #a78bfa;
+    background: ${({ $disabled }) => ($disabled ? "rgba(0, 0, 0, 0.45)" : "rgba(139, 92, 246, 0.3)")};
+    color: ${({ $disabled }) => ($disabled ? "rgba(148, 163, 184, 0.55)" : "#a78bfa")};
   }
 `
 
@@ -1332,15 +1445,7 @@ function normalizeAvatar(raw: any, storySlug: string | null): Avatar {
 }
 
 function getAvatarProfileImage(fallback: string): string {
-  if (fallback && (
-    fallback.startsWith("/scenes/") ||
-    fallback.includes("cloudinary.com") ||
-    fallback.includes("res.cloudinary.com")
-  )) {
-    return fallback
-  }
-
-  return fallback
+  return normalizeStoryMediaPath(fallback, "image")
 }
 
 function buildPersonaStory(
@@ -1408,8 +1513,10 @@ function buildPersonaStory(
     const media = node.media ?? {}
     const textContent = normalizeText(content.text)
     
-    const visualValue = typeof media.visual === "string" ? media.visual : (typeof media.image === "string" ? media.image : null)
-    const audioValue = typeof media.audio === "string" ? media.audio : (typeof (media as any).soundEffect === "string" ? (media as any).soundEffect : null)
+    const visualRaw = typeof media.visual === "string" ? media.visual : (typeof media.image === "string" ? media.image : null)
+    const audioRaw = typeof media.audio === "string" ? media.audio : (typeof (media as any).soundEffect === "string" ? (media as any).soundEffect : null)
+    const visualValue = normalizeStoryMediaPath(visualRaw, "image")
+    const audioValue = normalizeStoryMediaPath(audioRaw, "audio")
     
     const passage: StoryPassage = {
       id: node.key,
@@ -1457,6 +1564,14 @@ function buildPersonaStory(
   const initialResources = avatar?.initialResources ?? {}
 
   const fallbackImage = avatar?.appearance?.image ?? avatar?.image ?? "/placeholder.svg?height=120&width=120"
+  const normalizedMoney =
+    typeof initialResources.money === "number" && Number.isFinite(initialResources.money)
+      ? Math.max(0, initialResources.money)
+      : 500
+  const normalizedTime =
+    typeof initialResources.time === "number" && Number.isFinite(initialResources.time) && initialResources.time > 0
+      ? initialResources.time
+      : 100
 
   return {
     avatarId,
@@ -1465,9 +1580,9 @@ function buildPersonaStory(
     avatarImage: getAvatarProfileImage(fallbackImage),
     avatarName: avatar?.name && String(avatar.name).trim().length > 0 ? avatar.name : story?.title ?? "Character",
     initialStats: {
-      money: typeof initialResources.money === "number" ? initialResources.money : 500,
-      health: typeof initialResources.health === "number" ? initialResources.health : 100,
-      time: typeof initialResources.time === "number" && initialResources.time > 0 ? initialResources.time : 100,
+      money: normalizedMoney,
+      health: resolveInitialHealth(initialResources),
+      time: normalizedTime,
     },
     passages,
   }
@@ -1501,6 +1616,7 @@ function SimulationContent() {
   const [isTransitioning, setIsTransitioning] = useState(false)
   const [audioEnabled, setAudioEnabled] = useState(true)
   const [audioInitialized, setAudioInitialized] = useState(false)
+  const [audioSourceUnavailable, setAudioSourceUnavailable] = useState(false)
   const [hiddenState, setHiddenState] = useState({
     schoolRisk: 0,
     workRisk: 0,
@@ -1512,36 +1628,67 @@ function SimulationContent() {
   const [choicesMade, setChoicesMade] = useState<string[]>([])
   const [choiceHistory, setChoiceHistory] = useState<ChoiceRecord[]>([])
   const [historyStack, setHistoryStack] = useState<HistoryEntry[]>([])
+  const audioConfig = useMemo(() => getAudioConfig(storyRuntimeConfig), [storyRuntimeConfig])
+  const hasStoryAudio = Boolean(audioConfig) && !audioSourceUnavailable
+
+  useEffect(() => {
+    setAudioInitialized(false)
+    setAudioSourceUnavailable(false)
+  }, [audioConfig?.path])
+
+  useEffect(() => {
+    if (hasStoryAudio) return
+    setAudioEnabled(false)
+    setAudioInitialized(false)
+    if (audioRef.current) {
+      audioRef.current.pause()
+      audioRef.current = null
+    }
+    if (typeof window !== "undefined") {
+      localStorage.setItem("loop_audio_muted", "true")
+    }
+  }, [hasStoryAudio])
 
   // Audio initialization
   useEffect(() => {
     if (!storySlugResolved || !currentStory || isLoading) return
     if (audioInitialized) return 
-
-    const audioConfig = getAudioConfig(storyRuntimeConfig)
-        
     if (!audioConfig) return
 
-    const startAudio = () => {
-      if (audioRef.current) {
-        audioRef.current.pause()
-        audioRef.current = null
-      }
-      
-      const audio = new Audio(audioConfig.path)
-      audio.loop = true
-      audio.volume = audioConfig.volume
-      audioRef.current = audio
-      
-      if (audioEnabled) {
-        audio.play().catch(() => {})
-      }
-      
-      setAudioInitialized(true)
+    if (audioRef.current) {
+      audioRef.current.pause()
+      audioRef.current = null
     }
 
-    startAudio()
-  }, [storySlugResolved, currentStory, isLoading, audioInitialized, audioEnabled, storyRuntimeConfig])
+    const audio = new Audio(audioConfig.path)
+    const handleAudioError = () => {
+      setAudioSourceUnavailable(true)
+      setAudioEnabled(false)
+      setAudioInitialized(false)
+      if (typeof window !== "undefined") {
+        localStorage.setItem("loop_audio_muted", "true")
+      }
+      if (audioRef.current === audio) {
+        audio.pause()
+        audioRef.current = null
+      }
+    }
+
+    audio.addEventListener("error", handleAudioError)
+    audio.loop = true
+    audio.volume = audioConfig.volume
+    audioRef.current = audio
+
+    if (audioEnabled) {
+      audio.play().catch(() => {})
+    }
+
+    setAudioInitialized(true)
+
+    return () => {
+      audio.removeEventListener("error", handleAudioError)
+    }
+  }, [storySlugResolved, currentStory, isLoading, audioInitialized, audioEnabled, audioConfig])
 
   useEffect(() => {
     if (!audioRef.current) return
@@ -1554,6 +1701,7 @@ function SimulationContent() {
   }, [audioEnabled])
 
   useEffect(() => {
+    if (!hasStoryAudio) return
     const tryPlayAudio = () => {
       if (audioRef.current && audioEnabled && audioRef.current.paused) {
         audioRef.current.play().catch(() => {})
@@ -1569,7 +1717,7 @@ function SimulationContent() {
       document.removeEventListener('keydown', tryPlayAudio)
       document.removeEventListener('touchstart', tryPlayAudio)
     }
-  }, [audioEnabled, audioInitialized])
+  }, [audioEnabled, audioInitialized, hasStoryAudio])
 
   useEffect(() => {
     return () => {
@@ -1721,22 +1869,39 @@ function SimulationContent() {
               const payload = await res.json()
               const latest = payload?.saves?.[0]
               if (latest?.currentPassageId) {
-                setCurrentPassageId(latest.currentPassageId)
-                setStats({
-                  money: latest.resources?.money ?? transformedStory.initialStats.money,
-                  health: latest.resources?.health ?? transformedStory.initialStats.health,
-                  time: latest.resources?.time ?? transformedStory.initialStats.time,
-                })
-                setHiddenState({
-                  schoolRisk: latest.hiddenState?.schoolRisk ?? 0,
-                  workRisk: latest.hiddenState?.workRisk ?? 0,
-                  systemRisk: latest.hiddenState?.systemRisk ?? 0,
-                  supportScore: latest.hiddenState?.supportScore ?? 0,
-                  honestyScore: latest.hiddenState?.honestyScore ?? 0,
-                })
-                setVisitedPassages(latest.visitedPassages ?? [initialKey])
-                setChoicesMade(latest.choicesMade ?? [])
-                setChoiceHistory([])
+                const savedChoices = Array.isArray(latest.choicesMade) ? latest.choicesMade : []
+                const hasRealProgress =
+                  latest.currentPassageId !== initialKey ||
+                  savedChoices.length > 0
+
+                if (hasRealProgress) {
+                  setCurrentPassageId(latest.currentPassageId)
+                  setStats({
+                    money:
+                      typeof latest.resources?.money === "number" && Number.isFinite(latest.resources.money)
+                        ? Math.max(0, latest.resources.money)
+                        : transformedStory.initialStats.money,
+                    health:
+                      typeof latest.resources?.health === "number" && Number.isFinite(latest.resources.health)
+                        ? Math.max(0, Math.min(100, latest.resources.health))
+                        : transformedStory.initialStats.health,
+                    time:
+                      typeof latest.resources?.time === "number" && Number.isFinite(latest.resources.time)
+                        ? Math.max(0, latest.resources.time)
+                        : transformedStory.initialStats.time,
+                  })
+                  setHiddenState({
+                    schoolRisk: latest.hiddenState?.schoolRisk ?? 0,
+                    workRisk: latest.hiddenState?.workRisk ?? 0,
+                    systemRisk: latest.hiddenState?.systemRisk ?? 0,
+                    supportScore: latest.hiddenState?.supportScore ?? 0,
+                    honestyScore: latest.hiddenState?.honestyScore ?? 0,
+                  })
+                  setVisitedPassages(latest.visitedPassages ?? [initialKey])
+                  setChoicesMade(savedChoices)
+                  setChoiceHistory([])
+                }
+
                 if (typeof latest.hiddenState?.audioMuted === "boolean") {
                   setAudioEnabled(!latest.hiddenState.audioMuted)
                 }
@@ -1807,6 +1972,7 @@ function SimulationContent() {
   const initialTime = currentStory?.initialStats.time ?? 100
   const remainingTimeHours = Math.max(0, stats.time)
   const timeSpentHours = Math.max(0, initialTime - remainingTimeHours)
+  const timeSpentForReportingHours = timeSpentHours > 0 ? timeSpentHours : 1 / 60
   const remainingTimeLabel = Number.isInteger(remainingTimeHours) ? `${remainingTimeHours}h` : `${remainingTimeHours.toFixed(1)}h`
   const totalRisk = hiddenState.schoolRisk + hiddenState.workRisk + hiddenState.systemRisk
   const completionEndingType =
@@ -2079,15 +2245,12 @@ function SimulationContent() {
       setReflectionsSubmitted(false)
       setHasReportedCompletion(false)
       
-      if (audioRef.current && audioEnabled) {
-        const audioConfig = getAudioConfig(storyRuntimeConfig)
-        if (audioConfig) {
-          audioRef.current.volume = audioConfig.volume
-        }
+      if (audioRef.current && audioEnabled && audioConfig) {
+        audioRef.current.volume = audioConfig.volume
         audioRef.current.play().catch(() => {})
       }
     }
-  }, [currentStory, sessionId, storySlugResolved, audioEnabled, storyRuntimeConfig])
+  }, [currentStory, sessionId, storySlugResolved, audioEnabled, audioConfig])
 
   const handleReflectionChange = (questionId: string, value: string) => {
     setReflectionAnswers((prev) => ({ ...prev, [questionId]: value }))
@@ -2169,7 +2332,7 @@ function SimulationContent() {
           finalResources: stats,
           finalHiddenState: hiddenState,
           totalChoices: choicesMade.length,
-          totalTime: timeSpentHours,
+          totalTime: timeSpentForReportingHours,
           pathTaken: visitedPassages,
           choicesMade,
           reflectionResponses: reflectionAnswers,
@@ -2198,7 +2361,7 @@ function SimulationContent() {
     reflectionAnswers,
     canShowReflection,
     completionEndingType,
-    timeSpentHours,
+    timeSpentForReportingHours,
   ])
 
   const handleViewAnalytics = useCallback(async () => {
@@ -2214,6 +2377,7 @@ function SimulationContent() {
   }, [allReflectionsAnswered, handleSubmitReflections, reflectionsSubmitted])
 
   const toggleAudio = () => {
+    if (!hasStoryAudio) return
     const newState = !audioEnabled
     setAudioEnabled(newState)
     if (typeof window !== "undefined") {
@@ -2400,7 +2564,7 @@ function SimulationContent() {
               <StatTile $accent="#60a5fa">
                 <Clock size={16} />
                 <div>
-                  ~{formatHoursAndMinutesFromHours(timeSpentHours)} <StatTileLabel>spent</StatTileLabel>
+                  {formatHoursAndMinutesFromHours(remainingTimeHours)} <StatTileLabel>time left</StatTileLabel>
                 </div>
               </StatTile>
             </StatsRow>
@@ -2757,8 +2921,14 @@ function SimulationContent() {
               <Heart />{stats.health}%
             </StatPill>
           </StatsBar>
-          <AudioButton $active={audioEnabled} onClick={toggleAudio} title={audioEnabled ? "Mute audio" : "Enable audio"}>
-            {audioEnabled ? <Volume2 size={16} /> : <VolumeX size={16} />}
+          <AudioButton
+            $active={audioEnabled && hasStoryAudio}
+            $disabled={!hasStoryAudio}
+            onClick={toggleAudio}
+            disabled={!hasStoryAudio}
+            title={hasStoryAudio ? (audioEnabled ? "Mute audio" : "Enable audio") : "Audio unavailable for this story"}
+          >
+            {audioEnabled && hasStoryAudio ? <Volume2 size={16} /> : <VolumeX size={16} />}
           </AudioButton>
         </TopBarRight>
       </TopBar>

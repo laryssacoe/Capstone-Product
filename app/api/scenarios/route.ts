@@ -125,6 +125,10 @@ function buildSystemScenarios(records: Array<{
 }>) {
   return records.map((record) => {
     const metadata = asRecord(record.metadata)
+    const metadataStorySlug =
+      typeof metadata.storySlug === "string" && metadata.storySlug.trim().length > 0
+        ? metadata.storySlug
+        : record.id
     const issueMeta = asRecord(metadata.issue)
     const resourcesSource = { ...defaultResources, ...asRecord(metadata.minimumResources) }
     const minimumResources = normalizeResources(resourcesSource)
@@ -146,7 +150,7 @@ function buildSystemScenarios(records: Array<{
 
     return {
       id: record.id,
-      slug: record.id,
+      slug: metadataStorySlug,
       title: record.title,
       description: record.summary ?? issueDescription,
       socialIssue: {
@@ -161,10 +165,11 @@ function buildSystemScenarios(records: Array<{
       minimumResources,
       estimatedDuration,
       metadata: {
+        ...metadata,
         source: "system",
         scenarioId: record.id,
         issueTag: record.issueTag,
-        storySlug: record.id,
+        storySlug: metadataStorySlug,
       },
     }
   })
@@ -237,7 +242,7 @@ export async function GET() {
     for (const scenario of buildSystemScenarios(systemScenarios)) {
       const key = `story:${scenario.slug ?? scenario.id}`
       if (!scenarioMap.has(key)) {
-        upsertScenario(`system:${scenario.id}`, scenario)
+        upsertScenario(key, scenario)
       }
     }
 

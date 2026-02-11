@@ -23,6 +23,7 @@ import {
 import { Button } from "@/components/ui/button"
 import { useAuth } from "@/hooks/use-auth"
 import { loop_logo_url } from "@/lib/brand-assets"
+import { normalizeImagePath } from "@/lib/story-media-path"
 
 const Container = styled.div`
   min-height: 100vh;
@@ -740,6 +741,10 @@ interface FeaturedScenario {
   }
 }
 
+function normalizeScenarioImageUrl(value: unknown): string {
+  return normalizeImagePath(value)
+}
+
 function HeroExamplePageContent() {
   const searchParams = useSearchParams()
   const router = useRouter()
@@ -768,24 +773,54 @@ function HeroExamplePageContent() {
         const res = await fetch("/api/scenarios", { cache: "no-store" })
         if (res.ok) {
           const data = await res.json()
-          const scenarios = data?.scenarios ?? []
+          const scenarios = Array.isArray(data?.scenarios) ? data.scenarios : []
+          const bySlug = new Map<
+            string,
+            {
+              scenario: any
+              slug: string
+              imageUrl: string
+              score: number
+            }
+          >()
+          const scenarioOrder: string[] = []
 
-          const scenario = scenarios[0]
-          
-          if (scenario) {
-            const slug = scenario.metadata?.storySlug || scenario.storySlug || scenario.slug || scenario.id
+          for (const scenario of scenarios) {
+            const slug = scenario?.metadata?.storySlug || scenario?.storySlug || scenario?.slug || scenario?.id
+            if (!slug) continue
+
             const avatarImage =
-              (typeof scenario.metadata?.avatarImage === "string" && scenario.metadata.avatarImage) ||
-              (typeof scenario.metadata?.appearance?.image === "string" && scenario.metadata.appearance.image) ||
-              (typeof scenario.imageUrl === "string" && scenario.imageUrl) ||
+              normalizeScenarioImageUrl(scenario?.metadata?.avatarImage) ||
+              normalizeScenarioImageUrl(scenario?.metadata?.appearance?.image) ||
+              normalizeScenarioImageUrl(scenario?.imageUrl) ||
               ""
-            
+            const source = typeof scenario?.metadata?.source === "string" ? scenario.metadata.source : ""
+            const sourceScore = source === "avatar" ? 2 : source === "story" ? 1 : 0
+            const score = (avatarImage ? 2 : 0) + sourceScore
+
+            if (!bySlug.has(slug)) {
+              bySlug.set(slug, { scenario, slug, imageUrl: avatarImage, score })
+              scenarioOrder.push(slug)
+              continue
+            }
+
+            const current = bySlug.get(slug)
+            if (current && score > current.score) {
+              bySlug.set(slug, { scenario, slug, imageUrl: avatarImage, score })
+            }
+          }
+
+          const firstSlug = scenarioOrder[0]
+          const selected = firstSlug ? bySlug.get(firstSlug) : null
+
+          if (selected) {
+            const { scenario, slug, imageUrl } = selected
             setFeaturedScenario({
               id: scenario.id,
               title: scenario.title || "Featured Scenario",
               description: scenario.description || scenario.socialIssue?.description || "",
               slug,
-              imageUrl: avatarImage,
+              imageUrl,
               tags: [
                 scenario.socialIssue?.type || "Social Issue",
                 ...(scenario.tags || []),
