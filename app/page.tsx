@@ -752,7 +752,7 @@ export default function HomePage() {
           <FeatureGrid>
             <FeatureCard>
               <IconWrap><Globe size={32} color="#60a5fa" /></IconWrap>
-              <FeatureTitle>Global Perspectives</FeatureTitle>
+              <FeatureTitle>Cultural Perspectives</FeatureTitle>
               <FeatureText>Understand issues from multiple cultural and geographic viewpoints.</FeatureText>
             </FeatureCard>
 

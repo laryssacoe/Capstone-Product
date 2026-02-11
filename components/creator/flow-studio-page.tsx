@@ -1213,104 +1213,253 @@ export default function FlowStudioPage({
         direction="right"
         open={drawerOpen}
         onOpenChange={(open) => {
-        setDrawerOpen(open)
-        if (!open) {
-          setEditingNode(null)
-          setEditorError(null)
-          setMediaUploadError(null)
-          setUploadingMedia(null)
-        }
-      }}
+          setDrawerOpen(open)
+          if (!open) {
+            setEditingNode(null)
+            setEditorError(null)
+            setMediaUploadError(null)
+            setUploadingMedia(null)
+          }
+        }}
       >
-        <DrawerContent
-          className="bg-slate-900 border-slate-800 text-slate-100 max-w-2xl"
-        >
-          <DrawerHeader className="border-b border-slate-800">
-            <DrawerTitle className="text-white">Edit Node</DrawerTitle>
-            <DrawerDescription className="text-slate-400">
-              Update the title, type, and content for this node.
-            </DrawerDescription>
-          </DrawerHeader>
+        <DrawerContent className="bg-slate-900 border-l border-slate-700 text-slate-100 h-screen w-full max-w-xl ml-auto">
+          <div className="flex flex-col h-full">
+            <DrawerHeader className="border-b border-slate-800 px-6 py-4 shrink-0">
+              <div className="flex items-center justify-between">
+                <div>
+                  <DrawerTitle className="text-white text-lg font-semibold">
+                    Edit Node
+                  </DrawerTitle>
+                  <DrawerDescription className="text-slate-400 text-sm mt-1">
+                    {editingNode ? `Editing: ${editingNode.key}` : "Select a node to edit"}
+                  </DrawerDescription>
+                </div>
+                {editingNode && (
+                  <Badge
+                    className={`${
+                      editingNode.type === "NARRATIVE"
+                        ? "bg-blue-500/20 text-blue-300 border-blue-500/30"
+                        : editingNode.type === "DECISION"
+                          ? "bg-purple-500/20 text-purple-300 border-purple-500/30"
+                          : "bg-emerald-500/20 text-emerald-300 border-emerald-500/30"
+                    }`}
+                  >
+                    {editingNode.type}
+                  </Badge>
+                )}
+              </div>
+            </DrawerHeader>
 
-          <div className="flex-1 overflow-y-auto p-4">
-            {!editingNode ? (
-              <p className="text-sm text-slate-400">Select a node to edit.</p>
-            ) : (
-              <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_220px]">
-                <div className="space-y-4">
-                  <div className="space-y-2">
-                    <Label className="text-slate-300">Node Key</Label>
-                    <Input value={editingNode.key} disabled className="bg-slate-800 border-slate-700 text-slate-300" />
-                  </div>
+            <div className="flex-1 overflow-y-auto">
+              {!editingNode ? (
+                <div className="flex items-center justify-center h-full">
+                  <p className="text-sm text-slate-500">Select a node from the canvas to edit.</p>
+                </div>
+              ) : (
+                <div className="p-6 space-y-6">
+                  {/* Basic Info Section */}
+                  <section className="space-y-4">
+                    <h3 className="text-xs font-semibold text-slate-400 uppercase tracking-wider">
+                      Basic Info
+                    </h3>
+                    
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label className="text-slate-300 text-sm">Node Key</Label>
+                        <Input
+                          value={editingNode.key}
+                          disabled
+                          className="bg-slate-950 border-slate-700 text-slate-400 h-9"
+                        />
+                      </div>
+                    </div>
 
-                  <div className="space-y-2">
-                    <Label className="text-slate-300">Title</Label>
-                    <Input
-                      value={editingNode.title}
-                      onChange={(event) =>
-                        updateEditingNode((node) => ({ ...node, title: event.target.value }))
-                      }
-                      className="bg-slate-800 border-slate-700 text-white"
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label className="text-slate-300">Type</Label>
-                    <Select
-                      value={editingNode.type}
-                      onValueChange={(value) =>
-                        updateEditingNode((node) => ({
-                          ...node,
-                          type: value as EditorNode["type"],
-                          choices:
-                            value === "DECISION" && node.choices.length === 0
-                              ? [
-                                  { id: "choice-1", text: "Choice 1", leads_to: "" },
-                                  { id: "choice-2", text: "Choice 2", leads_to: "" },
-                                ]
-                              : node.choices,
-                        }))
-                      }
-                    >
-                      <SelectTrigger className="bg-slate-800 border-slate-700 text-white">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent className="bg-slate-800 border-slate-700 text-white">
-                        {nodeTypes.map((type) => (
-                          <SelectItem key={type.value} value={type.value} className="text-white">
-                            {type.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label className="text-slate-300">Text</Label>
-                    <Textarea
-                      value={editingNode.text}
-                      onChange={(event) =>
-                        updateEditingNode((node) => ({ ...node, text: event.target.value }))
-                      }
-                      rows={6}
-                      className="bg-slate-800 border-slate-700 text-white"
-                      placeholder="Write the story text here..."
-                    />
-                    <p className="text-xs text-slate-500">Separate paragraphs with a blank line.</p>
-                  </div>
-
-                  <div className="grid gap-3 md:grid-cols-2">
                     <div className="space-y-2">
-                      <Label className="text-slate-300">Visual prompt</Label>
-                      <Input
-                        value={editingNode.visual}
-                        onChange={(event) =>
-                          updateEditingNode((node) => ({ ...node, visual: event.target.value }))
+                      <Label className="text-slate-300 text-sm">Type</Label>
+                      <Select
+                        value={editingNode.type}
+                        onValueChange={(value) =>
+                          updateEditingNode((node) => ({
+                            ...node,
+                            type: value as EditorNode["type"],
+                            choices:
+                              value === "DECISION" && node.choices.length === 0
+                                ? [
+                                    { id: "choice-1", text: "Choice 1", leads_to: "" },
+                                    { id: "choice-2", text: "Choice 2", leads_to: "" },
+                                  ]
+                                : node.choices,
+                          }))
                         }
-                        className="bg-slate-800 border-slate-700 text-white"
-                        placeholder="Image description or URL"
+                      >
+                        <SelectTrigger className="bg-slate-950 border-slate-700 text-white h-9">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent className="bg-slate-800 border-slate-700 text-white">
+                          {nodeTypes.map((type) => (
+                            <SelectItem
+                              key={type.value}
+                              value={type.value}
+                              className="text-slate-100 focus:bg-slate-700 focus:text-white data-[highlighted]:bg-slate-700 data-[highlighted]:text-white"
+                            >
+                              <span className="flex items-center gap-2">
+                                <span className={`w-2 h-2 rounded-full ${type.color}`} />
+                                {type.label}
+                              </span>
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label className="text-slate-300 text-sm">Title</Label>
+                      <Input
+                        value={editingNode.title}
+                        onChange={(event) =>
+                          updateEditingNode((node) => ({ ...node, title: event.target.value }))
+                        }
+                        className="bg-slate-950 border-slate-700 text-white h-9"
+                        placeholder="Enter a display title..."
                       />
-                      <div className="flex items-center gap-2">
+                    </div>
+                  </section>
+
+                  {/* Story Content Section */}
+                  <section className="space-y-4">
+                    <h3 className="text-xs font-semibold text-slate-400 uppercase tracking-wider">
+                      Story Content
+                    </h3>
+                    
+                    <div className="space-y-2">
+                      <Label className="text-slate-300 text-sm">Text</Label>
+                      <Textarea
+                        value={editingNode.text}
+                        onChange={(event) =>
+                          updateEditingNode((node) => ({ ...node, text: event.target.value }))
+                        }
+                        rows={8}
+                        className="bg-slate-950 border-slate-700 text-white resize-none"
+                        placeholder="Write the story text here. Separate paragraphs with blank lines."
+                      />
+                      <p className="text-xs text-slate-500">
+                        Tip: Each paragraph becomes a separate text block in the story.
+                      </p>
+                    </div>
+                  </section>
+
+                  {/* Flow Control Section */}
+                  <section className="space-y-4">
+                    <h3 className="text-xs font-semibold text-slate-400 uppercase tracking-wider">
+                      Flow Control
+                    </h3>
+
+                    {editingNode.type === "DECISION" ? (
+                      <div className="space-y-3">
+                        {editingNode.choices.map((choice, index) => (
+                          <div
+                            key={`${choice.id}-${index}`}
+                            className="rounded-lg border border-slate-700 bg-slate-950/50 p-4 space-y-3"
+                          >
+                            <div className="flex items-center justify-between">
+                              <span className="text-sm font-medium text-purple-300">
+                                Choice {index + 1}
+                              </span>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-7 px-2 text-red-400 hover:text-red-300 hover:bg-red-900/20"
+                                onClick={() => removeChoice(index)}
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </Button>
+                            </div>
+                            
+                            <div className="grid grid-cols-2 gap-3">
+                              <div className="space-y-1.5">
+                                <Label className="text-xs text-slate-400">ID</Label>
+                                <Input
+                                  value={choice.id}
+                                  onChange={(event) => handleChoiceChange(index, "id", event.target.value)}
+                                  className="bg-slate-900 border-slate-700 text-white h-8 text-sm"
+                                  placeholder="choice-id"
+                                />
+                              </div>
+                              <div className="space-y-1.5">
+                                <Label className="text-xs text-slate-400">Leads To</Label>
+                                <Input
+                                  value={choice.leads_to}
+                                  onChange={(event) => handleChoiceChange(index, "leads_to", event.target.value)}
+                                  className="bg-slate-900 border-slate-700 text-white h-8 text-sm"
+                                  placeholder="target-node-key"
+                                />
+                              </div>
+                            </div>
+                            
+                            <div className="space-y-1.5">
+                              <Label className="text-xs text-slate-400">Button Text</Label>
+                              <Input
+                                value={choice.text}
+                                onChange={(event) => handleChoiceChange(index, "text", event.target.value)}
+                                className="bg-slate-900 border-slate-700 text-white h-8 text-sm"
+                                placeholder="What the player sees..."
+                              />
+                            </div>
+                          </div>
+                        ))}
+                        
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="w-full border-dashed border-slate-600 text-slate-300 hover:bg-slate-800 hover:border-slate-500"
+                          onClick={addChoice}
+                        >
+                          <Plus className="w-4 h-4 mr-2" />
+                          Add Choice
+                        </Button>
+                      </div>
+                    ) : editingNode.type === "RESOLUTION" ? (
+                      <div className="rounded-lg border border-emerald-500/30 bg-emerald-500/5 p-4">
+                        <p className="text-sm text-emerald-300">
+                          Resolution nodes end the story. No outgoing connections needed.
+                        </p>
+                      </div>
+                    ) : (
+                      <div className="space-y-2">
+                        <Label className="text-slate-300 text-sm">Next Node</Label>
+                        <Input
+                          value={editingNode.next}
+                          onChange={(event) =>
+                            updateEditingNode((node) => ({ ...node, next: event.target.value }))
+                          }
+                          className="bg-slate-950 border-slate-700 text-white h-9"
+                          placeholder="Enter the key of the next node..."
+                        />
+                        <p className="text-xs text-slate-500">
+                          This creates a "Continue" button leading to the specified node.
+                        </p>
+                      </div>
+                    )}
+                  </section>
+
+                  {/* Media Section */}
+                  <section className="space-y-4">
+                    <h3 className="text-xs font-semibold text-slate-400 uppercase tracking-wider">
+                      Media
+                    </h3>
+                    
+                    <div className="grid grid-cols-2 gap-4">
+                      {/* Image Upload */}
+                      <div className="space-y-2">
+                        <Label className="text-slate-300 text-sm">Visual</Label>
+                        <Input
+                          value={editingNode.visual}
+                          onChange={(event) =>
+                            updateEditingNode((node) => ({ ...node, visual: event.target.value }))
+                          }
+                          className="bg-slate-950 border-slate-700 text-white h-9 text-sm"
+                          placeholder="Image URL or path"
+                        />
                         <input
                           ref={imageUploadRef}
                           type="file"
@@ -1326,25 +1475,26 @@ export default function FlowStudioPage({
                         <Button
                           variant="outline"
                           size="sm"
-                          className="border-sky-500/60 bg-sky-500/10 text-sky-200 hover:bg-sky-500/20 hover:text-sky-100"
+                          className="w-full h-8 border-sky-500/40 bg-sky-500/10 text-sky-300 hover:bg-sky-500/20 hover:text-sky-200"
                           onClick={() => imageUploadRef.current?.click()}
                           disabled={uploadingMedia === "image"}
                         >
-                          {uploadingMedia === "image" ? "Uploading..." : "Upload image"}
+                          <ImageIcon className="w-3.5 h-3.5 mr-2" />
+                          {uploadingMedia === "image" ? "Uploading..." : "Upload"}
                         </Button>
                       </div>
-                    </div>
-                    <div className="space-y-2">
-                      <Label className="text-slate-300">Audio</Label>
-                      <Input
-                        value={editingNode.audio}
-                        onChange={(event) =>
-                          updateEditingNode((node) => ({ ...node, audio: event.target.value }))
-                        }
-                        className="bg-slate-800 border-slate-700 text-white"
-                        placeholder="Audio filename or URL"
-                      />
-                      <div className="flex items-center gap-2">
+
+                      {/* Audio Upload */}
+                      <div className="space-y-2">
+                        <Label className="text-slate-300 text-sm">Audio</Label>
+                        <Input
+                          value={editingNode.audio}
+                          onChange={(event) =>
+                            updateEditingNode((node) => ({ ...node, audio: event.target.value }))
+                          }
+                          className="bg-slate-950 border-slate-700 text-white h-9 text-sm"
+                          placeholder="Audio URL or path"
+                        />
                         <input
                           ref={audioUploadRef}
                           type="file"
@@ -1360,121 +1510,66 @@ export default function FlowStudioPage({
                         <Button
                           variant="outline"
                           size="sm"
-                          className="border-emerald-500/60 bg-emerald-500/10 text-emerald-200 hover:bg-emerald-500/20 hover:text-emerald-100"
+                          className="w-full h-8 border-emerald-500/40 bg-emerald-500/10 text-emerald-300 hover:bg-emerald-500/20 hover:text-emerald-200"
                           onClick={() => audioUploadRef.current?.click()}
                           disabled={uploadingMedia === "audio"}
                         >
-                          {uploadingMedia === "audio" ? "Uploading..." : "Upload audio"}
+                          {uploadingMedia === "audio" ? "Uploading..." : "Upload"}
                         </Button>
                       </div>
                     </div>
-                  </div>
 
-                  {mediaUploadError && (
-                    <div className="text-xs text-red-300 bg-red-900/20 border border-red-800 rounded-lg p-3">
-                      {mediaUploadError}
-                    </div>
-                  )}
+                    {mediaUploadError && (
+                      <div className="text-xs text-red-300 bg-red-900/20 border border-red-800/50 rounded-md p-3">
+                        {mediaUploadError}
+                      </div>
+                    )}
+                  </section>
 
-                  {editingNode.type === "DECISION" ? (
-                    <div className="space-y-3">
-                      <Label className="text-slate-300">Choices</Label>
-                      {editingNode.choices.map((choice, index) => (
-                        <div key={`${choice.id}-${index}`} className="space-y-2 rounded-lg border border-slate-800 p-3">
-                          <div className="flex items-center justify-between text-xs text-slate-400">
-                            <span>Choice {index + 1}</span>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="text-red-300 hover:text-red-200"
-                              onClick={() => removeChoice(index)}
-                            >
-                              <Trash2 className="w-3 h-3 mr-1" />
-                              Remove
-                            </Button>
-                          </div>
-                          <Input
-                            value={choice.id}
-                            onChange={(event) => handleChoiceChange(index, "id", event.target.value)}
-                            className="bg-slate-800 border-slate-700 text-white"
-                            placeholder="choice-1"
-                          />
-                          <Input
-                            value={choice.text}
-                            onChange={(event) => handleChoiceChange(index, "text", event.target.value)}
-                            className="bg-slate-800 border-slate-700 text-white"
-                            placeholder="Choice text"
-                          />
-                          <Input
-                            value={choice.leads_to}
-                            onChange={(event) => handleChoiceChange(index, "leads_to", event.target.value)}
-                            className="bg-slate-800 border-slate-700 text-white"
-                            placeholder="leads_to node key"
-                          />
-                        </div>
-                      ))}
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="w-full border-dashed border-slate-700 text-slate-200"
-                        onClick={addChoice}
-                      >
-                        <Plus className="w-4 h-4 mr-2" />
-                        Add Choice
-                      </Button>
-                    </div>
-                  ) : (
-                    <div className="space-y-2">
-                      <Label className="text-slate-300">Next node key</Label>
-                      <Input
-                        value={editingNode.next}
-                        onChange={(event) =>
-                          updateEditingNode((node) => ({ ...node, next: event.target.value }))
-                        }
-                        className="bg-slate-800 border-slate-700 text-white"
-                        placeholder="next-node-key"
-                      />
-                    </div>
-                  )}
-
+                  {/* Error Display */}
                   {editorError && (
-                    <div className="text-sm text-red-300 bg-red-900/20 border border-red-800 rounded-lg p-3">
+                    <div className="text-sm text-red-300 bg-red-900/20 border border-red-800/50 rounded-lg p-4">
                       {editorError}
                     </div>
                   )}
                 </div>
+              )}
+            </div>
 
-                <aside className="h-fit rounded-lg border border-slate-800 bg-slate-950/60 p-3 text-xs text-slate-400 space-y-3">
-                  <div className="text-slate-200 font-semibold text-[11px] uppercase tracking-wide">Guide</div>
-                  <p>Use media fields for optional visuals or audio cues (URLs or short prompts).</p>
-                  <p>Narrative nodes should connect to one next node. Decisions need choices wired to targets.</p>
-                  <p>Resolution nodes end the story with no outgoing transitions.</p>
-                </aside>
+            <DrawerFooter className="border-t border-slate-800 px-6 py-4 shrink-0 bg-slate-900">
+              <div className="flex items-center justify-between w-full gap-3">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="border-red-500/40 text-red-300 bg-transparent hover:bg-red-900/20 hover:text-red-200"
+                  onClick={deleteEditingNode}
+                  disabled={!editingNode}
+                >
+                  <Trash2 className="w-4 h-4 mr-2" />
+                  Delete
+                </Button>
+                
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setDrawerOpen(false)}
+                    className="text-slate-400 hover:text-slate-200"
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    size="sm"
+                    onClick={handleSaveNode}
+                    className="bg-purple-600 hover:bg-purple-500 text-white px-6"
+                    disabled={!editingNode}
+                  >
+                    Save
+                  </Button>
+                </div>
               </div>
-            )}
+            </DrawerFooter>
           </div>
-
-          <DrawerFooter className="border-t border-slate-800">
-            <Button variant="ghost" onClick={() => setDrawerOpen(false)}>
-              Cancel
-            </Button>
-            <Button
-              variant="outline"
-              className="border-red-500/60 text-red-200 bg-red-900/20 hover:bg-red-900/40"
-              onClick={deleteEditingNode}
-              disabled={!editingNode}
-            >
-              <Trash2 className="w-4 h-4 mr-2" />
-              Delete node
-            </Button>
-            <Button
-              onClick={handleSaveNode}
-              className="bg-purple-600 hover:bg-purple-700 text-white"
-              disabled={!editingNode}
-            >
-              Save changes
-            </Button>
-          </DrawerFooter>
         </DrawerContent>
       </Drawer>
     </div>
