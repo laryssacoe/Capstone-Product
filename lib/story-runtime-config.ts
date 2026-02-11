@@ -40,6 +40,16 @@ export type StoryResourceLink = {
   href: string
 }
 
+export type MethodologySource = {
+  label: string
+  value: string
+}
+
+export type StoryMethodology = {
+  sources: MethodologySource[]
+  note: string
+}
+
 export type StoryRuntimeConfig = {
   backgroundAudio?: {
     path: string
@@ -53,6 +63,7 @@ export type StoryRuntimeConfig = {
   resourceLinks: StoryResourceLink[]
   methodologyText?: string
   postReflectionStats?: PostReflectionStat[]
+  methodology?: StoryMethodology
 }
 
 const validStatIcons: ReadonlySet<PostReflectionStatIconKey> = new Set([
@@ -63,6 +74,15 @@ const validStatIcons: ReadonlySet<PostReflectionStatIconKey> = new Set([
   "heart",
   "briefcase",
 ])
+
+const defaultStatColors: Record<PostReflectionStatIconKey, string> = {
+  users: "#f87171",
+  graduationCap: "#fbbf24",
+  dollarSign: "#4ade80",
+  home: "#60a5fa",
+  heart: "#c084fc",
+  briefcase: "#f472b6",
+}
 
 function asRecord(value: unknown): Record<string, unknown> {
   if (!value || typeof value !== "object" || Array.isArray(value)) return {}
@@ -136,37 +156,62 @@ function normalizeResourceLinks(value: unknown): StoryResourceLink[] {
   return links
 }
 
+function normalizeMethodology(value: unknown, fallbackNote?: string): StoryMethodology | undefined {
+  const raw = asRecord(value)
+  const note =
+    typeof raw.note === "string" && raw.note.trim().length > 0
+      ? raw.note.trim()
+      : fallbackNote?.trim() || ""
+  const sourcesRaw = Array.isArray(raw.sources) ? raw.sources : []
+  const sources: MethodologySource[] = []
+
+  for (const entry of sourcesRaw) {
+    const source = asRecord(entry)
+    const label = typeof source.label === "string" ? source.label.trim() : ""
+    const value = typeof source.value === "string" ? source.value.trim() : ""
+    if (!label || !value) continue
+    sources.push({ label, value })
+  }
+
+  if (!note && sources.length === 0) return undefined
+  return { sources, note }
+}
+
 function normalizePostReflectionStats(value: unknown): PostReflectionStat[] {
   if (!Array.isArray(value)) return []
   const stats: PostReflectionStat[] = []
 
   for (const entry of value) {
     const raw = asRecord(entry)
-    const icon = raw.icon
-    const color = typeof raw.color === "string" ? raw.color : ""
-    const title = typeof raw.title === "string" ? raw.title : ""
-    const statValue = typeof raw.value === "string" ? raw.value : ""
-    const description = typeof raw.description === "string" ? raw.description : ""
-    const source = typeof raw.source === "string" ? raw.source : ""
+    const iconValue = raw.icon
+    if (typeof iconValue !== "string" || !validStatIcons.has(iconValue as PostReflectionStatIconKey)) continue
 
-    if (
-      typeof icon === "string" &&
-      validStatIcons.has(icon as PostReflectionStatIconKey) &&
-      color &&
-      title &&
-      statValue &&
-      description &&
-      source
-    ) {
-      stats.push({
-        icon: icon as PostReflectionStatIconKey,
-        color,
-        title,
-        value: statValue,
-        description,
-        source,
-      })
-    }
+    const icon = iconValue as PostReflectionStatIconKey
+    const color =
+      typeof raw.color === "string" && raw.color.trim().length > 0 ? raw.color.trim() : defaultStatColors[icon]
+    const title = typeof raw.title === "string" ? raw.title.trim() : ""
+
+    const valueRaw = raw.value
+    const statValue =
+      typeof valueRaw === "string"
+        ? valueRaw.trim()
+        : typeof valueRaw === "number" && Number.isFinite(valueRaw)
+        ? String(valueRaw)
+        : ""
+
+    const descriptionRaw = typeof raw.description === "string" ? raw.description.trim() : ""
+    const sourceRaw = typeof raw.source === "string" ? raw.source.trim() : ""
+
+    if (!title || !statValue) continue
+
+    stats.push({
+      icon,
+      color,
+      title,
+      value: statValue,
+      description: descriptionRaw || `Contextual metric for ${title.toLowerCase()}.`,
+      source: sourceRaw || "Story analytics dataset",
+    })
   }
 
   return stats
@@ -198,6 +243,7 @@ export function resolveStoryRuntimeConfig(rawValue: unknown): StoryRuntimeConfig
     typeof root.methodologyText === "string" && root.methodologyText.trim().length > 0
       ? root.methodologyText.trim()
       : undefined
+  const methodology = normalizeMethodology(root.methodology, methodologyText)
   const openReflectionQuestion = normalizeOpenQuestion(root.openReflectionQuestion)
   const finalRequiredReflectionIds =
     requiredReflectionIds.length > 0 ? requiredReflectionIds : reflectionQuestions.map((question) => question.id)
@@ -210,7 +256,8 @@ export function resolveStoryRuntimeConfig(rawValue: unknown): StoryRuntimeConfig
     endingChoiceIds.length > 0 ||
     resourceLinks.length > 0 ||
     postReflectionStats.length > 0 ||
-    Boolean(methodologyText)
+    Boolean(methodologyText) ||
+    Boolean(methodology)
 
   if (!hasRuntimeData) return null
 
@@ -224,5 +271,6 @@ export function resolveStoryRuntimeConfig(rawValue: unknown): StoryRuntimeConfig
     resourceLinks,
     methodologyText,
     postReflectionStats,
+    methodology,
   }
 }
