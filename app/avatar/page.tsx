@@ -6,10 +6,10 @@ import styled, { keyframes } from "styled-components";
 import { Button as UIButton } from "@/components/ui/button";
 import { Badge as UIBadge } from "@/components/ui/badge";
 import { Card as UICard, CardContent as UICardContent } from "@/components/ui/card";
+import { normalizeImagePath } from "@/lib/story-media-path";
 import { 
-  User, 
   DollarSign, 
-  Clock, 
+  Timer, 
   Heart, 
   X,
   MapPin,
@@ -34,6 +34,12 @@ type AvatarWithMetrics = Avatar & {
   };
 };
 
+type SavedResourceSnapshot = {
+  money: number;
+  health: number;
+  time: number;
+};
+
 const gradForAvatar = (id: string) => {
   switch (id) {
     case "maria-rodriguez": return "linear-gradient(135deg, #ec4899, #f43f5e)";
@@ -48,18 +54,33 @@ const gradForAvatar = (id: string) => {
 // Get avatar profile image, support local paths and Cloudinary URLs
 const getAvatarImage = (avatar: AvatarWithMetrics): string => {
   const imagePath = (avatar.appearance as any)?.image || (avatar as any).image || "";
-  
-  // Trust image paths in /scenes/ directory or Cloudinary URLs
-  if (imagePath && (
-    imagePath.startsWith("/scenes/") ||
-    imagePath.includes("cloudinary.com") ||
-    imagePath.includes("res.cloudinary.com")
-  )) {
-    return imagePath;
+  return normalizeImagePath(imagePath);
+};
+
+const getStartingHealth = (avatar: AvatarWithMetrics): number => {
+  const resources = (avatar.initialResources ?? {}) as unknown as Record<string, unknown>;
+  const health = resources.health;
+  if (typeof health === "number" && Number.isFinite(health)) {
+    return Math.max(0, Math.min(100, health));
   }
-  
-  // Return empty string for invalid/placeholder paths to show icon fallback
-  return "";
+  const physicalHealth = resources.physicalHealth;
+  if (typeof physicalHealth === "number" && Number.isFinite(physicalHealth)) {
+    return Math.max(0, Math.min(100, physicalHealth));
+  }
+  const mentalHealth = resources.mentalHealth;
+  if (typeof mentalHealth === "number" && Number.isFinite(mentalHealth)) {
+    return Math.max(0, Math.min(100, mentalHealth));
+  }
+  return 100;
+};
+
+const getStartingTime = (avatar: AvatarWithMetrics): number => {
+  const resources = (avatar.initialResources ?? {}) as unknown as Record<string, unknown>;
+  const time = resources.time;
+  if (typeof time === "number" && Number.isFinite(time)) {
+    return Math.max(0, Math.round(time));
+  }
+  return 40;
 };
 
 const fadeIn = keyframes`
@@ -725,6 +746,7 @@ export default function AvatarPage() {
   const backgroundRefs = useRef<Record<string, HTMLParagraphElement | null>>({});
   const [backgroundMinHeightById, setBackgroundMinHeightById] = useState<Record<string, number>>({});
   const [savedProgress, setSavedProgress] = useState<Record<string, boolean>>({});
+  const [savedProgressResources, setSavedProgressResources] = useState<Record<string, SavedResourceSnapshot>>({});
 
   const handleStart = (avatar: AvatarWithMetrics) => {
     const storySlug = avatar.storySlug || avatar.id;
@@ -742,6 +764,7 @@ export default function AvatarPage() {
       if (!sessionId) return;
 
       const progressMap: Record<string, boolean> = {};
+      const resourcesMap: Record<string, SavedResourceSnapshot> = {};
       
       for (const avatar of avatars) {
         const storySlug = avatar.storySlug || avatar.id;
@@ -751,12 +774,26 @@ export default function AvatarPage() {
           );
           if (res.ok) {
             const data = await res.json();
-            // Check if there's a save that's not at the start
-            const hasMeaningfulProgress = data.saves?.some(
+            const meaningfulSave = data.saves?.find(
               (save: any) => save.currentPassageId && save.currentPassageId !== "start"
             );
-            if (hasMeaningfulProgress) {
+            if (meaningfulSave) {
               progressMap[avatar.id] = true;
+              const rawResources = meaningfulSave.resources && typeof meaningfulSave.resources === "object"
+                ? meaningfulSave.resources
+                : {};
+              const fallbackMoney =
+                typeof avatar.initialResources?.money === "number" ? avatar.initialResources.money : 500;
+              const fallbackHealth = getStartingHealth(avatar);
+              const fallbackTime = getStartingTime(avatar);
+              const savedMoney = typeof rawResources.money === "number" ? rawResources.money : fallbackMoney;
+              const savedHealth = typeof rawResources.health === "number" ? rawResources.health : fallbackHealth;
+              const savedTime = typeof rawResources.time === "number" ? rawResources.time : fallbackTime;
+              resourcesMap[avatar.id] = {
+                money: Math.max(0, Math.round(savedMoney)),
+                health: Math.max(0, Math.min(100, Math.round(savedHealth))),
+                time: Math.max(0, Math.round(savedTime)),
+              };
             }
           }
         } catch (e) {
@@ -765,6 +802,7 @@ export default function AvatarPage() {
       }
       
       setSavedProgress(progressMap);
+      setSavedProgressResources(resourcesMap);
     }
 
     if (avatars.length > 0) {
@@ -891,6 +929,12 @@ export default function AvatarPage() {
   }, [avatars]);
 
   const hasSavedProgress = (avatarId: string) => savedProgress[avatarId] ?? false;
+  const getModalMoney = (avatar: AvatarWithMetrics) =>
+    savedProgressResources[avatar.id]?.money ?? (avatar.initialResources?.money ?? 500);
+  const getModalHealth = (avatar: AvatarWithMetrics) =>
+    savedProgressResources[avatar.id]?.health ?? getStartingHealth(avatar);
+  const getModalTime = (avatar: AvatarWithMetrics) =>
+    savedProgressResources[avatar.id]?.time ?? getStartingTime(avatar);
 
   return (
     <Page>
@@ -1083,31 +1127,28 @@ export default function AvatarPage() {
               )}
 
               <ModalSection>
-                <ModalSectionTitle>Starting Resources</ModalSectionTitle>
+                <ModalSectionTitle>{hasSavedProgress(selectedAvatar.id) ? "Current Resources" : "Starting Resources"}</ModalSectionTitle>
                 <ResourcesRow>
                   <ResourceBox>
                     <ResourceIcon $color="#4ade80">
                       <DollarSign />
                     </ResourceIcon>
-                    <ResourceValue>${selectedAvatar.initialResources?.money ?? 500}</ResourceValue>
+                    <ResourceValue>${getModalMoney(selectedAvatar)}</ResourceValue>
                     <ResourceLabel>Money</ResourceLabel>
                   </ResourceBox>
                   <ResourceBox>
                     <ResourceIcon $color="#f87171">
                       <Heart />
                     </ResourceIcon>
-                    <ResourceValue>
-                      {selectedAvatar.initialResources?.physicalHealth ?? 
-                       selectedAvatar.initialResources?.mentalHealth ?? 100}%
-                    </ResourceValue>
+                    <ResourceValue>{getModalHealth(selectedAvatar)}%</ResourceValue>
                     <ResourceLabel>Health</ResourceLabel>
                   </ResourceBox>
                   <ResourceBox>
                     <ResourceIcon $color="#60a5fa">
-                      <Clock />
+                      <Timer />
                     </ResourceIcon>
-                    <ResourceValue>~15</ResourceValue>
-                    <ResourceLabel>Minutes</ResourceLabel>
+                    <ResourceValue>{getModalTime(selectedAvatar)}h</ResourceValue>
+                    <ResourceLabel>Resource Time</ResourceLabel>
                   </ResourceBox>
                 </ResourcesRow>
               </ModalSection>
