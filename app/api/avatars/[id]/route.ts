@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 
 
 import { prisma } from "@/lib/server/prisma"
+import { resolveRuntimeConfigFromSources } from "@/lib/server/story-runtime"
 export const dynamic = "force-dynamic"
 
 
@@ -42,6 +43,12 @@ export async function GET(_request: Request, { params }: RouteParams) {
       visibility: true,
       createdAt: true,
       updatedAt: true,
+      latestVersion: {
+        select: {
+          metadata: true,
+          content: true,
+        },
+      },
     },
   })
 
@@ -77,15 +84,11 @@ export async function GET(_request: Request, { params }: RouteParams) {
       : Promise.resolve(null),
   ])
 
-  let storyRuntime: unknown = null
-  if (
-    matchingScenario?.metadata &&
-    typeof matchingScenario.metadata === "object" &&
-    !Array.isArray(matchingScenario.metadata)
-  ) {
-    const metadata = matchingScenario.metadata as Record<string, unknown>
-    storyRuntime = metadata.storyRuntime ?? metadata.simulation ?? null
-  }
+  const storyRuntime = resolveRuntimeConfigFromSources({
+    scenarioMetadata: matchingScenario?.metadata ?? null,
+    versionMetadata: story.latestVersion?.metadata,
+    versionContent: story.latestVersion?.content,
+  })
 
   return NextResponse.json({ avatar, story, nodes, paths, transitions, storyRuntime })
 }

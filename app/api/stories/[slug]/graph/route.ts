@@ -5,6 +5,7 @@ import { cachePolicy, setCacheControl } from "@/lib/http-cache"
 import { ensureBaseContent } from "@/lib/server/bootstrap"
 import { getCurrentSession } from "@/lib/server/auth"
 import { prisma } from "@/lib/server/prisma"
+import { resolveRuntimeConfigFromSources } from "@/lib/server/story-runtime"
 export const dynamic = "force-dynamic"
 
 
@@ -38,6 +39,12 @@ export async function GET(request: Request, { params }: RouteParams) {
       ownerId: true,
       createdAt: true,
       updatedAt: true,
+      latestVersion: {
+        select: {
+          metadata: true,
+          content: true,
+        },
+      },
     },
   })
 
@@ -84,15 +91,11 @@ export async function GET(request: Request, { params }: RouteParams) {
   ])
 
   const avatar = avatars.find((a) => a.isPlayable) ?? avatars[0] ?? null
-  let storyRuntime: unknown = null
-  if (
-    matchingScenario?.metadata &&
-    typeof matchingScenario.metadata === "object" &&
-    !Array.isArray(matchingScenario.metadata)
-  ) {
-    const metadata = matchingScenario.metadata as Record<string, unknown>
-    storyRuntime = metadata.storyRuntime ?? metadata.simulation ?? null
-  }
+  const storyRuntime = resolveRuntimeConfigFromSources({
+    scenarioMetadata: matchingScenario?.metadata ?? null,
+    versionMetadata: story.latestVersion?.metadata,
+    versionContent: story.latestVersion?.content,
+  })
 
   const response = NextResponse.json({ story, nodes, paths, transitions, avatar, storyRuntime })
   return setCacheControl(response, isPublic ? cachePolicy.collectionPublic : cachePolicy.privateNoStore)

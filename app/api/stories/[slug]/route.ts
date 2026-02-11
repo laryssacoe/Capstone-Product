@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 
 import { cachePolicy, setCacheControl } from "@/lib/http-cache"
 import { prisma } from "@/lib/server/prisma"
+import { resolveRuntimeConfigFromSources } from "@/lib/server/story-runtime"
 export const dynamic = "force-dynamic"
 
 interface RouteParams {
@@ -21,6 +22,12 @@ export async function GET(_req: Request, { params }: RouteParams) {
       paths: { orderBy: { createdAt: "asc" } },
       transitions: { orderBy: [{ fromNodeId: "asc" }, { ordering: "asc" }] },
       avatars: true,
+      latestVersion: {
+        select: {
+          metadata: true,
+          content: true,
+        },
+      },
     },
   })
 
@@ -36,7 +43,7 @@ export async function GET(_req: Request, { params }: RouteParams) {
       orderBy: [{ isPlayable: "desc" }, { updatedAt: "desc" }],
     }))
 
-  let storyRuntime: unknown = null
+  let scenarioMetadata: unknown = null
   if (typeof prisma.scenario?.findFirst === "function") {
     const matchingScenario = await prisma.scenario.findFirst({
       where: {
@@ -49,16 +56,14 @@ export async function GET(_req: Request, { params }: RouteParams) {
       },
       select: { metadata: true },
     })
-
-    if (
-      matchingScenario?.metadata &&
-      typeof matchingScenario.metadata === "object" &&
-      !Array.isArray(matchingScenario.metadata)
-    ) {
-      const metadata = matchingScenario.metadata as Record<string, unknown>
-      storyRuntime = metadata.storyRuntime ?? metadata.simulation ?? null
-    }
+    scenarioMetadata = matchingScenario?.metadata ?? null
   }
+
+  const storyRuntime = resolveRuntimeConfigFromSources({
+    scenarioMetadata,
+    versionMetadata: story.latestVersion?.metadata,
+    versionContent: story.latestVersion?.content,
+  })
 
   const response = NextResponse.json(
     {
