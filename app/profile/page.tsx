@@ -561,6 +561,7 @@ export default function ProfilePage() {
 									savedProfile.avatarUrl.includes("res.cloudinary.com") ? (
 										<Image src={savedProfile.avatarUrl} alt="Profile" fill sizes="128px" className="object-cover" />
 									) : (
+										// eslint-disable-next-line @next/next/no-img-element
 										<img src={savedProfile.avatarUrl} alt="Profile" className="h-full w-full object-cover" />
 									)
 								) : (

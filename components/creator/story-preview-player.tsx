@@ -14,6 +14,7 @@ import {
   Volume2,
   VolumeX,
 } from "lucide-react"
+import OptimizedStoryImage from "@/components/optimized-story-image"
 
 export interface ResearchSource {
   id: string
@@ -415,6 +416,12 @@ const CharacterAvatar = styled.div`
   display: flex;
   align-items: center;
   justify-content: center;
+
+  span {
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
 
   img {
     width: 100%;
@@ -913,7 +920,7 @@ export function StoryPreviewPlayer({
       setRunId(createRunId())
       setCurrentKey(start?.key ?? null)
     }
-  }, [graph, nodeKeySet, storageKey])
+  }, [graph, nodeKeySet, storageKey, resourceSignature])
 
   useEffect(() => {
     if (typeof window === "undefined") return
@@ -1054,9 +1061,10 @@ export function StoryPreviewPlayer({
   }, [audioEnabled, passageAudio])
 
   useEffect(() => {
+    const audio = audioRef.current
     return () => {
-      if (audioRef.current) {
-        audioRef.current.pause()
+      if (audio) {
+        audio.pause()
         currentAudioSrc.current = null
       }
     }
@@ -1292,12 +1300,17 @@ export function StoryPreviewPlayer({
           <TextBoxHeader>
             <CharacterAvatar>
               {showAvatarImage ? (
-                <img
+                <OptimizedStoryImage
                   src={avatarImage}
                   alt={avatarName}
-                  loading="lazy"
-                  decoding="async"
-                  onError={() => setAvatarImageError(true)}
+                  width={44}
+                  height={44}
+                  sizes="44px"
+                  fallback={
+                    <AvatarPlaceholder>
+                      <User size={20} />
+                    </AvatarPlaceholder>
+                  }
                 />
               ) : (
                 <AvatarPlaceholder>

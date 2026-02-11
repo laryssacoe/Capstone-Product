@@ -1744,6 +1744,7 @@ function CreatorDashboardContent() {
 
   // Media upload state
   const [uploadedMedia, setUploadedMedia] = useState<UploadedMedia[]>([])
+  const uploadedMediaRef = useRef<UploadedMedia[]>([])
   const [mediaUploadError, setMediaUploadError] = useState<string | null>(null)
   const imageInputRef = useRef<HTMLInputElement>(null)
   const audioInputRef = useRef<HTMLInputElement>(null)
@@ -2477,8 +2478,12 @@ function CreatorDashboardContent() {
 
   // Cleanup object URLs on unmount
   useEffect(() => {
+    uploadedMediaRef.current = uploadedMedia
+  }, [uploadedMedia])
+
+  useEffect(() => {
     return () => {
-      uploadedMedia.forEach(m => URL.revokeObjectURL(m.url))
+      uploadedMediaRef.current.forEach((media) => URL.revokeObjectURL(media.url))
     }
   }, [])
 
