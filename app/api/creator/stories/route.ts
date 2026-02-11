@@ -452,7 +452,7 @@ export async function POST(request: Request) {
       select: { id: true, ownerId: true },
     })
 
-    if (existingBySlug && existingBySlug.ownerId && existingBySlug.ownerId !== session.user.id && session.user.role !== "ADMIN") {
+    if (existingBySlug && existingBySlug.ownerId !== session.user.id && session.user.role !== "ADMIN") {
       return NextResponse.json({ error: "Story code already in use by another creator." }, { status: 409 })
     }
 

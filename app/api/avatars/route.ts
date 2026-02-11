@@ -102,11 +102,11 @@ export async function GET(request: Request) {
 
     if (!scenarios.length) return
 
-    // Only sync with PUBLIC + PLATFORM_OWNED stories
+    // Only sync with PUBLIC stories that are approved or legacy PLATFORM_OWNED stories
     const stories = await prisma.twineStory.findMany({
       where: {
         visibility: "PUBLIC",
-        ownershipStatus: "PLATFORM_OWNED",
+        OR: [{ approvedAt: { not: null } }, { ownershipStatus: "PLATFORM_OWNED" }],
       },
       select: { id: true, slug: true, title: true },
     })
@@ -203,7 +203,7 @@ export async function GET(request: Request) {
       isPlayable: true,
       story: {
         visibility: "PUBLIC",
-        ownershipStatus: "PLATFORM_OWNED",
+        OR: [{ approvedAt: { not: null } }, { ownershipStatus: "PLATFORM_OWNED" }],
       },
     },
     include: {

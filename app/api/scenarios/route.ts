@@ -125,6 +125,10 @@ function buildSystemScenarios(records: Array<{
 }>) {
   return records.map((record) => {
     const metadata = asRecord(record.metadata)
+    const metadataSource =
+      typeof metadata.source === "string" && metadata.source.trim().length > 0
+        ? metadata.source
+        : "system"
     const metadataStorySlug =
       typeof metadata.storySlug === "string" && metadata.storySlug.trim().length > 0
         ? metadata.storySlug
@@ -166,7 +170,7 @@ function buildSystemScenarios(records: Array<{
       estimatedDuration,
       metadata: {
         ...metadata,
-        source: "system",
+        source: metadataSource,
         scenarioId: record.id,
         issueTag: record.issueTag,
         storySlug: metadataStorySlug,
@@ -177,13 +181,13 @@ function buildSystemScenarios(records: Array<{
 
 export async function GET() {
   try {
-    // Only fetch avatars linked to PUBLIC + PLATFORM_OWNED stories
+    // Only fetch avatars linked to PUBLIC stories that are approved or legacy PLATFORM_OWNED stories
     const [avatars, systemScenarios, approvedStories] = await Promise.all([
       prisma.avatarProfile.findMany({
         where: {
           story: {
             visibility: "PUBLIC",
-            ownershipStatus: "PLATFORM_OWNED",
+            OR: [{ approvedAt: { not: null } }, { ownershipStatus: "PLATFORM_OWNED" }],
           },
         },
         include: {
@@ -201,11 +205,11 @@ export async function GET() {
       prisma.scenario.findMany({
         orderBy: [{ estimatedMinutes: "asc" }, { title: "asc" }],
       }),
-      // FIX: Only fetch PUBLIC + PLATFORM_OWNED stories for public scenarios page
+      // Only fetch PUBLIC stories that are approved or legacy PLATFORM_OWNED stories
       prisma.twineStory.findMany({
         where: {
           visibility: "PUBLIC",
-          ownershipStatus: "PLATFORM_OWNED",
+          OR: [{ approvedAt: { not: null } }, { ownershipStatus: "PLATFORM_OWNED" }],
         },
         include: {
           nodes: {
@@ -219,8 +223,9 @@ export async function GET() {
       }),
     ])
 
-    const storyIdsNeedingVisibility = new Set<string>()
     const avatarIdsNeedingPlayable = new Set<string>()
+    const approvedStorySlugSet = new Set(approvedStories.map((story) => story.slug))
+    const approvedStoryIdSet = new Set(approvedStories.map((story) => story.id))
 
     const scenarioMap = new Map<string, any>()
     const upsertScenario = (key: string, scenario: any) => {
@@ -240,6 +245,19 @@ export async function GET() {
     }
 
     for (const scenario of buildSystemScenarios(systemScenarios)) {
+      const scenarioMetadata = asRecord(scenario.metadata)
+      const scenarioStorySlug =
+        typeof scenarioMetadata.storySlug === "string" ? scenarioMetadata.storySlug : undefined
+      const scenarioStoryId = typeof scenarioMetadata.storyId === "string" ? scenarioMetadata.storyId : undefined
+
+      const isApprovedStoryScenario =
+        (scenarioStorySlug && approvedStorySlugSet.has(scenarioStorySlug)) ||
+        (scenarioStoryId && approvedStoryIdSet.has(scenarioStoryId))
+
+      if ((scenarioStorySlug || scenarioStoryId) && !isApprovedStoryScenario) {
+        continue
+      }
+
       const key = `story:${scenario.slug ?? scenario.id}`
       if (!scenarioMap.has(key)) {
         upsertScenario(key, scenario)
@@ -254,7 +272,10 @@ export async function GET() {
             return null
           }
 
-          if (story.visibility !== "PUBLIC" || story.ownershipStatus !== "PLATFORM_OWNED") {
+          if (
+            story.visibility !== "PUBLIC" ||
+            (!story.approvedAt && story.ownershipStatus !== "PLATFORM_OWNED")
+          ) {
             return null
           }
 
