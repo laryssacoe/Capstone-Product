@@ -39,7 +39,7 @@ pnpm-debug.log*
 /prisma/*-cloudinary-map.json
 /prisma/*.sql
 /prisma/seed-*.ts
-/prisma/upload-story-images.ts
+/prisma/upload*
 
 # Local media / data drops (not for git)
 /public/scenes/*/
@@ -50,6 +50,9 @@ pnpm-debug.log*
 /coverage
 /reports
 .vitest-result.json
+/test-results 
+/playwright-report
+/playwright-report-visual
 
 # Editor
 .vscode/
