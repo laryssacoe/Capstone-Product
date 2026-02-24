@@ -103,6 +103,10 @@ const CenterCard = styled.div`
     0 25px 50px rgba(0, 0, 0, 0.5),
     0 0 100px rgba(139, 92, 246, 0.15);
   animation: ${slideUp} 0.4s ease-out;
+
+  @media (max-width: 640px) {
+    border-radius: 1rem;
+  }
 `
 
 const CardGradientBar = styled.div`
@@ -137,8 +141,8 @@ const CloseButton = styled.button`
   position: absolute;
   top: 1rem;
   right: 1rem;
-  width: 32px;
-  height: 32px;
+  width: 44px;
+  height: 44px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -148,6 +152,7 @@ const CloseButton = styled.button`
   color: #94a3b8;
   cursor: pointer;
   transition: all 0.2s ease;
+  touch-action: manipulation;
   
   &:hover {
     background: rgba(255, 255, 255, 0.1);
@@ -161,6 +166,10 @@ const CardContent = styled.div`
   flex-direction: column;
   align-items: center;
   text-align: center;
+
+  @media (max-width: 640px) {
+    padding: 2.25rem 1rem 1rem;
+  }
 `
 
 const IconContainer = styled.div`
@@ -197,6 +206,10 @@ const Title = styled.h2`
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   letter-spacing: -0.02em;
+
+  @media (max-width: 640px) {
+    font-size: 1.5rem;
+  }
 `
 
 const Subtitle = styled.p`
@@ -205,6 +218,11 @@ const Subtitle = styled.p`
   font-size: 1rem;
   line-height: 1.6;
   max-width: 320px;
+
+  @media (max-width: 640px) {
+    font-size: 1rem;
+    line-height: 1.5;
+  }
 `
 
 const VisitBadge = styled.div`
@@ -242,6 +260,8 @@ const StartButton = styled.button`
   cursor: pointer;
   transition: all 0.2s ease;
   box-shadow: 0 4px 15px rgba(124, 58, 237, 0.4);
+  min-height: 48px;
+  touch-action: manipulation;
   
   &:hover {
     transform: translateY(-2px);
@@ -255,7 +275,7 @@ const StartButton = styled.button`
 `
 
 const SkipButton = styled.button`
-  padding: 0.75rem 1.5rem;
+  padding: 0.8rem 1.5rem;
   border: 1px solid rgba(148, 163, 184, 0.3);
   border-radius: 0.75rem;
   background: transparent;
@@ -264,6 +284,8 @@ const SkipButton = styled.button`
   font-weight: 500;
   cursor: pointer;
   transition: all 0.2s ease;
+  min-height: 48px;
+  touch-action: manipulation;
   
   &:hover {
     border-color: rgba(148, 163, 184, 0.5);
@@ -299,8 +321,8 @@ const AnimatingButton = styled.div`
 
 const CornerButton = styled.button`
   position: fixed;
-  bottom: 1.5rem;
-  right: 1.5rem;
+  bottom: max(1.25rem, env(safe-area-inset-bottom));
+  right: max(1rem, env(safe-area-inset-right));
   z-index: 100;
   display: inline-flex;
   align-items: center;
@@ -310,6 +332,7 @@ const CornerButton = styled.button`
   cursor: pointer;
   text-decoration: none;
   animation: ${slideInFromRight} 0.4s ease-out;
+  touch-action: manipulation;
   
   &:hover {
     .sparkle {
@@ -334,20 +357,26 @@ const ButtonInner = styled.div`
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
-  padding: 0.85rem 1.4rem;
+  padding: 0.9rem 1.4rem;
   border-radius: 999px;
   background: linear-gradient(135deg, rgba(124, 58, 237, 0.95), rgba(99, 102, 241, 0.95));
   color: #fff;
   font-weight: 700;
-  font-size: 0.9rem;
+  font-size: 0.95rem;
   letter-spacing: 0.01em;
   border: 1px solid rgba(167, 139, 250, 0.6);
   box-shadow: 0 6px 18px rgba(0, 0, 0, 0.25);
   transition: all 0.2s ease;
+  min-height: 48px;
   
   ${CornerButton}:hover & {
     transform: translateY(-2px);
     box-shadow: 0 10px 24px rgba(124, 58, 237, 0.35);
+  }
+
+  @media (max-width: 640px) {
+    padding: 0.85rem 1.1rem;
+    font-size: 0.9rem;
   }
 `
 

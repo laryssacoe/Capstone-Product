@@ -413,7 +413,7 @@ const TopBar = styled.div`
     top: 0;
     flex-wrap: wrap;
     gap: 0.5rem;
-    padding: 0.75rem 1rem;
+    padding: 0.75rem 1rem 0.85rem;
     background: rgba(15, 23, 42, 0.92);
     backdrop-filter: blur(10px);
   }
@@ -429,7 +429,17 @@ const BackButton = styled.button`
   border: none;
   cursor: pointer;
   transition: color 0.2s;
+  min-height: 44px;
+  padding: 0.4rem 0.6rem;
+  border-radius: 0.65rem;
+  touch-action: manipulation;
   &:hover { color: #ffffff; }
+
+  @media (max-width: 768px) {
+    background: rgba(148, 163, 184, 0.08);
+    border: 1px solid rgba(148, 163, 184, 0.15);
+    font-size: 0.9rem;
+  }
 `
 
 const TopBarCenter = styled.div`
@@ -447,7 +457,7 @@ const TopBarCenter = styled.div`
 
 const TopBarRight = styled.div`
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 0.75rem;
 
   @media (max-width: 768px) {
@@ -457,40 +467,90 @@ const TopBarRight = styled.div`
   }
 `
 
+const StatsPanel = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.5rem;
+  min-width: 0;
+
+  @media (max-width: 768px) {
+    flex: 1;
+    align-items: stretch;
+  }
+`
+
 const StatsBar = styled.div`
   display: flex;
-  gap: 0.5rem;
+  gap: 0.65rem;
   align-items: center;
 
   @media (max-width: 768px) {
     flex-wrap: wrap;
     justify-content: flex-end;
-    row-gap: 0.35rem;
+    row-gap: 0.45rem;
   }
 `
 
 const StatPill = styled.div<{ $color?: string }>`
   display: flex;
   align-items: center;
-  gap: 0.3rem;
+  gap: 0.45rem;
   color: #ffffff;
-  font-size: 0.8rem;
-  font-weight: 500;
-  padding: 0.35rem 0.65rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  padding: 0.5rem 0.8rem;
   background: rgba(0, 0, 0, 0.45);
+  border: 1px solid rgba(148, 163, 184, 0.18);
   border-radius: 999px;
   backdrop-filter: blur(8px);
   
   svg {
-    width: 14px;
-    height: 14px;
+    width: 16px;
+    height: 16px;
     color: ${({ $color }) => $color || "#94a3b8"};
   }
   
   @media (max-width: 640px) {
-    font-size: 0.7rem;
-    padding: 0.25rem 0.5rem;
-    svg { width: 12px; height: 12px; }
+    font-size: 0.8rem;
+    padding: 0.35rem 0.65rem;
+    svg { width: 14px; height: 14px; }
+  }
+`
+
+const StatsLegend = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  row-gap: 0.45rem;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  color: rgba(226, 232, 240, 0.7);
+  font-size: 0.7rem;
+  line-height: 1.2;
+
+  @media (max-width: 768px) {
+    justify-content: flex-start;
+  }
+`
+
+const LegendChip = styled.span<{ $color: string }>`
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.2rem 0.45rem;
+  border-radius: 999px;
+  border: 1px solid rgba(148, 163, 184, 0.18);
+  background: rgba(15, 23, 42, 0.45);
+  white-space: nowrap;
+
+  &::before {
+    content: "";
+    width: 0.35rem;
+    height: 0.35rem;
+    border-radius: 999px;
+    background: ${({ $color }) => $color};
+    box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.05);
   }
 `
 
@@ -498,8 +558,8 @@ const AudioButton = styled.button<{ $active?: boolean; $disabled?: boolean }>`
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 34px;
-  height: 34px;
+  width: 44px;
+  height: 44px;
   background: rgba(0, 0, 0, 0.45);
   border: none;
   border-radius: 50%;
@@ -509,6 +569,7 @@ const AudioButton = styled.button<{ $active?: boolean; $disabled?: boolean }>`
   opacity: ${({ $disabled }) => ($disabled ? 0.75 : 1)};
   backdrop-filter: blur(8px);
   transition: all 0.2s;
+  touch-action: manipulation;
   
   &:hover {
     background: ${({ $disabled }) => ($disabled ? "rgba(0, 0, 0, 0.45)" : "rgba(139, 92, 246, 0.3)")};
@@ -620,19 +681,27 @@ const StepBackButton = styled.button`
   display: flex;
   align-items: center;
   gap: 0.3rem;
-  padding: 0.4rem 0.7rem;
+  padding: 0.5rem 0.8rem;
   background: rgba(148, 163, 184, 0.12);
   border: 1px solid rgba(148, 163, 184, 0.25);
   border-radius: 0.5rem;
   color: rgba(255, 255, 255, 0.7);
-  font-size: 0.75rem;
+  font-size: 0.8rem;
   cursor: pointer;
   transition: all 0.2s;
   flex-shrink: 0;
+  min-height: 40px;
+  touch-action: manipulation;
   
   &:hover {
     background: rgba(148, 163, 184, 0.22);
     color: #ffffff;
+  }
+
+  @media (max-width: 640px) {
+    min-height: 44px;
+    font-size: 0.85rem;
+    padding: 0.55rem 0.85rem;
   }
 `
 
@@ -662,6 +731,25 @@ const ChoicesContainer = styled.div<{ $visible: boolean }>`
   transition: opacity 0.4s ease, transform 0.4s ease;
 `
 
+const StoryStartHint = styled.div`
+  max-width: 900px;
+  margin: -0.25rem auto 0;
+  width: 100%;
+  padding: 0.65rem 0.85rem;
+  border-radius: 0.75rem;
+  background: rgba(15, 23, 42, 0.7);
+  border: 1px solid rgba(96, 165, 250, 0.25);
+  color: rgba(226, 232, 240, 0.9);
+  font-size: 0.8rem;
+  line-height: 1.35;
+  backdrop-filter: blur(8px);
+
+  @media (max-width: 640px) {
+    font-size: 0.75rem;
+    padding: 0.55rem 0.7rem;
+  }
+`
+
 const ChoicesGrid = styled.div`
   display: flex;
   flex-direction: column;
@@ -670,12 +758,12 @@ const ChoicesGrid = styled.div`
 
 const ChoiceButton = styled.button<{ $index: number; $visible: boolean }>`
   width: 100%;
-  padding: 0.875rem 1.125rem;
+  padding: 0.95rem 1.125rem;
   background: rgba(51, 65, 85, 0.65);
   border: 1px solid rgba(139, 92, 246, 0.4);
   border-radius: 0.75rem;
   color: #e2e8f0;
-  font-size: 0.95rem;
+  font-size: 0.98rem;
   text-align: left;
   cursor: pointer;
   transition: all 0.25s ease;
@@ -688,6 +776,8 @@ const ChoiceButton = styled.button<{ $index: number; $visible: boolean }>`
   transition-delay: ${({ $index }) => $index * 0.08}s;
   backdrop-filter: blur(8px);
   box-shadow: 0 4px 12px -4px rgba(0, 0, 0, 0.3);
+  min-height: 56px;
+  touch-action: manipulation;
   
   &:hover {
     background: rgba(139, 92, 246, 0.28);
@@ -698,6 +788,15 @@ const ChoiceButton = styled.button<{ $index: number; $visible: boolean }>`
   
   &:active {
     transform: translateX(2px);
+  }
+
+  @media (max-width: 640px) {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 0.6rem;
+    padding: 0.95rem 1rem;
+    font-size: 1rem;
+    min-height: 64px;
   }
 `
 
@@ -711,12 +810,18 @@ const ChoiceEffects = styled.div`
   flex-shrink: 0;
   flex-wrap: wrap;
   justify-content: flex-end;
+
+  @media (max-width: 640px) {
+    width: 100%;
+    justify-content: flex-start;
+    gap: 0.35rem;
+  }
 `
 
 const EffectTag = styled.span<{ $positive: boolean }>`
-  font-size: 0.7rem;
-  padding: 0.2rem 0.5rem;
-  border-radius: 0.3rem;
+  font-size: 0.72rem;
+  padding: 0.25rem 0.55rem;
+  border-radius: 0.45rem;
   font-weight: 600;
   background: ${({ $positive }) => ($positive ? "rgba(34, 197, 94, 0.22)" : "rgba(239, 68, 68, 0.22)")};
   color: ${({ $positive }) => ($positive ? "#86efac" : "#fca5a5")};
@@ -747,6 +852,8 @@ const ContinueButton = styled.button<{ $disabled?: boolean; $inline?: boolean }>
   transition: all 0.2s;
   margin: ${({ $inline }) => ($inline ? "0" : "0 auto")};
   box-shadow: ${({ $disabled }) => ($disabled ? "none" : "0 4px 16px -4px rgba(139, 92, 246, 0.4)")};
+  min-height: 48px;
+  touch-action: manipulation;
   
   &:hover { 
     transform: ${({ $disabled }) => ($disabled ? "none" : "scale(1.02)")};
@@ -759,6 +866,13 @@ const ContinueButton = styled.button<{ $disabled?: boolean; $inline?: boolean }>
     transform: none;
     box-shadow: none;
     background: #475569;
+  }
+
+  @media (max-width: 640px) {
+    width: 100%;
+    max-width: 900px;
+    font-size: 1rem;
+    padding: 0.85rem 1rem;
   }
 `
 
@@ -2499,27 +2613,37 @@ function SimulationContent() {
     
     const isPositive = value > 0
     const prefix = isPositive ? "+" : ""
+    const absValue = Math.abs(value)
+    const signedText =
+      type === "money"
+        ? `${isPositive ? "+" : "-"}$${absValue}`
+        : `${prefix}${value}`
+    const label = type === "money" ? "Money" : type === "health" ? "Health" : "Time"
+    const title =
+      type === "money"
+        ? `${label} ${isPositive ? "increases" : "decreases"} by $${absValue}`
+        : `${label} ${isPositive ? "increases" : "decreases"} by ${absValue}`
     
     switch (type) {
       case 'money':
         return (
-          <EffectTag key="money" $positive={isPositive}>
+          <EffectTag key="money" $positive={isPositive} title={title}>
             <DollarSign />
-            {prefix}{value}
+            {signedText}
           </EffectTag>
         )
       case 'health':
         return (
-          <EffectTag key="health" $positive={isPositive}>
+          <EffectTag key="health" $positive={isPositive} title={title}>
             <Heart />
-            {prefix}{value}
+            {signedText}
           </EffectTag>
         )
       case 'time':
         return (
-          <EffectTag key="time" $positive={isPositive}>
+          <EffectTag key="time" $positive={isPositive} title={title}>
             <Clock />
-            {prefix}{value}
+            {signedText}
           </EffectTag>
         )
       default:
@@ -3019,17 +3143,24 @@ function SimulationContent() {
         <TopBarCenter>{currentStory.title}</TopBarCenter>
         
         <TopBarRight>
-          <StatsBar>
-            <StatPill $color="#60a5fa">
-              <Clock />{remainingTimeLabel}
-            </StatPill>
-            <StatPill $color="#4ade80">
-              <DollarSign />${stats.money}
-            </StatPill>
-            <StatPill $color="#f87171">
-              <Heart />{stats.health}%
-            </StatPill>
-          </StatsBar>
+          <StatsPanel>
+            <StatsBar>
+              <StatPill $color="#60a5fa" title="Time remaining for this scenario">
+                <Clock />{remainingTimeLabel}
+              </StatPill>
+              <StatPill $color="#4ade80" title="Money available">
+                <DollarSign />${stats.money}
+              </StatPill>
+              <StatPill $color="#f87171" title="Health / wellbeing remaining">
+                <Heart />{stats.health}%
+              </StatPill>
+            </StatsBar>
+            <StatsLegend>
+              <LegendChip $color="#60a5fa" title="Time is limited; choices can cost or save it">Time</LegendChip>
+              <LegendChip $color="#4ade80" title="Money affects what you can afford">Money</LegendChip>
+              <LegendChip $color="#f87171" title="Health represents wellbeing and stress">Health</LegendChip>
+            </StatsLegend>
+          </StatsPanel>
           <AudioButton
             $active={audioEnabled && hasStoryAudio}
             $disabled={!hasStoryAudio}
@@ -3071,6 +3202,12 @@ function SimulationContent() {
             ))}
           </NarrativeText>
         </TextBox>
+
+        {historyStack.length === 0 && (
+          <StoryStartHint>
+            Choices may change your money, health, and time. There usually is not a perfect option.
+          </StoryStartHint>
+        )}
 
         {hasChoices && showChoices && (
           <ChoicesContainer $visible={choicesVisible}>

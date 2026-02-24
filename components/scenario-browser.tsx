@@ -44,6 +44,11 @@ const FilterCard = styled.div`
   border: 1px solid rgba(51, 65, 85, 0.5);
   border-radius: 1rem;
   padding: 1.5rem;
+
+  @media (max-width: 640px) {
+    padding: 1rem;
+    border-radius: 0.9rem;
+  }
 `;
 
 const FilterRow = styled.div`
@@ -66,8 +71,8 @@ const SearchGlyph = styled(SearchIcon)`
   left: 0.75rem;
   top: 50%;
   transform: translateY(-50%);
-  width: 16px;
-  height: 16px;
+  width: 18px;
+  height: 18px;
   color: #94a3b8; /* slate-400 */
 `;
 
@@ -76,6 +81,8 @@ const SearchInput = styled(Input)`
   background: rgba(51, 65, 85, 0.5);
   border-color: #475569;
   color: #fff;
+  min-height: 44px;
+  font-size: 1rem;
 
   &::placeholder {
     color: #94a3b8;
@@ -92,6 +99,12 @@ const IssueTrigger = styled(SelectTrigger)`
   background: rgba(51, 65, 85, 0.5);
   border-color: #475569;
   color: #fff;
+  min-height: 44px;
+  font-size: 1rem;
+
+  @media (max-width: 767px) {
+    width: 100%;
+  }
 `;
 
 const IssueContent = styled(SelectContent)`
@@ -265,9 +278,9 @@ const InProgressBadge = styled.div`
   background: rgba(34, 197, 94, 0.15);
   border: 1px solid rgba(34, 197, 94, 0.3);
   color: #4ade80;
-  font-size: 0.7rem;
+  font-size: 0.78rem;
   font-weight: 600;
-  padding: 0.35rem 0.75rem;
+  padding: 0.45rem 0.85rem;
   border-radius: 2rem;
   display: flex;
   align-items: center;
@@ -319,6 +332,12 @@ const MetaRow = styled.div`
   justify-content: space-between;
   color: #94a3b8;
   font-size: 0.9rem;
+
+  @media (max-width: 640px) {
+    flex-wrap: wrap;
+    gap: 0.4rem 0.75rem;
+    font-size: 0.95rem;
+  }
 `;
 
 const MetaLeft = styled.span`
@@ -336,12 +355,14 @@ const PrimaryButton = styled(Button)<{ $isResume?: boolean }>`
       ? 'linear-gradient(90deg, #059669, #10b981)'
       : 'linear-gradient(90deg, #2563eb, #7c3aed)'};
   border: 0;
-  padding: 0.75rem 1rem;
+  padding: 0.85rem 1rem;
   font-weight: 600;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
+  min-height: 48px;
+  font-size: 1rem;
 
   &:hover:not(:disabled) {
     filter: brightness(1.05);
@@ -350,6 +371,11 @@ const PrimaryButton = styled(Button)<{ $isResume?: boolean }>`
   &:disabled {
     opacity: 0.6;
     cursor: not-allowed;
+  }
+
+  @media (max-width: 640px) {
+    min-height: 52px;
+    font-size: 1rem;
   }
 `;
 
