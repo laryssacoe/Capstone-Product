@@ -9,15 +9,27 @@ const fallbackBlurDataUrl =
 // Allow environment override, but keep a hardcoded fallback 
 const defaultBlurDataUrl = process.env.NEXT_PUBLIC_DEFAULT_BLUR_DATA_URL ?? fallbackBlurDataUrl
 
+const isCloudinaryImage = (src: string): boolean =>
+  src.includes("res.cloudinary.com") && src.includes("/image/upload/")
+
+const injectCloudinaryTransforms = (src: string, transforms: string): string => {
+  const parts = src.split("/upload/")
+  if (parts.length !== 2) return src
+  return `${parts[0]}/upload/${transforms}/${parts[1]}`
+}
+
+const getOptimizedSrc = (src: string): string => {
+  if (!src) return src
+  if (!isCloudinaryImage(src)) return src
+  return injectCloudinaryTransforms(src, "f_auto,q_auto")
+}
+
 const getBlurUrl = (src: string): string => {
   if (!src) return defaultBlurDataUrl
 
-  if (src.includes("cloudinary.com")) {
-    const parts = src.split("/upload/")
-    if (parts.length === 2) {
-      // Inject a tiny transformed variant for smooth blur placeholders
-      return `${parts[0]}/upload/w_10,e_blur:1000,q_auto,f_webp/${parts[1]}`
-    }
+  if (isCloudinaryImage(src)) {
+    // Inject a tiny transformed variant for smooth blur placeholders
+    return injectCloudinaryTransforms(src, "w_10,e_blur:1000,q_auto,f_webp")
   }
 
   return defaultBlurDataUrl
@@ -55,12 +67,16 @@ export default function OptimizedStoryImage({
     return fallback ?? null
   }
 
+  const finalSrc = getOptimizedSrc(src)
+  const useCloudinaryDirect = isCloudinaryImage(finalSrc)
+
   const imageProps: ImageProps = {
-    src,
+    src: finalSrc,
     alt,
     priority,
     placeholder: "blur",
-    blurDataURL: getBlurUrl(src),
+    blurDataURL: getBlurUrl(finalSrc),
+    unoptimized: useCloudinaryDirect,
     onLoadingComplete: () => setIsLoaded(true),
     onError: () => setHasError(true),
     className,
