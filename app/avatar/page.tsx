@@ -1,6 +1,6 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import styled, { keyframes } from "styled-components";
 import { Button as UIButton } from "@/components/ui/button";
@@ -82,6 +82,16 @@ const getStartingTime = (avatar: AvatarWithMetrics): number => {
   }
   return 40;
 };
+
+// Check if an avatar matches a story slug from the URL param
+function avatarMatchesStory(avatar: AvatarWithMetrics, storyParam: string): boolean {
+  const param = storyParam.toLowerCase();
+  return (
+    (avatar.storySlug || "").toLowerCase() === param ||
+    avatar.id.toLowerCase() === param ||
+    ((avatar as any).slug || "").toLowerCase() === param
+  );
+}
 
 const fadeIn = keyframes`
   from { opacity: 0; transform: translateY(20px); }
@@ -738,6 +748,7 @@ const CancelBtn = styled(UIButton)`
 
 export default function AvatarPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [avatars, setAvatars] = useState<AvatarWithMetrics[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -747,6 +758,7 @@ export default function AvatarPage() {
   const [backgroundMinHeightById, setBackgroundMinHeightById] = useState<Record<string, number>>({});
   const [savedProgress, setSavedProgress] = useState<Record<string, boolean>>({});
   const [savedProgressResources, setSavedProgressResources] = useState<Record<string, SavedResourceSnapshot>>({});
+  const storyParamHandled = useRef(false);
 
   const handleStart = (avatar: AvatarWithMetrics) => {
     const storySlug = avatar.storySlug || avatar.id;
@@ -816,6 +828,7 @@ export default function AvatarPage() {
     async function loadAvatars() {
       setLoading(true);
       setError(null);
+      const storyParam = searchParams.get("story");
       
       try {
         const response = await fetch("/api/avatars?featured=true&limit=3", { cache: "no-store" });
@@ -826,9 +839,47 @@ export default function AvatarPage() {
         }
         
         const data = await response.json();
-        
+        let finalAvatars = (data.avatars ?? []) as AvatarWithMetrics[];
+
+        // If ?story= param, check if it's already featured
+        if (storyParam && active) {
+          const alreadyFeatured = finalAvatars.find((a) => avatarMatchesStory(a, storyParam));
+
+          if (!alreadyFeatured) {
+            // If not featured, fetch all avatars to find it
+            try {
+              const allRes = await fetch("/api/avatars?limit=100", { cache: "no-store" });
+              if (allRes.ok) {
+                const allData = await allRes.json();
+                const allAvatars = (allData.avatars ?? []) as AvatarWithMetrics[];
+                const match = allAvatars.find((a) => avatarMatchesStory(a, storyParam));
+
+                if (match) {
+                  // Swap the matched story into the first slot, keep 2 others
+                  finalAvatars = [
+                    match,
+                    ...finalAvatars.filter((a) => a.id !== match.id).slice(0, 2),
+                  ];
+                }
+              }
+            } catch {
+              // If fetching all fails, continue with just featured
+              console.warn("Could not fetch all avatars for story pre-selection");
+            }
+          }
+        }
+
         if (active) {
-          setAvatars((data.avatars ?? []) as AvatarWithMetrics[]);
+          setAvatars(finalAvatars);
+
+          // Auto-open modal for the matched story
+          if (storyParam && !storyParamHandled.current) {
+            const match = finalAvatars.find((a) => avatarMatchesStory(a, storyParam));
+            if (match && match.isPlayable) {
+              setSelectedAvatar(match);
+              storyParamHandled.current = true;
+            }
+          }
         }
       } catch (err) {
         if (active) {
@@ -846,7 +897,7 @@ export default function AvatarPage() {
     return () => {
       active = false;
     };
-  }, []);
+  }, [searchParams]);
 
   useEffect(() => {
     let frame = 0;
