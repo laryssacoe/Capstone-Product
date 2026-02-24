@@ -500,7 +500,7 @@ export function ScenarioBrowser({
             const data = await res.json();
             // Check if there's a save that's not at the start
             const hasMeaningfulProgress = data.saves?.some(
-              (save: any) => save.currentPassageId && save.currentPassageId !== 'start'
+              (save: any) => !save.completed && save.currentPassageId && save.currentPassageId !== 'start'
             );
             if (hasMeaningfulProgress) {
               progressMap[scenario.id] = true;

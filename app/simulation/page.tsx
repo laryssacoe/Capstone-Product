@@ -787,6 +787,26 @@ const ButtonRow = styled.div`
   gap: 0.75rem;
   justify-content: center;
   flex-wrap: wrap;
+  width: 100%;
+  margin-inline: auto;
+
+  ${ReplayButton},
+  ${ContinueButton} {
+    flex: 1 1 220px;
+    max-width: 280px;
+  }
+
+  @media (max-width: 640px) {
+    flex-direction: column;
+    align-items: center;
+
+    ${ReplayButton},
+    ${ContinueButton} {
+      width: min(100%, 320px);
+      max-width: 320px;
+      flex: 0 0 auto;
+    }
+  }
 `
 
 const CinematicScreen = styled.div`
@@ -2010,6 +2030,10 @@ function SimulationContent() {
     if (!sessionId || !storySlugResolved || !currentStory) return
     if (!currentPassageId) return
     if (isLoading) return
+    const activePassage = currentStory.passages[currentPassageId]
+    const isCurrentComplete = Boolean(
+      activePassage && (!activePassage.choices || activePassage.choices.length === 0) && !activePassage.next,
+    )
 
     const savePayload = {
       storySlug: storySlugResolved,
@@ -2025,7 +2049,8 @@ function SimulationContent() {
       visitedPassages,
       choicesMade,
       pathTaken: visitedPassages,
-      completed: false,
+      completed: isCurrentComplete,
+      endingId: isCurrentComplete ? currentPassageId : undefined,
     }
 
     fetch("/api/saves", {
@@ -2149,31 +2174,44 @@ function SimulationContent() {
 
     const controller = new AbortController()
 
-    fetch("/api/journeys/complete", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        scenarioId: currentStory.avatarId,
-        scenario: {
-          title: currentStory.title,
-          description: currentStory.theme,
-        },
-      }),
-      signal: controller.signal,
-    })
-      .catch((err) => {
+    ;(async () => {
+      try {
+        await fetch("/api/journeys/complete", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            scenarioId: currentStory.avatarId,
+            scenario: {
+              title: currentStory.title,
+              description: currentStory.theme,
+            },
+          }),
+          signal: controller.signal,
+        })
+      } catch (err) {
         if (!controller.signal.aborted) {
           console.error("Failed to sync scenario completion", err)
         }
-      })
-      .finally(() => {
-        if (!controller.signal.aborted) {
-          setHasReportedCompletion(true)
+      } finally {
+        if (controller.signal.aborted) return
+
+        // Clear autosave as soon as the story reaches an ending so scenario cards
+        if (sessionId && storySlugResolved) {
+          try {
+            await fetch(
+              `/api/saves?storySlug=${encodeURIComponent(storySlugResolved)}&sessionId=${encodeURIComponent(sessionId)}`,
+              { method: "DELETE", signal: controller.signal },
+            )
+          } catch {
+          }
         }
-      })
+
+        setHasReportedCompletion(true)
+      }
+    })()
 
     return () => controller.abort()
-  }, [currentStory, currentPassage, isComplete, hasReportedCompletion])
+  }, [currentStory, currentPassage, hasReportedCompletion, isComplete, sessionId, storySlugResolved])
 
   const pickEnding = useCallback(
     (nextStats: { money: number; health: number }, nextHidden: typeof hiddenState) => {
