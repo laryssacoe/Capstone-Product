@@ -9,7 +9,13 @@
     "start": "next start",
     "test": "npm run test:backend && npm run test:frontend",
     "test:backend": "vitest --config vitest.config.backend.ts",
-    "test:frontend": "vitest --config vitest.config.frontend.ts"
+    "test:frontend": "vitest --config vitest.config.frontend.ts",
+    "test:visual": "playwright test -c playwright.visual.config.ts",
+    "test:visual:dell": "VISUAL_PROFILE_SET=dell playwright test -c playwright.visual.config.ts",
+    "test:visual:phones": "VISUAL_PROFILE_SET=phones playwright test -c playwright.visual.config.ts",
+    "test:visual:mobile": "VISUAL_PROFILE_SET=mobile playwright test -c playwright.visual.config.ts",
+    "test:visual:tablets": "VISUAL_PROFILE_SET=tablets playwright test -c playwright.visual.config.ts",
+    "test:visual:core-fast": "VISUAL_PROFILE_SET=phones VISUAL_SKIP_OPTIONAL=1 playwright test -c playwright.visual.config.ts"
   },
   "dependencies": {
     "@emailjs/browser": "^4.4.1",
@@ -84,6 +90,7 @@
     "three": "0.159.0"
   },
   "devDependencies": {
+    "@playwright/test": "^1.54.2",
     "@tailwindcss/postcss": "^4.1.9",
     "@testing-library/dom": "^10.4.1",
     "@testing-library/jest-dom": "^6.9.1",
