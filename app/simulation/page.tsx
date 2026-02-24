@@ -349,9 +349,18 @@ const Container = styled.div<{ $autoHeight?: boolean }>`
   position: relative;
   width: 100%;
   height: ${({ $autoHeight }) => ($autoHeight ? "auto" : "100vh")};
+  height: ${({ $autoHeight }) => ($autoHeight ? "auto" : "100dvh")};
   min-height: ${({ $autoHeight }) => ($autoHeight ? "100vh" : "auto")};
+  min-height: ${({ $autoHeight }) => ($autoHeight ? "100dvh" : "auto")};
   overflow: ${({ $autoHeight }) => ($autoHeight ? "auto" : "hidden")};
   background: #0f172a;
+
+  @media (max-width: 768px) {
+    height: auto;
+    min-height: 100dvh;
+    overflow-x: hidden;
+    overflow-y: auto;
+  }
 `
 
 const BackgroundLayer = styled.div`
@@ -398,6 +407,16 @@ const TopBar = styled.div`
   padding: 1rem 1.5rem;
   background: linear-gradient(to bottom, rgba(15, 23, 42, 0.85), transparent);
   z-index: 20;
+
+  @media (max-width: 768px) {
+    position: sticky;
+    top: 0;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    padding: 0.75rem 1rem;
+    background: rgba(15, 23, 42, 0.92);
+    backdrop-filter: blur(10px);
+  }
 `
 
 const BackButton = styled.button`
@@ -430,12 +449,24 @@ const TopBarRight = styled.div`
   display: flex;
   align-items: center;
   gap: 0.75rem;
+
+  @media (max-width: 768px) {
+    width: 100%;
+    justify-content: space-between;
+    gap: 0.5rem;
+  }
 `
 
 const StatsBar = styled.div`
   display: flex;
   gap: 0.5rem;
   align-items: center;
+
+  @media (max-width: 768px) {
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    row-gap: 0.35rem;
+  }
 `
 
 const StatPill = styled.div<{ $color?: string }>`
@@ -499,6 +530,15 @@ const ContentArea = styled.div`
   @media (min-width: 768px) {
     padding: 0 2rem 2rem;
   }
+
+  @media (max-width: 768px) {
+    position: relative;
+    bottom: auto;
+    left: auto;
+    right: auto;
+    padding: 0.75rem 1rem 1rem;
+    margin-top: 0.25rem;
+  }
 `
 
 const TextBox = styled.div<{ $transitioning?: boolean }>`
@@ -527,6 +567,11 @@ const TextBoxHeader = styled.div`
   margin-bottom: 1rem;
   padding-bottom: 0.875rem;
   border-bottom: 1px solid rgba(139, 92, 246, 0.2);
+
+  @media (max-width: 640px) {
+    flex-wrap: wrap;
+    align-items: flex-start;
+  }
 `
 
 const CharacterAvatar = styled.div`
@@ -747,11 +792,20 @@ const ButtonRow = styled.div`
 const CinematicScreen = styled.div`
   position: relative;
   min-height: 100vh;
+  min-height: 100dvh;
   display: flex;
   align-items: center;
   justify-content: center;
-  overflow: hidden;
+  overflow-x: hidden;
+  overflow-y: auto;
   padding: 2rem;
+
+  @media (max-width: 768px) {
+    align-items: flex-start;
+    padding: 1rem;
+    padding-top: 4rem;
+    padding-bottom: 2rem;
+  }
 `
 
 const CinematicBg = styled.div<{ $url?: string }>`
@@ -765,6 +819,11 @@ const CinematicBg = styled.div<{ $url?: string }>`
   filter: blur(20px) brightness(0.3);
   transform: scale(1.1);
   pointer-events: none;
+
+  @media (max-width: 768px) {
+    position: absolute;
+    inset: 0;
+  }
 `
 
 const CinematicOverlay = styled.div<{ $tint?: string }>`
@@ -1006,14 +1065,23 @@ const ReflectionHint = styled.p`
 const AnalyticsScreen = styled.div<{ $centered?: boolean }>`
   position: relative;
   min-height: 100vh;
+  min-height: 100dvh;
   display: ${({ $centered }) => ($centered ? "flex" : "block")};
   flex-direction: column;
   align-items: ${({ $centered }) => ($centered ? "center" : "initial")};
   justify-content: ${({ $centered }) => ($centered ? "center" : "initial")};
-  overflow: hidden;
+  overflow-x: hidden;
+  overflow-y: auto;
   padding: 2rem;
   background: #0f172a;
   color: #e2e8f0;
+
+  @media (max-width: 768px) {
+    padding: 1rem;
+    padding-top: 3.5rem;
+    padding-bottom: 2rem;
+    justify-content: flex-start;
+  }
 `
 
 const AnalyticsBg = styled.div`
@@ -1351,9 +1419,12 @@ const LoadingContainer = styled.div`
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  height: 100vh;
+  min-height: 100vh;
+  min-height: 100dvh;
   background: #0f172a;
   color: #e2e8f0;
+  padding: 1.5rem;
+  text-align: center;
 `
 
 const Spinner = styled.div`

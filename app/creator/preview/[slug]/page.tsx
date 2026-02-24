@@ -93,8 +93,16 @@ const Container = styled.div`
   position: relative;
   width: 100%;
   height: 100vh;
+  height: 100dvh;
   overflow: hidden;
   background: #0f172a;
+
+  @media (max-width: 768px) {
+    height: auto;
+    min-height: 100dvh;
+    overflow-x: hidden;
+    overflow-y: auto;
+  }
 `
 
 const BackgroundLayer = styled.div`
@@ -141,6 +149,16 @@ const TopBar = styled.div`
   padding: 1rem 1.5rem;
   background: linear-gradient(to bottom, rgba(15, 23, 42, 0.85), transparent);
   z-index: 20;
+
+  @media (max-width: 768px) {
+    position: sticky;
+    top: 0;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    padding: 0.75rem 1rem;
+    background: rgba(15, 23, 42, 0.92);
+    backdrop-filter: blur(10px);
+  }
 `
 
 const BackButton = styled.button`
@@ -187,12 +205,23 @@ const TopBarRight = styled.div`
   display: flex;
   align-items: center;
   gap: 0.75rem;
+
+  @media (max-width: 768px) {
+    width: 100%;
+    justify-content: space-between;
+    gap: 0.5rem;
+  }
 `
 
 const StatsBar = styled.div`
   display: flex;
   gap: 0.5rem;
   align-items: center;
+
+  @media (max-width: 768px) {
+    flex-wrap: wrap;
+    justify-content: flex-end;
+  }
 `
 
 const StatPill = styled.div<{ $color?: string }>`
@@ -248,6 +277,15 @@ const ContentArea = styled.div`
   @media (min-width: 768px) {
     padding: 0 2rem 2rem;
   }
+
+  @media (max-width: 768px) {
+    position: relative;
+    bottom: auto;
+    left: auto;
+    right: auto;
+    padding: 0.75rem 1rem 1rem;
+    margin-top: 0.25rem;
+  }
 `
 
 const TextBox = styled.div<{ $transitioning?: boolean }>`
@@ -276,6 +314,11 @@ const TextBoxHeader = styled.div`
   margin-bottom: 1rem;
   padding-bottom: 0.875rem;
   border-bottom: 1px solid rgba(139, 92, 246, 0.2);
+
+  @media (max-width: 640px) {
+    flex-wrap: wrap;
+    align-items: flex-start;
+  }
 `
 
 const CharacterAvatar = styled.div`
