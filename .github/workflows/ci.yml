@@ -35,8 +35,9 @@ jobs:
       - name: Run frontend tests
         run: npm run test:frontend
 
-      - name: Install Playwright browser
-        run: npx playwright install --with-deps chromium
+      - name: Install Playwright browsers
+        # Phones profile includes Android (Chromium) and iPhone (WebKit) device presets.
+        run: npx playwright install --with-deps chromium webkit
 
       - name: Run visual Playwright tests
         env:
