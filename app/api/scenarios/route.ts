@@ -3,6 +3,7 @@ import { NextResponse } from "next/server"
 
 import { cachePolicy, setCacheControl } from "@/lib/http-cache"
 import { prisma } from "@/lib/server/prisma"
+import { getVisualMockScenarios, isVisualMockApiEnabled } from "@/lib/server/visual-mock-data"
 export const dynamic = "force-dynamic"
 
 
@@ -180,6 +181,11 @@ function buildSystemScenarios(records: Array<{
 }
 
 export async function GET() {
+  if (isVisualMockApiEnabled()) {
+    const response = NextResponse.json({ scenarios: getVisualMockScenarios() })
+    return setCacheControl(response, cachePolicy.collectionPublic)
+  }
+
   try {
     // Only fetch avatars linked to PUBLIC stories that are approved or legacy PLATFORM_OWNED stories
     const [avatars, systemScenarios, approvedStories] = await Promise.all([

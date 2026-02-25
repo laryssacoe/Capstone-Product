@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 
 import { cachePolicy, setCacheControl } from "@/lib/http-cache"
 import { prisma } from "@/lib/server/prisma"
+import { getVisualMockAvatars, isVisualMockApiEnabled } from "@/lib/server/visual-mock-data"
 export const dynamic = "force-dynamic"
 
 type SocialIssueType =
@@ -187,6 +188,18 @@ export async function GET(request: Request) {
   const featuredOnly = parseBoolean(url.searchParams.get("featured"))
   const limitParam = parseIntOrNull(url.searchParams.get("limit"))
   const take = featuredOnly ? limitParam ?? 3 : limitParam ?? undefined
+
+  if (isVisualMockApiEnabled()) {
+    const avatars = getVisualMockAvatars({ featuredOnly, take: take ?? undefined })
+    const response = NextResponse.json({
+      avatars,
+      meta: {
+        total: avatars.length,
+        featured: featuredOnly,
+      },
+    })
+    return setCacheControl(response, cachePolicy.collectionPublic)
+  }
 
   await syncScenariosIntoAvatars(take)
 

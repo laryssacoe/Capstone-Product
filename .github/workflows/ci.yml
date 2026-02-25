@@ -41,6 +41,8 @@ jobs:
       - name: Run visual Playwright tests
         env:
           DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:5432/loop_ci?connect_timeout=1
+          # Use mocked API responses so visual CI does not require a live/seeding DB.
+          VISUAL_MOCK_API: "1"
         run: npm run test:visual:core-fast
 
       - name: Upload Playwright report
