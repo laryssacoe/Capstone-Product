@@ -6,7 +6,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/use-auth";
-import { useEffect, useRef, useState, useMemo, useCallback, Suspense } from "react";
+import { useEffect, useRef, useState, useMemo, Suspense } from "react";
 import * as THREE from "three";
 import emailjs from '@emailjs/browser';
 
@@ -19,7 +19,7 @@ import { HomePageConfig, buildHomeStoryHref, type HomeGlobePin } from "@/lib/con
 
 import { Globe, Heart, Brain, ChevronDown, Mail, X, Sparkles } from "lucide-react";
 
-import { Canvas, useFrame } from "@react-three/fiber";
+import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { OrbitControls, Environment, Html, Sphere } from "@react-three/drei";
 
 const homeQuickstartKey = HomePageConfig.storage.quickStartDismissedKey;
@@ -29,6 +29,8 @@ const homeQuickstartHiddenSessionKey = HomePageConfig.storage.quickStartHiddenSe
 const radius: number = HomePageConfig.globe.radius;
 const TopoLink = HomePageConfig.globe.topoUrl;
 const globe_examples: HomeGlobePin[] = [...HomePageConfig.globe.pins];
+const globeVisualRadius = radius + 0.12;
+const globeViewportPadding = 1.06;
 
 function latLngToXYZ(lat: number, lng: number, r: number = radius): [number, number, number] {
   const phi = (90 - lat) * (Math.PI / 180);
@@ -129,6 +131,41 @@ function CinematicCamera() {
     }
   });
   return null;
+}
+
+function GlobeOrbitControls() {
+  const { camera, size } = useThree();
+
+  const safeMinDistance = useMemo(() => {
+    if (!(camera instanceof THREE.PerspectiveCamera)) {
+      return HomePageConfig.globe.orbit.minDistance;
+    }
+
+    const aspect = size.width > 0 && size.height > 0 ? size.width / size.height : 1;
+    const verticalHalfFov = THREE.MathUtils.degToRad(camera.fov) / 2;
+    const horizontalHalfFov = Math.atan(Math.tan(verticalHalfFov) * aspect);
+    const limitingHalfFov = Math.max(0.01, Math.min(verticalHalfFov, horizontalHalfFov));
+
+    // Keep the globe slightly inside the frame so the outer edge never gets clipped.
+    const fitDistance = (globeVisualRadius / Math.sin(limitingHalfFov)) * globeViewportPadding;
+    return Math.max(HomePageConfig.globe.orbit.minDistance, fitDistance);
+  }, [camera, size.height, size.width]);
+
+  return (
+    <OrbitControls
+      enableZoom
+      enablePan={false}
+      enableRotate
+      minDistance={safeMinDistance}
+      maxDistance={HomePageConfig.globe.orbit.maxDistance}
+      autoRotate={HomePageConfig.globe.orbit.autoRotate}
+      autoRotateSpeed={HomePageConfig.globe.orbit.autoRotateSpeed}
+      enableDamping
+      dampingFactor={HomePageConfig.globe.orbit.dampingFactor}
+      rotateSpeed={HomePageConfig.globe.orbit.rotateSpeed}
+      zoomSpeed={HomePageConfig.globe.orbit.zoomSpeed}
+    />
+  );
 }
 
 /* Interactive globe with pins + labels */
@@ -311,13 +348,29 @@ const Hero = styled.section`
 `;
 
 /* Globe fills the entire hero as a background. */
-const CanvasWrap = styled.div<{ $active: boolean }>`
+const CanvasWrap = styled.div`
   position: absolute; inset: 0; z-index: 0;
-  pointer-events: ${({ $active }) => ($active ? "auto" : "none")};
-  cursor: ${({ $active }) => ($active ? "grab" : "default")};
-  &:active { cursor: ${({ $active }) => ($active ? "grabbing" : "default")}; }
-  /* Allow vertical scroll on touch devices */
-  canvas { touch-action: pan-y !important; }
+  pointer-events: none;
+  display: grid;
+  place-items: center;
+`;
+
+const GlobeInteractRegion = styled.div`
+  width: min(92vw, 760px);
+  height: min(92vw, 760px);
+  pointer-events: auto;
+  cursor: grab;
+  touch-action: none;
+
+  &:active { cursor: grabbing; }
+
+  /* Let page scroll outside this region; inside, globe handles gestures. */
+  canvas { touch-action: none !important; }
+
+  @media (max-width: 768px) {
+    width: min(96vw, 560px);
+    height: min(96vw, 560px);
+  }
 `;
 
 const HeroContent = styled.div`
@@ -464,24 +517,6 @@ export default function HomePage() {
   const [errorMessage, setErrorMessage] = useState("");
   const [sending, setSending] = useState(false);
   const [isLoaded, setIsLoaded] = useState(false);
-  const [globeHovered, setGlobeHovered] = useState(false);
-
-  /* Track whether the cursor is over the globe circle. */
-  const handleHeroMouseMove = useCallback((e: React.MouseEvent<HTMLElement>) => {
-    const rect = e.currentTarget.getBoundingClientRect();
-    const cx = rect.width / 2;
-    const cy = rect.height * 0.45;
-    const r = Math.min(rect.width, rect.height) * 0.28; // approx globe screen radius
-    const mx = e.clientX - rect.left;
-    const my = e.clientY - rect.top;
-    const isOver = (mx - cx) ** 2 + (my - cy) ** 2 <= r * r;
-    setGlobeHovered(isOver);
-  }, []);
-
-  const handleHeroMouseLeave = useCallback(() => {
-    setGlobeHovered(false);
-  }, []);
-
   useEffect(() => {
     const timer = setTimeout(() => setIsLoaded(true), 100);
     return () => clearTimeout(timer);
@@ -681,41 +716,32 @@ export default function HomePage() {
       )}
 
       {/* Hero: full-screen globe background + overlaid content */}
-      <Hero onMouseMove={handleHeroMouseMove} onMouseLeave={handleHeroMouseLeave}>
-        <CanvasWrap $active={globeHovered}>
-          <Canvas camera={{ position: [...HomePageConfig.globe.camera.position] as [number, number, number], fov: HomePageConfig.globe.camera.fov }}>
-            <Suspense fallback={null}>
-              <Environment preset="night" />
-              <ambientLight intensity={HomePageConfig.globe.lights.ambient} />
-              {HomePageConfig.globe.lights.points.map((light) => (
-                <pointLight
-                  key={`${light.position.join(",")}-${light.color}`}
-                  position={[...light.position] as [number, number, number]}
-                  intensity={light.intensity}
-                  color={light.color}
+      <Hero>
+        <CanvasWrap>
+          <GlobeInteractRegion aria-label="Interactive globe">
+            <Canvas camera={{ position: [...HomePageConfig.globe.camera.position] as [number, number, number], fov: HomePageConfig.globe.camera.fov }}>
+              <Suspense fallback={null}>
+                <Environment preset="night" />
+                <ambientLight intensity={HomePageConfig.globe.lights.ambient} />
+                {HomePageConfig.globe.lights.points.map((light) => (
+                  <pointLight
+                    key={`${light.position.join(",")}-${light.color}`}
+                    position={[...light.position] as [number, number, number]}
+                    intensity={light.intensity}
+                    color={light.color}
+                  />
+                ))}
+                <directionalLight
+                  position={[...HomePageConfig.globe.lights.directional.position] as [number, number, number]}
+                  intensity={HomePageConfig.globe.lights.directional.intensity}
+                  color={HomePageConfig.globe.lights.directional.color}
                 />
-              ))}
-              <directionalLight
-                position={[...HomePageConfig.globe.lights.directional.position] as [number, number, number]}
-                intensity={HomePageConfig.globe.lights.directional.intensity}
-                color={HomePageConfig.globe.lights.directional.color}
-              />
-              <InteractiveGlobe onPinClick={handlePinClick} />
-              <CinematicCamera />
-              <OrbitControls
-                enableZoom
-                enablePan={false}
-                enableRotate
-                minDistance={HomePageConfig.globe.orbit.minDistance}
-                maxDistance={HomePageConfig.globe.orbit.maxDistance}
-                autoRotate={HomePageConfig.globe.orbit.autoRotate}
-                autoRotateSpeed={HomePageConfig.globe.orbit.autoRotateSpeed}
-                enableDamping
-                dampingFactor={HomePageConfig.globe.orbit.dampingFactor}
-                rotateSpeed={HomePageConfig.globe.orbit.rotateSpeed}
-              />
-            </Suspense>
-          </Canvas>
+                <InteractiveGlobe onPinClick={handlePinClick} />
+                <CinematicCamera />
+                <GlobeOrbitControls />
+              </Suspense>
+            </Canvas>
+          </GlobeInteractRegion>
         </CanvasWrap>
 
         <HeroContent>

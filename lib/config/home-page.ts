@@ -25,7 +25,7 @@ export const HomePageConfig = {
     ],
     ctaLabel: "Start a Story",
     stageCaption: "Click a topic pin to open a story. Drag/zoom the center globe only.",
-    scrollHintLabel: "See how Loop works",
+    scrollHintLabel: "Checkout Loop's features",
     quickStart: {
       title: "How to Start",
       steps: [
