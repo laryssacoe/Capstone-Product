@@ -14,7 +14,6 @@
     "jsx": "preserve",
     "incremental": true,
     "types": ["node", "vitest", "vitest/globals", "@testing-library/jest-dom"],
-    "typeRoots": ["./node_modules/@types", "./node_modules"],
     "plugins": [
       {
         "name": "next"

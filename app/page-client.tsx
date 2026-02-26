@@ -547,7 +547,6 @@ export default function HomePage() {
 
   useEffect(() => {
     const targets = [
-      HomePageConfig.routes.allStories,
       HomePageConfig.routes.avatarEntry,
       ...globe_examples.map((s) => buildHomeStoryHref(s.slug)),
     ];
@@ -753,7 +752,7 @@ export default function HomePage() {
           </HeroText>
           <HeroActions>
             <CTA asChild onClick={handlePrimaryCtaClick}>
-              <Link href={HomePageConfig.routes.allStories}>{HomePageConfig.hero.ctaLabel}</Link>
+              <Link href={HomePageConfig.routes.avatarEntry}>{HomePageConfig.hero.ctaLabel}</Link>
             </CTA>
           </HeroActions>
 
