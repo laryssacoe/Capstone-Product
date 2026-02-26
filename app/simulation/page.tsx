@@ -876,6 +876,10 @@ const ContinueButton = styled.button<{ $disabled?: boolean; $inline?: boolean }>
   }
 `
 
+const FullWidthContinueButton = styled(ContinueButton)`
+  width: 100%;
+`
+
 const ReplayButton = styled.button`
   display: flex;
   align-items: center;
@@ -940,6 +944,13 @@ const CinematicScreen = styled.div`
     padding-top: 4rem;
     padding-bottom: 2rem;
   }
+`
+
+const ScrollableCinematicScreen = styled(CinematicScreen)`
+  height: auto;
+  align-items: flex-start;
+  padding-top: 4rem;
+  padding-bottom: 4rem;
 `
 
 const CinematicBg = styled.div<{ $url?: string }>`
@@ -1216,6 +1227,12 @@ const AnalyticsScreen = styled.div<{ $centered?: boolean }>`
     padding-bottom: 2rem;
     justify-content: flex-start;
   }
+`
+
+const TopAlignedAnalyticsScreen = styled(AnalyticsScreen)`
+  align-items: flex-start;
+  padding-top: 3rem;
+  padding-bottom: 3rem;
 `
 
 const AnalyticsBg = styled.div`
@@ -2746,15 +2763,15 @@ function SimulationContent() {
 
   if (isComplete && !showReflection) {
     const primaryAction = canShowReflection ? (
-      <ContinueButton onClick={() => setShowReflection(true)} style={{ width: "100%" }}>
+      <FullWidthContinueButton onClick={() => setShowReflection(true)}>
         Continue to Reflection
         <ChevronRight size={18} />
-      </ContinueButton>
+      </FullWidthContinueButton>
     ) : hasAnalyticsContent ? (
-      <ContinueButton onClick={handleViewAnalytics} style={{ width: "100%" }}>
+      <FullWidthContinueButton onClick={handleViewAnalytics}>
         View Real-World Data
         <ChevronRight size={18} />
-      </ContinueButton>
+      </FullWidthContinueButton>
     ) : (
       <ButtonRow>
         <ReplayButton onClick={handleRestart}>
@@ -2812,16 +2829,7 @@ function SimulationContent() {
     const canViewAnalytics = allReflectionsAnswered && !submittingReflections
 
     return (
-      <CinematicScreen
-        style={{
-          minHeight: "100vh",
-          height: "auto",
-          overflowY: "auto",
-          alignItems: "flex-start",
-          paddingTop: "4rem",
-          paddingBottom: "4rem",
-        }}
-      >
+      <ScrollableCinematicScreen>
         <CinematicBg $url={resolveBackdropImage(currentPassage.image)} />
         <CinematicOverlay />
         <CinematicContent>
@@ -2889,7 +2897,7 @@ function SimulationContent() {
             </ReflectionHint>
           )}
         </CinematicContent>
-      </CinematicScreen>
+      </ScrollableCinematicScreen>
     )
   }
 
@@ -2897,7 +2905,7 @@ function SimulationContent() {
     // No stats, skip directly to action step
     if (analyticsStats.length === 0) {
       return (
-        <AnalyticsScreen $centered style={{ overflowY: "auto", alignItems: "flex-start", paddingTop: "3rem", paddingBottom: "3rem" }}>
+        <TopAlignedAnalyticsScreen $centered>
           <AnalyticsBg />
           <AnalyticsBody>
             <SectionTitle $marginBottom="0.5rem">How You Can Help</SectionTitle>
@@ -2966,7 +2974,7 @@ function SimulationContent() {
               </ContinueButton>
             </ButtonRow>
           </AnalyticsBody>
-        </AnalyticsScreen>
+        </TopAlignedAnalyticsScreen>
       )
     }
 
@@ -3037,7 +3045,7 @@ function SimulationContent() {
     // Step 3: How You Can Help
     if (analyticsStep >= 2) {
       return (
-        <AnalyticsScreen $centered style={{ overflowY: "auto", alignItems: "flex-start", paddingTop: "3rem", paddingBottom: "3rem" }}>
+        <TopAlignedAnalyticsScreen $centered>
           <AnalyticsBg />
           <AnalyticsBody>
             <SectionTitle $marginBottom="0.5rem">How You Can Help</SectionTitle>
@@ -3106,7 +3114,7 @@ function SimulationContent() {
               </ContinueButton>
             </ButtonRow>
           </AnalyticsBody>
-        </AnalyticsScreen>
+        </TopAlignedAnalyticsScreen>
       )
     }
   }

@@ -215,11 +215,11 @@ function InteractiveGlobe({
               <ringGeometry args={[0.07, 0.1, 24]} />
               <meshBasicMaterial color={pin.color} transparent opacity={0.35} side={THREE.DoubleSide} />
             </mesh>
-            <Html position={labelPos} style={{ pointerEvents: "auto" }}>
+            <InteractiveHtml position={labelPos}>
               <PinLabel $color={pin.color} onClick={() => onPinClick(pin.slug)}>
                 {pin.topic}
               </PinLabel>
-            </Html>
+            </InteractiveHtml>
           </group>
         );
       })}
@@ -432,6 +432,10 @@ const PinLabel = styled.button<{ $color?: string }>`
     box-shadow: 0 0 20px ${({ $color }) => $color ? `${$color}50` : "rgba(139,92,246,0.3)"};
   }
   &:focus-visible { outline: 2px solid ${({ $color }) => $color || "#a78bfa"}; outline-offset: 2px; }
+`;
+
+const InteractiveHtml = styled(Html)`
+  pointer-events: auto;
 `;
 
 const QuickStartCard = styled.div`
