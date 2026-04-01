@@ -98,11 +98,6 @@ const fadeIn = keyframes`
   to { opacity: 1; transform: translateY(0); }
 `;
 
-const shimmer = keyframes`
-  0% { background-position: -200% 0; }
-  100% { background-position: 200% 0; }
-`;
-
 const Page = styled.div`
   min-height: 100vh;
   color: #e2e8f0;
@@ -142,10 +137,8 @@ const Title = styled.h1`
 
 const GradientText = styled.span`
   background: linear-gradient(135deg, #a78bfa, #60a5fa, #c084fc);
-  background-size: 200% auto;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
-  animation: ${shimmer} 3s linear infinite;
 `;
 
 const Subtitle = styled.p`

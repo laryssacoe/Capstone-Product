@@ -45,7 +45,15 @@ const defaultResources = {
 
 const words_per_minute = 170
 const decision_seconds = 20
-const min_duration_minutes = 5
+const branch_overlap_multiplier = 0.6
+const min_duration_minutes = 10
+const max_duration_minutes = 35
+
+function normalizeDurationEstimate(raw: unknown): number {
+  const minutes =
+    typeof raw === "number" && Number.isFinite(raw) ? Math.round(raw) : min_duration_minutes
+  return Math.max(min_duration_minutes, Math.min(max_duration_minutes, minutes))
+}
 
 function asRecord(value: unknown): Record<string, any> {
   if (!value || typeof value !== "object" || Array.isArray(value)) {
@@ -111,8 +119,10 @@ function estimateDurationFromNodes(nodes: Array<Record<string, any>>): number {
 
   const readingMinutes = wordCount / words_per_minute
   const decisionMinutes = (decisionCount * decision_seconds) / 60
-  const total = Math.ceil(readingMinutes + decisionMinutes)
-  return Math.max(min_duration_minutes, total)
+  // A single playthrough only covers a subset of branched content.
+  const rawTotal = readingMinutes + decisionMinutes
+  const adjustedTotal = Math.ceil(rawTotal * branch_overlap_multiplier)
+  return normalizeDurationEstimate(adjustedTotal)
 }
 
 function buildSystemScenarios(records: Array<{
@@ -148,10 +158,11 @@ function buildSystemScenarios(records: Array<{
       typeof metadata.context === "string" && metadata.context.trim().length > 0
         ? metadata.context
         : issueDescription
-    const estimatedDuration =
+    const estimatedDuration = normalizeDurationEstimate(
       typeof metadata.estimatedDuration === "number"
         ? metadata.estimatedDuration
-        : record.estimatedMinutes ?? 15
+        : record.estimatedMinutes ?? 15,
+    )
 
     return {
       id: record.id,

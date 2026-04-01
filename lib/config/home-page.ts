@@ -33,7 +33,6 @@ export const HomePageConfig = {
         "Choose any experience in All Stories.",
         "Play, reflect, and view real-world data.",
       ],
-      tip: "Tip: The topic pins on the globe open specific stories directly.",
     },
   },
   globe: {

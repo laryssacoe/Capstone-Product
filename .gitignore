@@ -11,6 +11,7 @@ next-env.d.ts
 
 # Production
 /build
+/public/audios
 
 # Misc
 .DS_Store

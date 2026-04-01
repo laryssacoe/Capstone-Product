@@ -17,7 +17,7 @@ import { ProfileBubbleChip } from "@/components/profile-bubble-chip";
 import { loop_logo_url } from "@/lib/brand-assets";
 import { HomePageConfig, buildHomeStoryHref, type HomeGlobePin } from "@/lib/config/home-page";
 
-import { Globe, Heart, Brain, ChevronDown, Mail, X, Sparkles } from "lucide-react";
+import { Globe, Heart, Brain, ChevronDown, Mail, X } from "lucide-react";
 
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { OrbitControls, Environment, Html, Sphere } from "@react-three/drei";
@@ -764,7 +764,6 @@ export default function HomePage() {
             <QuickStartCard role="note" aria-label="How to start">
               <QuickStartHead>
                 <QuickStartTitle>
-                  <Sparkles size={15} />
                   {HomePageConfig.hero.quickStart.title}
                 </QuickStartTitle>
                 <QuickStartClose
